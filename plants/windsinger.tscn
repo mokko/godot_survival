@@ -1,0 +1,74 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="CylinderShape3D" id="Shape_trunk"]
+radius = 0.5
+height = 12.0
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+top_radius = 0.22
+bottom_radius = 0.55
+height = 12.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
+albedo_color = Color(0.62, 0.66, 0.6, 1)
+roughness = 0.8
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+inner_radius = 0.32
+outer_radius = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Mat_ring"]
+albedo_color = Color(0.7, 0.95, 1, 1)
+emission_enabled = true
+emission = Color(0.5, 0.9, 1, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="ConeMesh" id="Mesh_spine"]
+top_radius = 0.0
+bottom_radius = 0.05
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_spine"]
+albedo_color = Color(0.55, 0.6, 0.55, 1)
+roughness = 0.7
+
+[node name="Windsinger" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+shape = SubResource("Shape_trunk")
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+material_override = SubResource("Mat_trunk")
+mesh = SubResource("Mesh_trunk")
+
+[node name="Ring1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 0)
+material_override = SubResource("Mat_ring")
+mesh = SubResource("Mesh_ring")
+
+[node name="Ring2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
+material_override = SubResource("Mat_ring")
+mesh = SubResource("Mesh_ring")
+
+[node name="Spine1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 12.4, 0)
+material_override = SubResource("Mat_spine")
+mesh = SubResource("Mesh_spine")
+
+[node name="Spine2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26, 12.4, 0.15)
+material_override = SubResource("Mat_spine")
+mesh = SubResource("Mesh_spine")
+
+[node name="Spine3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.05, 12.4, -0.3)
+material_override = SubResource("Mat_spine")
+mesh = SubResource("Mesh_spine")
+
+[node name="Spine4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12.7, 0)
+material_override = SubResource("Mat_spine")
+mesh = SubResource("Mesh_spine")

@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="CylinderMesh" id="Mesh_stem"]
+top_radius = 0.06
+bottom_radius = 0.1
+height = 1.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+albedo_color = Color(0.6, 0.58, 0.55, 1)
+roughness = 0.95
+
+[sub_resource type="SphereMesh" id="Mesh_cap"]
+radius = 0.45
+height = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_cap"]
+albedo_color = Color(0.85, 0.8, 0.9, 1)
+roughness = 0.8
+emission_enabled = true
+emission = Color(0.7, 0.6, 0.8, 1)
+emission_energy_multiplier = 0.6
+
+[node name="Sporebell" type="Node3D"]
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+material_override = SubResource("Mat_stem")
+mesh = SubResource("Mesh_stem")
+
+[node name="Cap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.65, 0, 0, 0, 1, 0, 1.65, 0)
+material_override = SubResource("Mat_cap")
+mesh = SubResource("Mesh_cap")

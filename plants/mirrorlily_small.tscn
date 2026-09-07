@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="CylinderMesh" id="Mesh_disc"]
+top_radius = 0.5
+bottom_radius = 0.47
+height = 0.04
+
+[sub_resource type="StandardMaterial3D" id="Mat_mirror"]
+albedo_color = Color(0.75, 0.82, 0.9, 1)
+metallic = 1.0
+roughness = 0.05
+
+[sub_resource type="TorusMesh" id="Mesh_rim"]
+inner_radius = 0.46
+outer_radius = 0.52
+
+[sub_resource type="StandardMaterial3D" id="Mat_rim"]
+albedo_color = Color(0.15, 0.18, 0.22, 1)
+roughness = 0.9
+
+[node name="MirrorlilySmall" type="Node3D"]
+
+[node name="Disc" type="MeshInstance3D" parent="."]
+material_override = SubResource("Mat_mirror")
+mesh = SubResource("Mesh_disc")
+
+[node name="Rim" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 0)
+material_override = SubResource("Mat_rim")
+mesh = SubResource("Mesh_rim")

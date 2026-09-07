@@ -1,0 +1,63 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="SphereMesh" id="Mesh_shell"]
+radius = 0.3
+height = 0.6
+
+[sub_resource type="StandardMaterial3D" id="Mat_stone"]
+albedo_color = Color(0.55, 0.53, 0.5, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="Mesh_leg"]
+top_radius = 0.025
+bottom_radius = 0.025
+height = 0.22
+
+[sub_resource type="StandardMaterial3D" id="Mat_leg"]
+albedo_color = Color(0.4, 0.38, 0.36, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="Mesh_eye"]
+radius = 0.035
+height = 0.07
+
+[sub_resource type="StandardMaterial3D" id="Mat_eye"]
+albedo_color = Color(0.05, 0.05, 0.05, 1)
+roughness = 0.3
+
+[node name="Scuttler" type="Node3D"]
+
+[node name="Shell" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.3, 0, 0, 0, 0.55, 0, 0, 0, 1.05, 0, 0.28, 0)
+material_override = SubResource("Mat_stone")
+mesh = SubResource("Mesh_shell")
+
+[node name="Leg1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.11, -0.18)
+material_override = SubResource("Mat_leg")
+mesh = SubResource("Mesh_leg")
+
+[node name="Leg2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.11, -0.18)
+material_override = SubResource("Mat_leg")
+mesh = SubResource("Mesh_leg")
+
+[node name="Leg3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, 0.11, 0.12)
+material_override = SubResource("Mat_leg")
+mesh = SubResource("Mesh_leg")
+
+[node name="Leg4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, 0.11, 0.12)
+material_override = SubResource("Mat_leg")
+mesh = SubResource("Mesh_leg")
+
+[node name="Eye1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.34, -0.32)
+material_override = SubResource("Mat_eye")
+mesh = SubResource("Mesh_eye")
+
+[node name="Eye2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.34, -0.32)
+material_override = SubResource("Mat_eye")
+mesh = SubResource("Mesh_eye")

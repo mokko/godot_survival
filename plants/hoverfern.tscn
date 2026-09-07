@@ -1,0 +1,62 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="CylinderMesh" id="Mesh_stem"]
+top_radius = 0.03
+bottom_radius = 0.06
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+albedo_color = Color(0.3, 0.45, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="Mesh_spore"]
+radius = 0.1
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="Mat_spore"]
+albedo_color = Color(0.7, 0.5, 1, 1)
+emission_enabled = true
+emission = Color(0.6, 0.4, 1, 1)
+emission_energy_multiplier = 1.0
+
+[sub_resource type="ConeMesh" id="Mesh_leaf"]
+top_radius = 0.0
+bottom_radius = 0.07
+height = 0.45
+
+[node name="Hoverfern" type="Node3D"]
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+material_override = SubResource("Mat_stem")
+mesh = SubResource("Mesh_stem")
+
+[node name="Leaf1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.16, 0.42, 0)
+material_override = SubResource("Mat_stem")
+mesh = SubResource("Mesh_leaf")
+
+[node name="Leaf2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 0, -1, -1, 0, 0, -0.14, 0.42, 0.08)
+material_override = SubResource("Mat_stem")
+mesh = SubResource("Mesh_leaf")
+
+[node name="Leaf3" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 0, -1, -1, 0, 0, 0.05, 0.42, -0.16)
+material_override = SubResource("Mat_stem")
+mesh = SubResource("Mesh_leaf")
+
+[node name="Spore1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.9, 0.1)
+material_override = SubResource("Mat_spore")
+mesh = SubResource("Mesh_spore")
+
+[node name="Spore2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 1.05, 0.15)
+material_override = SubResource("Mat_spore")
+mesh = SubResource("Mesh_spore")
+
+[node name="Spore3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 1.2, -0.22)
+material_override = SubResource("Mat_spore")
+mesh = SubResource("Mesh_spore")

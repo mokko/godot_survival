@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+size = Vector3(0.7, 0.45, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="Mat_black"]
+albedo_color = Color(0.06, 0.06, 0.07, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="Mesh_head"]
+radius = 0.22
+height = 0.44
+
+[sub_resource type="BoxMesh" id="Mesh_eyes"]
+size = Vector3(0.36, 0.04, 0.04)
+
+[sub_resource type="StandardMaterial3D" id="Mat_eyes"]
+albedo_color = Color(1, 0.1, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.05, 0.05, 1)
+emission_energy_multiplier = 2.0
+
+[node name="Stalker" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -0.1)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_body")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, -0.85)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_head")
+
+[node name="LegFL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.22, -0.55)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_eyes")
+
+[node name="LegFR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.22, -0.55)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_eyes")
+
+[node name="LegBL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.22, 0.4)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_eyes")
+
+[node name="LegBR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.22, 0.4)
+material_override = SubResource("Mat_black")
+mesh = SubResource("Mesh_eyes")
+
+[node name="EyeStrip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -1.02)
+material_override = SubResource("Mat_eyes")
+mesh = SubResource("Mesh_eyes")

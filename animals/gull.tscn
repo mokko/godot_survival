@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="BoxMesh" id="Mesh_body"]
+size = Vector3(0.25, 0.2, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.85, 0.85, 0.82, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="Mesh_wing"]
+size = Vector3(2.0, 0.02, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wing"]
+albedo_color = Color(0.7, 0.72, 0.75, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh_tail"]
+size = Vector3(0.04, 0.04, 0.35)
+
+[node name="Gull" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+material_override = SubResource("Mat_body")
+mesh = SubResource("Mesh_body")
+
+[node name="WingL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 0.05, 0)
+material_override = SubResource("Mat_wing")
+mesh = SubResource("Mesh_wing")
+
+[node name="WingR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0, 0.05, 0)
+material_override = SubResource("Mat_wing")
+mesh = SubResource("Mesh_wing")
+
+[node name="Tail" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.4)
+material_override = SubResource("Mat_wing")
+mesh = SubResource("Mesh_tail")
