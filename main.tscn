@@ -4,7 +4,8 @@
 [ext_resource type="PackedScene" path="res://orb.tscn" id="2_orb"]
 
 [sub_resource type="Environment" id="Env_main"]
-background_mode = 1
+background_mode = 0
+background_color = Color(0.5, 0.5, 0.5, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.4, 0.45, 0.55, 1)
 ambient_light_energy = 0.6

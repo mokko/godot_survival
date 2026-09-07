@@ -5,6 +5,7 @@ const JUMP_VELOCITY = 4.5
 const START_LIFE = 20.0
 const LIFE_DRAIN_PER_SEC = 1.0
 const ORB_HEAL = 15.0
+const REGEN_RATE = 10.0   # life regained per second while downed (after game over)
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -15,6 +16,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE
 var _drain_accum: float = 0.0
+var _regen_accum: float = 0.0
 var _game_over: bool = false
 var orbs_collected: int = 0
 
@@ -57,6 +59,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if _game_over:
+		# Downed: slowly regenerate, get back up at full life.
+		_regen_accum += delta
+		while _regen_accum >= 1.0:
+			_regen_accum -= 1.0
+			life = minf(life + REGEN_RATE, START_LIFE)
+			if life >= START_LIFE:
+				_regen_accum = 0.0
+				_restart()
+				return
 		return
 
 	# Drain 1 life point per second.
@@ -93,6 +104,16 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, current_speed)
 
 	move_and_slide()
+
+
+func damage(amount: float) -> void:
+	if _game_over:
+		return
+	life = maxf(life - amount, 0.0)
+	if life <= 0.0:
+		_trigger_game_over()
+	else:
+		_update_hud()
 
 
 func heal(amount: float) -> void:
@@ -135,4 +156,4 @@ func _update_hud() -> void:
 	if life_label:
 		life_label.text = "Life: %d" % int(ceil(life))
 	if orb_label:
-		orb_label.text = "Orbs: %d" % orbs_collected
+		orb_label.text = "Sunbulbs: %d" % orbs_collected
