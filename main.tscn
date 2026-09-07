@@ -46,6 +46,39 @@ offset_bottom = 40.0
 text = "Orbs: 0"
 horizontal_alignment = 2
 
+[node name="Crosshair" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -11.0
+offset_top = -11.0
+offset_right = 11.0
+offset_bottom = 11.0
+mouse_filter = 2
+
+[node name="HLine" type="ColorRect" parent="HUD/Crosshair"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 10.0
+offset_bottom = -10.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="VLine" type="ColorRect" parent="HUD/Crosshair"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_right = -10.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
 [node name="GameOverContainer" type="CenterContainer" parent="HUD" unique_id=736515951 groups=["game_over_label"]]
 visible = false
 anchors_preset = 15
@@ -122,6 +155,7 @@ transform = Transform3D(1, 0, 0, 0, 1.0935413, 0, 0, 0, 1, 0, 0, 0)
 [node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.929348)
 
-[node name="Plants" parent="." instance=ExtResource("6_plants")]
+[node name="Plants" parent="." unique_id=126656746 instance=ExtResource("6_plants")]
 
-[node name="Animals" parent="." instance=ExtResource("7_animals")]
+[node name="Animals" parent="." unique_id=274652852 instance=ExtResource("7_animals")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8170018, 0)
