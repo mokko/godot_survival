@@ -139,8 +139,14 @@ func _restart() -> void:
 	_game_over = false
 	life = START_LIFE
 	_drain_accum = 0.0
+	_regen_accum = 0.0
 	orbs_collected = 0
+	velocity = Vector3.ZERO
 	camera.fov = FOV_DEFAULT
+	# Respawn at the game's starting point on the SW cape.
+	var island = load("res://island.gd")
+	var spawn: Vector3 = island.spawn_point()
+	global_position = spawn + Vector3(0.0, 0.5, 0.0)   # small clearance so we land, not clip
 	if game_over_label:
 		game_over_label.visible = false
 	# Re-capture mouse.
