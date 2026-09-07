@@ -2,23 +2,15 @@
 
 [ext_resource type="PackedScene" uid="uid://bp1ayer000000" path="res://player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://orb.tscn" id="2_orb"]
+[ext_resource type="PackedScene" path="res://scenes/terrain.tscn" id="3_terrain"]
+[ext_resource type="PackedScene" uid="uid://ktpyengs8xr1" path="res://scenes/water.tscn" id="4_water"]
 
 [sub_resource type="Environment" id="Env_main"]
-background_mode = 0
 background_color = Color(0.5, 0.5, 0.5, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.4, 0.45, 0.55, 1)
 ambient_light_energy = 0.6
 tonemap_mode = 2
-
-[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
-albedo_color = Color(0.35, 0.25, 0.15, 1)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-material = SubResource("GroundMaterial")
-size = Vector2(200, 200)
-
-[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
 
 [node name="Main" type="Node3D" unique_id=2073018650]
 
@@ -26,17 +18,10 @@ size = Vector2(200, 200)
 environment = SubResource("Env_main")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=892400352]
-transform = Transform3D(0.8320503, 0.2769187, 0.48063323, 0, 0.8664739, -0.49922234, -0.5547002, 0.4153781, 0.7209499, 0, 10, 0)
+transform = Transform3D(0.83205026, 0.2769187, 0.4806332, -0.31092045, 0.95039016, -0.009319816, -0.45936996, -0.14168414, 0.8768721, 0, 13.853693, 9.6492605)
 light_energy = 1.3
 
-[node name="Ground" type="MeshInstance3D" parent="." unique_id=679545094]
-material_override = SubResource("GroundMaterial")
-mesh = SubResource("PlaneMesh_ground")
-
-[node name="StaticBody3D" type="StaticBody3D" parent="Ground" unique_id=2023838727]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D" unique_id=859050048]
-shape = SubResource("WorldBoundaryShape3D_ground")
+[node name="Water" parent="." unique_id=1286861483 instance=ExtResource("4_water")]
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=991061207]
 
@@ -79,51 +64,54 @@ text = "Press ESC to start over"
 horizontal_alignment = 1
 
 [node name="Player" parent="." unique_id=1305561506 instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
 
 [node name="Orbs" type="Node3D" parent="." unique_id=1214481042]
 
 [node name="Orb1" parent="Orbs" unique_id=234079540 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.5, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 14.361109, -20)
 
 [node name="Orb2" parent="Orbs" unique_id=729478081 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 20.203749, -20)
 
 [node name="Orb3" parent="Orbs" unique_id=1987959602 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.5, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 11.503707, 20)
 
 [node name="Orb4" parent="Orbs" unique_id=1665067046 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 11.491187, 20)
 
 [node name="Orb5" parent="Orbs" unique_id=87680657 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 11.503707, 0)
 
 [node name="Orb6" parent="Orbs" unique_id=179656602 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 11.491187, 0)
 
 [node name="Orb7" parent="Orbs" unique_id=1770817593 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.394945, -40)
 
 [node name="Orb8" parent="Orbs" unique_id=2055474374 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.503707, 40)
 
 [node name="Orb9" parent="Orbs" unique_id=890253867 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.5, -32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 14.361109, -32)
 
 [node name="Orb10" parent="Orbs" unique_id=466979474 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0.5, -32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.060272, 14.742237, -37.71524)
 
 [node name="Orb11" parent="Orbs" unique_id=385646981 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.5, 32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 8.630524, 32)
 
 [node name="Orb12" parent="Orbs" unique_id=633529588 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0.5, 32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 11.491187, 32)
 
 [node name="Orb13" parent="Orbs" unique_id=576526972 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0.5, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 14.361109, -12)
 
 [node name="Orb14" parent="Orbs" unique_id=1841852346 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0.5, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.67647, 7.1647844, 20.801477)
 
 [node name="Orb15" parent="Orbs" unique_id=207959194 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.5, 48)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 8.435422, 48)
+
+[node name="Terrain" parent="." unique_id=1213454053 instance=ExtResource("3_terrain")]
+transform = Transform3D(1, 0, 0, 0, 1.0935413, 0, 0, 0, 1, 0, 0, 0)

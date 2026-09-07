@@ -11,7 +11,6 @@ const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
 const FOV_MAX = 150.0
 const FOV_DEFAULT = 75.0
-
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE

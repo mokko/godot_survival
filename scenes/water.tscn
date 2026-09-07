@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ktpyengs8xr1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_elfxw"]
 transparency = 1
@@ -9,24 +9,8 @@ roughness = 0.1
 [sub_resource type="PlaneMesh" id="PlaneMesh_bdk6y"]
 size = Vector2(900, 900)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s3811"]
-transparency = 1
-albedo_color = Color(0.08, 0.28, 0.4, 0.8)
-metallic = 0.2
-roughness = 0.1
+[node name="Water" type="Node3D" unique_id=1887854881]
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_p1n2c"]
-top_radius = 14.0
-bottom_radius = 14.0
-height = 0.1
-
-[node name="Water" type="Node3D" unique_id=1480635900]
-
-[node name="Sea" type="MeshInstance3D" parent="." unique_id=1272511532]
+[node name="Sea" type="MeshInstance3D" parent="." unique_id=1277581979]
 material_override = SubResource("StandardMaterial3D_elfxw")
 mesh = SubResource("PlaneMesh_bdk6y")
-
-[node name="CalderaLake" type="MeshInstance3D" parent="." unique_id=1150842914]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 2.5, -20)
-material_override = SubResource("StandardMaterial3D_s3811")
-mesh = SubResource("CylinderMesh_p1n2c")

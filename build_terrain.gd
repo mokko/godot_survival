@@ -49,13 +49,14 @@ func _build_terrain(island: GDScript) -> void:
 			# near-shore quads stay so beaches render.
 			if h00 < -1.5 and h01 < -1.5 and h10 < -1.5 and h11 < -1.5:
 				continue
-			# Two upward-facing triangles: (00,01,11) and (00,11,10).
+			# Two upward-facing triangles: Godot's front faces use CLOCKWISE
+			# winding, so order the verts clockwise when viewed from above.
 			_v(st, x0, h00, z0, island)
+			_v(st, x1, h11, z1, island)
 			_v(st, x0, h01, z1, island)
-			_v(st, x1, h11, z1, island)
 			_v(st, x0, h00, z0, island)
-			_v(st, x1, h11, z1, island)
 			_v(st, x1, h10, z0, island)
+			_v(st, x1, h11, z1, island)
 
 	st.generate_normals()
 	var mesh := st.commit()
@@ -68,6 +69,13 @@ func _build_terrain(island: GDScript) -> void:
 	var mat := StandardMaterial3D.new()
 	mat.vertex_color_use_as_albedo = true
 	mat.roughness = 1.0
+	# Procedural detail texture: vertex colors multiply with a noise-ish albedo
+	# so the ground isn't a flat blob of color up close. Triplanar, so no UVs
+	# are needed and the texture tiles in world space.
+	var tex := _make_detail_texture()
+	mat.albedo_texture = tex
+	mat.uv1_triplanar = true
+	mat.uv1_scale = Vector3(0.08, 0.08, 0.08)   # tile every ~12.5 world units
 	mi.material_override = mat
 	terrain_root.add_child(mi)
 	mi.owner = terrain_root
@@ -93,6 +101,48 @@ func _build_terrain(island: GDScript) -> void:
 func _v(st: SurfaceTool, x: float, h: float, z: float, island: GDScript) -> void:
 	st.set_color(_color_for(x, z, h, island))
 	st.add_vertex(Vector3(x, h, z))
+
+
+func _make_detail_texture() -> ImageTexture:
+	## 128x128 grayscale mottle, tileable, generated with value noise so the
+	## ground has up-close texture without any external asset files.
+	var size := 128
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	# Deterministic RNG so the texture is identical on every rebuild.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1337
+	# Random value grid at 3 octaves, bilinear-sampled and summed.
+	var grids: Array = []
+	for oct in [4, 8, 16]:
+		var g: Array = []
+		for i in (oct + 1) * (oct + 1):
+			g.append(rng.randf())
+		grids.append([oct, g])
+	for py in size:
+		for px in size:
+			var v := 0.0
+			for gi in grids.size():
+				var oct: int = grids[gi][0]
+				var g: Array = grids[gi][1]
+				var fx := float(px) / size * oct
+				var fy := float(py) / size * oct
+				var x0 := int(fx)
+				var y0 := int(fy)
+				var tx := fx - x0
+				var ty := fy - y0
+				# Smooth (smoothstep) bilinear for softer blobs.
+				var sx := tx * tx * (3.0 - 2.0 * tx)
+				var sy := ty * ty * (3.0 - 2.0 * ty)
+				var a: float = g[y0 * (oct + 1) + x0]
+				var b: float = g[y0 * (oct + 1) + x0 + 1]
+				var c: float = g[(y0 + 1) * (oct + 1) + x0]
+				var d: float = g[(y0 + 1) * (oct + 1) + x0 + 1]
+				var val := lerpf(lerpf(a, b, sx), lerpf(c, d, sx), sy)
+				v += val * [1.0, 0.5, 0.25][gi]
+			# Normalize 0..1.75 to ~0.75..1.25 grayscale (subtle mottle).
+			var g8 := int(clampf(0.75 + v / 1.75 * 0.5, 0.0, 1.0) * 255.0)
+			img.set_pixel(px, py, Color8(g8, g8, g8))
+	return ImageTexture.create_from_image(img)
 
 
 func _color_for(x: float, z: float, h: float, island: GDScript) -> Color:
