@@ -19,7 +19,7 @@ emission_enabled = true
 emission = Color(0.6, 0.4, 1, 1)
 emission_energy_multiplier = 1.0
 
-[sub_resource type="ConeMesh" id="Mesh_leaf"]
+[sub_resource type="CylinderMesh" id="Mesh_leaf"]
 top_radius = 0.0
 bottom_radius = 0.07
 height = 0.45

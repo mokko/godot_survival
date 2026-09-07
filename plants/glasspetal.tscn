@@ -9,7 +9,7 @@ height = 0.55
 albedo_color = Color(0.35, 0.45, 0.3, 1)
 roughness = 0.9
 
-[sub_resource type="ConeMesh" id="Mesh_bell"]
+[sub_resource type="CylinderMesh" id="Mesh_bell"]
 top_radius = 0.18
 bottom_radius = 0.02
 height = 0.4

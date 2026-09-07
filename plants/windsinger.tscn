@@ -23,7 +23,7 @@ emission_enabled = true
 emission = Color(0.5, 0.9, 1, 1)
 emission_energy_multiplier = 1.5
 
-[sub_resource type="ConeMesh" id="Mesh_spine"]
+[sub_resource type="CylinderMesh" id="Mesh_spine"]
 top_radius = 0.0
 bottom_radius = 0.05
 height = 0.8

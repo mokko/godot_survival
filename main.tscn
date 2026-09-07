@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" path="res://orb.tscn" id="2_orb"]
 [ext_resource type="PackedScene" path="res://scenes/terrain.tscn" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://ktpyengs8xr1" path="res://scenes/water.tscn" id="4_water"]
+[ext_resource type="PackedScene" path="res://plants/ghostsilk.tscn" id="5_lquwl"]
+[ext_resource type="PackedScene" path="res://plants/plants_placed.tscn" id="6_plants"]
+[ext_resource type="PackedScene" path="res://animals/animals_placed.tscn" id="7_animals"]
 
 [sub_resource type="Environment" id="Env_main"]
 background_color = Color(0.5, 0.5, 0.5, 1)
@@ -115,3 +118,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 8.435422, 48)
 
 [node name="Terrain" parent="." unique_id=1213454053 instance=ExtResource("3_terrain")]
 transform = Transform3D(1, 0, 0, 0, 1.0935413, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.929348)
+
+[node name="Plants" parent="." instance=ExtResource("6_plants")]
+
+[node name="Animals" parent="." instance=ExtResource("7_animals")]
