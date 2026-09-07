@@ -79,6 +79,12 @@ func _physics_process(delta: float) -> void:
 			_trigger_game_over()
 	_update_hud()
 
+	# Fell off the map (into the sea / off the terrain): die immediately
+	# and respawn at the start point. Ground is never below y = -4, and the
+	# seafloor sits around -3.5, so anything under -8 is off the map.
+	if global_position.y < -8.0:
+		_fall_death()
+
 	# Apply gravity when airborne.
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -132,6 +138,16 @@ func _trigger_game_over() -> void:
 		game_over_sound.play()
 	# Free the mouse so player can click.
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_update_hud()
+
+
+func _fall_death() -> void:
+	## Fell off the map: die instantly and respawn at the start point right
+	## away (no downed/regen waiting, no game-over screen to click through).
+	life = 0.0
+	if game_over_sound:
+		game_over_sound.play()
+	_restart()
 	_update_hud()
 
 
