@@ -5,7 +5,6 @@ const JUMP_VELOCITY = 4.5
 const START_LIFE = 20.0
 const LIFE_DRAIN_PER_SEC = 1.0
 const ORB_HEAL = 15.0
-const REGEN_RATE = 10.0   # life regained per second while downed (after game over)
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -15,7 +14,6 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE
 var _drain_accum: float = 0.0
-var _regen_accum: float = 0.0
 var _game_over: bool = false
 var orbs_collected: int = 0
 
@@ -58,15 +56,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if _game_over:
-		# Downed: slowly regenerate, get back up at full life.
-		_regen_accum += delta
-		while _regen_accum >= 1.0:
-			_regen_accum -= 1.0
-			life = minf(life + REGEN_RATE, START_LIFE)
-			if life >= START_LIFE:
-				_regen_accum = 0.0
-				_restart()
-				return
+		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
 
 	# Drain 1 life point per second.
@@ -142,20 +132,15 @@ func _trigger_game_over() -> void:
 
 
 func _fall_death() -> void:
-	## Fell off the map: die instantly and respawn at the start point right
-	## away (no downed/regen waiting, no game-over screen to click through).
+	## Fell off the map: show the game-over screen; ESC restarts at spawn.
 	life = 0.0
-	if game_over_sound:
-		game_over_sound.play()
-	_restart()
-	_update_hud()
+	_trigger_game_over()
 
 
 func _restart() -> void:
 	_game_over = false
 	life = START_LIFE
 	_drain_accum = 0.0
-	_regen_accum = 0.0
 	orbs_collected = 0
 	velocity = Vector3.ZERO
 	camera.fov = FOV_DEFAULT
