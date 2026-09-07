@@ -2,7 +2,7 @@ extends CharacterBody3D
 
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
-const START_LIFE = 20.0
+const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const ORB_HEAL = 15.0
 const MOUSE_SENSITIVITY = 0.002
@@ -16,6 +16,7 @@ var life: float = START_LIFE
 var _drain_accum: float = 0.0
 var _game_over: bool = false
 var orbs_collected: int = 0
+var _held_block: MovableBlock = null
 
 @onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
@@ -45,6 +46,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera.fov = max(camera.fov - ZOOM_SPEED, FOV_MIN)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			camera.fov = min(camera.fov + ZOOM_SPEED, FOV_MAX)
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			_toggle_grab()
 
 	# ESC frees the mouse (or triggers restart during game over).
 	if event.is_action_pressed("ui_cancel"):
@@ -52,6 +55,26 @@ func _unhandled_input(event: InputEvent) -> void:
 			_restart()
 		elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+## Crosshair interaction: grab or release the block under the crosshair.
+func _toggle_grab() -> void:
+	if _held_block != null:
+		_held_block.release()
+		_held_block = null
+		return
+	var space := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(
+			camera.global_position,
+			camera.global_position - camera.global_transform.basis.z * 5.0)
+	query.collide_with_bodies = true
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Object = hit["collider"]
+	if collider is MovableBlock:
+		_held_block = collider
+		_held_block.grab(camera)
 
 
 func _physics_process(delta: float) -> void:

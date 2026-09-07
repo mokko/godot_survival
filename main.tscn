@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://plants/ghostsilk.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" path="res://plants/plants_placed.tscn" id="6_plants"]
 [ext_resource type="PackedScene" path="res://animals/animals_placed.tscn" id="7_animals"]
+[ext_resource type="PackedScene" path="res://movable_block.tscn" id="8_5vw27"]
 
 [sub_resource type="Environment" id="Env_main"]
 background_color = Color(0.5, 0.5, 0.5, 1)
@@ -46,7 +47,7 @@ offset_bottom = 40.0
 text = "Orbs: 0"
 horizontal_alignment = 2
 
-[node name="Crosshair" type="Control" parent="HUD"]
+[node name="Crosshair" type="Control" parent="HUD" unique_id=1069155976]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -57,25 +58,31 @@ offset_left = -11.0
 offset_top = -11.0
 offset_right = 11.0
 offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="HLine" type="ColorRect" parent="HUD/Crosshair"]
+[node name="HLine" type="ColorRect" parent="HUD/Crosshair" unique_id=2060516754]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 10.0
 offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.85)
 
-[node name="VLine" type="ColorRect" parent="HUD/Crosshair"]
+[node name="VLine" type="ColorRect" parent="HUD/Crosshair" unique_id=1037254301]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
 offset_right = -10.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.85)
 
@@ -159,3 +166,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.92934
 
 [node name="Animals" parent="." unique_id=274652852 instance=ExtResource("7_animals")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8170018, 0)
+
+[node name="MovableBlock" parent="." unique_id=548078291 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
+
+[node name="Blocks" type="Node3D" parent="." unique_id=1689743588]
+
+[node name="Block1" parent="Blocks" unique_id=2136088590 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.5, 3, 78.5)
+mass = 10.0
+
+[node name="Block2" parent="Blocks" unique_id=1749879049 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 3, 77)
+mass = 10.0
+
+[node name="Block3" parent="Blocks" unique_id=2011982623 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -111.5, 3, 79.5)
+mass = 10.0
