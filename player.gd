@@ -53,9 +53,20 @@ func _ready() -> void:
 @onready var camera: Camera3D = $Camera3D
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
 @onready var game_over_sound: AudioStreamPlayer = $GameOverSound
+@onready var fade_in: CanvasLayer = get_node_or_null("../FadeIn")
+
+var _input_locked := false
+
+func _lock_check() -> bool:
+	# Live check: the fade overlay clears its own flag when done.
+	if fade_in != null:
+		_input_locked = fade_in.input_locked
+	return _input_locked
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _lock_check():
+		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Yaw the player (rotate around Y).
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
@@ -128,7 +139,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= gravity * delta
 
 	# Jump with Space.
-	if Input.is_action_just_pressed("jump") and is_on_floor():
+	if Input.is_action_just_pressed("jump") and is_on_floor() and not _lock_check():
 		velocity.y = JUMP_VELOCITY
 		_snd_jump.play()
 

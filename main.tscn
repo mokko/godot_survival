@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://plants/plants_placed.tscn" id="6_plants"]
 [ext_resource type="PackedScene" path="res://animals/animals_placed.tscn" id="7_animals"]
 [ext_resource type="PackedScene" path="res://movable_block.tscn" id="8_5vw27"]
+[ext_resource type="Script" path="res://fade_in.gd" id="10_fade"]
 
 [sub_resource type="Environment" id="Env_main"]
 background_color = Color(0.69, 0.79, 0.86, 1)
@@ -191,3 +192,13 @@ mass = 10.0
 
 [node name="MovableBlock" parent="Blocks" unique_id=548078291 instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
+
+[node name="FadeIn" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("10_fade")
+
+[node name="Rect" type="ColorRect" parent="FadeIn"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)
