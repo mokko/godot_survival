@@ -10,11 +10,17 @@
 [ext_resource type="PackedScene" path="res://movable_block.tscn" id="8_5vw27"]
 
 [sub_resource type="Environment" id="Env_main"]
-background_color = Color(0.5, 0.5, 0.5, 1)
+background_color = Color(0.69, 0.79, 0.86, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.4, 0.45, 0.55, 1)
 ambient_light_energy = 0.6
 tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.69, 0.79, 0.86, 1)
+fog_light_energy = 1.0
+fog_sun_scatter = 0.15
+fog_density = 0.005
+fog_sky_affect = 0.0
 
 [node name="Main" type="Node3D" unique_id=2073018650]
 
