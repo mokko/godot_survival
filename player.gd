@@ -18,18 +18,41 @@ var _game_over: bool = false
 var orbs_collected: int = 0
 var _held_block: MovableBlock = null
 
+var _snd_jump: AudioStreamPlayer
+var _snd_land: AudioStreamPlayer
+var _snd_step: AudioStreamPlayer
+var _snd_grab: AudioStreamPlayer
+var _snd_drop: AudioStreamPlayer
+var _was_on_floor := true
+var _step_accum := 0.0
+
+const STEP_INTERVAL := 0.35   # seconds between footsteps while walking
+
+func _make_snd(path: String, volume_db: float = 0.0) -> AudioStreamPlayer:
+	var p := AudioStreamPlayer.new()
+	p.stream = load(path)
+	p.volume_db = volume_db
+	add_child(p)
+	return p
+
+
+func _ready() -> void:
+	_snd_jump = _make_snd("res://sounds/jump.wav", -8.0)
+	_snd_land = _make_snd("res://sounds/land.wav", -6.0)
+	_snd_step = _make_snd("res://sounds/step.wav", -18.0)
+	_snd_grab = _make_snd("res://sounds/grab.wav", -10.0)
+	_snd_drop = _make_snd("res://sounds/drop.wav", -10.0)
+	_update_hud()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	camera.fov = FOV_DEFAULT
+
+
 @onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
 @onready var orb_label: Label = get_tree().get_first_node_in_group("orb_label")
 @onready var camera: Camera3D = $Camera3D
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
 @onready var game_over_sound: AudioStreamPlayer = $GameOverSound
-
-
-func _ready() -> void:
-	_update_hud()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	camera.fov = FOV_DEFAULT
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -62,6 +85,7 @@ func _toggle_grab() -> void:
 	if _held_block != null:
 		_held_block.release()
 		_held_block = null
+		_snd_drop.play()
 		return
 	var space := get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(
@@ -75,6 +99,7 @@ func _toggle_grab() -> void:
 	if collider is MovableBlock:
 		_held_block = collider
 		_held_block.grab(camera)
+		_snd_grab.play()
 
 
 func _physics_process(delta: float) -> void:
@@ -105,6 +130,7 @@ func _physics_process(delta: float) -> void:
 	# Jump with Space.
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
+		_snd_jump.play()
 
 	# WASD movement relative to player facing direction.
 	var input_dir := Input.get_vector("move_left", "move_right", "move_back", "move_forward")
@@ -122,6 +148,20 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, current_speed)
 
 	move_and_slide()
+
+	# Landing sound: transition from airborne to on-floor.
+	if is_on_floor() and not _was_on_floor and velocity.y <= 0.0:
+		_snd_land.play()
+	_was_on_floor = is_on_floor()
+
+	# Footsteps while moving on the ground.
+	if is_on_floor() and direction.length() > 0.1:
+		_step_accum += delta * (2.0 if current_speed > SPEED else 1.0)
+		if _step_accum >= STEP_INTERVAL:
+			_step_accum = 0.0
+			_snd_step.play()
+	else:
+		_step_accum = STEP_INTERVAL   # ready to step immediately on move
 
 
 func damage(amount: float) -> void:
