@@ -16,11 +16,13 @@ ambient_light_color = Color(0.4, 0.45, 0.55, 1)
 ambient_light_energy = 0.6
 tonemap_mode = 2
 fog_enabled = true
+fog_mode = 1
 fog_light_color = Color(0.69, 0.79, 0.86, 1)
-fog_light_energy = 1.0
-fog_sun_scatter = 0.15
-fog_density = 0.005
+fog_density = 0.205
 fog_sky_affect = 0.0
+fog_depth_curve = 0.5000006
+fog_depth_begin = 0.0
+fog_depth_end = 2814.1
 
 [node name="Main" type="Node3D" unique_id=2073018650]
 
@@ -173,9 +175,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.92934
 [node name="Animals" parent="." unique_id=274652852 instance=ExtResource("7_animals")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8170018, 0)
 
-[node name="MovableBlock" parent="." unique_id=548078291 instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
-
 [node name="Blocks" type="Node3D" parent="." unique_id=1689743588]
 
 [node name="Block1" parent="Blocks" unique_id=2136088590 instance=ExtResource("8_5vw27")]
@@ -189,3 +188,6 @@ mass = 10.0
 [node name="Block3" parent="Blocks" unique_id=2011982623 instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -111.5, 3, 79.5)
 mass = 10.0
+
+[node name="MovableBlock" parent="Blocks" unique_id=548078291 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
