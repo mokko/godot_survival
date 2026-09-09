@@ -1,6 +1,6 @@
 extends Node3D
 ## Lantern Drifter — slow wind drift + vertical bob, ignores the player
-## (animals.md #3). Softly steers back toward the wetlands when it drifts
+## (fauna/animals.md #3). Softly steers back toward the wetlands when it drifts
 ## over the coast or out to sea.
 
 const Island := preload("res://world/island.gd")

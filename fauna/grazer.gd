@@ -1,5 +1,5 @@
 extends Node3D
-## Velvetback Grazer — wander-flee NPC (animals.md #1).
+## Velvetback Grazer — wander-flee NPC (fauna/animals.md #1).
 ## IDLE 2-6 s -> walk to a nearby point 3-8 units away -> repeat.
 ## Player within 6 units: flee directly away at 2x walk speed for 4 s.
 

@@ -131,4 +131,4 @@ island after Hokkaido's old name. Nobody has bothered naming the planet yet.
 | 11 | Pulsegrass | SW Cape, Massif | ambiance, compass |
 | 12 | Ghostsilk | everywhere, esp. NE Cape | zone marker |
 
-*Status: draft for approval. Godot step comes after plants.md + animals.md are approved.*
+*Status: draft for approval. Godot step comes after plants.md + fauna/animals.md are approved.*

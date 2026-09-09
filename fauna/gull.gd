@@ -1,5 +1,5 @@
 extends Node3D
-## Windvane Gull — orbits a fixed anchor point (animals.md #4).
+## Windvane Gull — orbits a fixed anchor point (fauna/animals.md #4).
 ## Never lands; flocks circle landmarks (massif, caldera). The integrator
 ## sets anchor / orbit_radius / orbit_height / angular_speed per gull.
 

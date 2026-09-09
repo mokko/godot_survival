@@ -1,5 +1,5 @@
 extends Node3D
-## Rippleback — the caldera mystery (animals.md #6). Swims a rounded-triangle
+## Rippleback — the caldera mystery (fauna/animals.md #6). Swims a rounded-triangle
 ## loop under the lake surface; every 40-70 s surfaces for 5 s, then dives.
 ## Pure ambiance: never interacts with the player.
 

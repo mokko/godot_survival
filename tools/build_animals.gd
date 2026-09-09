@@ -5,7 +5,7 @@ extends SceneTree
 
 const SEED := 20260907
 
-# species -> placements [biome, count]. Counts follow animals.md herd sizes.
+# species -> placements [biome, count]. Counts follow fauna/animals.md herd sizes.
 const PLAN := {
 	"grazer": {scene = "res://fauna/grazer.tscn",
 		placements = [["sw_cape", 4], ["wetlands", 4], ["anywhere", 4]]},

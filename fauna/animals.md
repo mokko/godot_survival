@@ -68,4 +68,4 @@ documents its movement pattern precisely enough to become a short GDScript state
 - Gulls nest in Windsinger trunks; gulls circling = landmark below.
 - Scuttlers trim Embermoss; Rippleback does whatever Rippleback does.
 
-*Status: draft for approval. Godot step comes after flora/plants.md + animals.md are approved.*
+*Status: draft for approval. Godot step comes after flora/plants.md + fauna/animals.md are approved.*

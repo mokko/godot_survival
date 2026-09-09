@@ -1,6 +1,6 @@
 extends Node3D
 ## Pebble Scuttler — hop-scuttle NPC, body always facing the player
-## (animals.md #2). Picks a random point 2-5 units away, scuttles sideways
+## (fauna/animals.md #2). Picks a random point 2-5 units away, scuttles sideways
 ## to it with a little hop, pauses, repeats. Flees within 3 units.
 
 const Island := preload("res://world/island.gd")

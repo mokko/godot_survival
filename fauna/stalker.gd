@@ -1,5 +1,5 @@
 extends Node3D
-## Dusk Stalker — patrol-chase NPC (animals.md #5). The island's only real
+## Dusk Stalker — patrol-chase NPC (fauna/animals.md #5). The island's only real
 ## danger. Patrols 2 points inside a territory; chases the player when they
 ## are within sight radius AND inside the territory; contact does damage
 ## with a grace cooldown; gives up outside territory or after CHASE_TIME.
