@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bp1ayer000000"]
 
 [ext_resource type="Script" uid="uid://ckqqqfm5rt87e" path="res://player/player.gd" id="1_player"]
-[ext_resource type="AudioStream" uid="uid://cvrvj16vgpxk7" path="res://orb_pickup.wav" id="2_sound"]
-[ext_resource type="AudioStream" uid="uid://be8twbqk47ggu" path="res://game_over.wav" id="3_gameover_sound"]
+[ext_resource type="AudioStream" uid="uid://cvrvj16vgpxk7" path="res://sounds/orb_pickup.wav" id="2_sound"]
+[ext_resource type="AudioStream" uid="uid://be8twbqk47ggu" path="res://sounds/game_over.wav" id="3_gameover_sound"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
 radius = 0.4
