@@ -1,0 +1,204 @@
+[gd_scene format=3 uid="uid://bma1n0000001"]
+
+[ext_resource type="PackedScene" uid="uid://bp1ayer000000" path="res://player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://orb/orb.tscn" id="2_orb"]
+[ext_resource type="PackedScene" path="res://world/terrain.tscn" id="3_terrain"]
+[ext_resource type="PackedScene" uid="uid://ktpyengs8xr1" path="res://world/water.tscn" id="4_water"]
+[ext_resource type="PackedScene" path="res://flora/ghostsilk.tscn" id="5_lquwl"]
+[ext_resource type="PackedScene" path="res://flora/plants_placed.tscn" id="6_plants"]
+[ext_resource type="PackedScene" path="res://fauna/animals_placed.tscn" id="7_animals"]
+[ext_resource type="PackedScene" path="res://world/movable_block.tscn" id="8_5vw27"]
+[ext_resource type="Script" path="res://ui/fade_in.gd" id="10_fade"]
+
+[sub_resource type="Environment" id="Env_main"]
+background_color = Color(0.69, 0.79, 0.86, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.45, 0.55, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 2
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.69, 0.79, 0.86, 1)
+fog_density = 0.205
+fog_sky_affect = 0.0
+fog_depth_curve = 0.5000006
+fog_depth_begin = 0.0
+fog_depth_end = 2814.1
+
+[node name="Main" type="Node3D" unique_id=2073018650]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1709939004]
+environment = SubResource("Env_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=892400352]
+transform = Transform3D(0.83205026, 0.2769187, 0.4806332, -0.31092045, 0.95039016, -0.009319816, -0.45936996, -0.14168414, 0.8768721, 0, 13.853693, 9.6492605)
+light_energy = 1.3
+
+[node name="Water" parent="." unique_id=1286861483 instance=ExtResource("4_water")]
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=991061207]
+
+[node name="LifeLabel" type="Label" parent="HUD" unique_id=171353629 groups=["life_label"]]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 40.0
+text = "Life: 100"
+
+[node name="OrbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["orb_label"]]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -190.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+text = "Orbs: 0"
+horizontal_alignment = 2
+
+[node name="Crosshair" type="Control" parent="HUD" unique_id=1069155976]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -11.0
+offset_top = -11.0
+offset_right = 11.0
+offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HLine" type="ColorRect" parent="HUD/Crosshair" unique_id=2060516754]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="VLine" type="ColorRect" parent="HUD/Crosshair" unique_id=1037254301]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_right = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="GameOverContainer" type="CenterContainer" parent="HUD" unique_id=736515951 groups=["game_over_label"]]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="HUD/GameOverContainer" unique_id=1455638425]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="HUD/GameOverContainer/VBox" unique_id=1887697872]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="HUD/GameOverContainer/VBox" unique_id=1918249548]
+layout_mode = 2
+text = "Press ESC to start over"
+horizontal_alignment = 1
+
+[node name="Player" parent="." unique_id=1305561506 instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
+
+[node name="Orbs" type="Node3D" parent="." unique_id=1214481042]
+
+[node name="Orb1" parent="Orbs" unique_id=234079540 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 14.361109, -20)
+
+[node name="Orb2" parent="Orbs" unique_id=729478081 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 20.203749, -20)
+
+[node name="Orb3" parent="Orbs" unique_id=1987959602 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 11.503707, 20)
+
+[node name="Orb4" parent="Orbs" unique_id=1665067046 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 11.491187, 20)
+
+[node name="Orb5" parent="Orbs" unique_id=87680657 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 11.503707, 0)
+
+[node name="Orb6" parent="Orbs" unique_id=179656602 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 11.491187, 0)
+
+[node name="Orb7" parent="Orbs" unique_id=1770817593 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.394945, -40)
+
+[node name="Orb8" parent="Orbs" unique_id=2055474374 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.503707, 40)
+
+[node name="Orb9" parent="Orbs" unique_id=890253867 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 14.361109, -32)
+
+[node name="Orb10" parent="Orbs" unique_id=466979474 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.060272, 14.742237, -37.71524)
+
+[node name="Orb11" parent="Orbs" unique_id=385646981 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 8.630524, 32)
+
+[node name="Orb12" parent="Orbs" unique_id=633529588 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 11.491187, 32)
+
+[node name="Orb13" parent="Orbs" unique_id=576526972 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 14.361109, -12)
+
+[node name="Orb14" parent="Orbs" unique_id=1841852346 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.67647, 7.1647844, 20.801477)
+
+[node name="Orb15" parent="Orbs" unique_id=207959194 instance=ExtResource("2_orb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 8.435422, 48)
+
+[node name="Terrain" parent="." unique_id=1213454053 instance=ExtResource("3_terrain")]
+transform = Transform3D(1, 0, 0, 0, 1.0935413, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.929348)
+
+[node name="Plants" parent="." unique_id=126656746 instance=ExtResource("6_plants")]
+
+[node name="Animals" parent="." unique_id=274652852 instance=ExtResource("7_animals")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8170018, 0)
+
+[node name="Blocks" type="Node3D" parent="." unique_id=1689743588]
+
+[node name="Block1" parent="Blocks" unique_id=2136088590 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.5, 3, 78.5)
+mass = 10.0
+
+[node name="Block2" parent="Blocks" unique_id=1749879049 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 3, 77)
+mass = 10.0
+
+[node name="Block3" parent="Blocks" unique_id=2011982623 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -111.5, 3, 79.5)
+mass = 10.0
+
+[node name="MovableBlock" parent="Blocks" unique_id=548078291 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
+
+[node name="FadeIn" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("10_fade")
+
+[node name="Rect" type="ColorRect" parent="FadeIn"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)

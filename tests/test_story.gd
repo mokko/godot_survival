@@ -3,7 +3,7 @@ extends SceneTree
 ## straight into the game (no skip-then-confirm two-stage).
 
 func _init() -> void:
-	var story = load("res://story.tscn").instantiate()
+	var story = load("res://ui/story.tscn").instantiate()
 	root.add_child(story)
 	var label: Label = story.get_node("Center/VBox/Text")
 	for i in 20:

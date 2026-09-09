@@ -3,7 +3,7 @@ extends SceneTree
 ## game-over screen and stays dead (ESC restarts at spawn).
 
 func _init() -> void:
-	var main = load("res://main.tscn").instantiate()
+	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
 	var player: CharacterBody3D = main.get_node("Player")
 	for i in 60:

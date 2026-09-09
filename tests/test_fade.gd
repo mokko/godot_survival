@@ -2,7 +2,7 @@ extends SceneTree
 ## Headless check: fade overlay locks input for ~0.75s, then unlocks.
 
 func _init() -> void:
-	var main = load("res://main.tscn").instantiate()
+	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
 	var fade = main.get_node("FadeIn")
 	var player: CharacterBody3D = main.get_node("Player")

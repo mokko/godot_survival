@@ -2,7 +2,7 @@ extends SceneTree
 ## Debug: where do the blocks actually end up?
 
 func _init() -> void:
-	var main = load("res://main.tscn").instantiate()
+	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
 	var blocks = main.get_node("Blocks")
 	var player: CharacterBody3D = main.get_node("Player")

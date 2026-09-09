@@ -16,7 +16,7 @@ This file (how it's BUILT): file ownership, technical constraints, integration c
 
 ## island.gd API (stable — do not edit, do not duplicate)
 
-`class_name Ezo` — static functions, preload with `const Ezo := preload("res://island.gd")`:
+`class_name Ezo` — static functions, preload with `const Ezo := preload("res://world/island.gd")`:
 
 - `Ezo.height_at(x: float, z: float) -> float` — terrain height; offshore ≈ −3.5.
 - `Ezo.is_land(x, z) -> bool` / `Ezo.is_water(x, z) -> bool`

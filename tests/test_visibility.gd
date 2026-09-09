@@ -3,7 +3,7 @@ extends SceneTree
 ## Walks the plant list, projects each onto the viewport, counts on-screen.
 
 func _init() -> void:
-	var main = load("res://main.tscn").instantiate()
+	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
 	for i in 30:
 		await physics_frame
