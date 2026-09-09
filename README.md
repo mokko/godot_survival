@@ -20,20 +20,25 @@ of these need to be fantastic.
 
 ## Running
 
-Requires [Godot 4](https://godotengine.org) (developed on 4.7):
+Requires **Godot 4.7** (developed and tested on `4.7.stable.mono`; installed
+via snap on this machine, run as `snap run godot-4`):
 
 ```bash
 godot --path .
 ```
 
-On this machine Godot is installed via snap: `snap run godot-4`.
-
 ## Development
 
-Tests live in `tests/` and run headless:
+Tests live in `tests/` and run headless. Run one:
 
 ```bash
 flock /tmp/survivalm-godot.lock snap run godot-4 --headless --script res://tests/test_boot.gd
+```
+
+Or run the whole suite with a pass/fail summary:
+
+```bash
+tests/run_all.sh
 ```
 
 Project layout:

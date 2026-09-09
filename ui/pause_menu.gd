@@ -16,9 +16,7 @@ const SAVE_PATH := "user://savegame.json"
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	resume_btn.pressed.connect(_on_resume)
-	save_btn.pressed.connect(_on_save)
-	quit_btn.pressed.connect(_on_quit)
+	# Button presses are wired via [connection] entries in pause_menu.tscn.
 
 
 func open() -> void:

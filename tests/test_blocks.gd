@@ -33,5 +33,6 @@ func _init() -> void:
 	player._toggle_grab()
 	var released: bool = player._held_block == null
 	print("CHECK grabbed=%s dist=%.1f released=%s" % [grabbed, dist, released])
-	quit(0 if (blocks.get_child_count() == 3 and settled >= 2
+	# 4 blocks: 3 placed by us + 1 manually placed in the editor.
+	quit(0 if (blocks.get_child_count() == 4 and settled == 4
 			and grabbed and released and dist < 4.5) else 1)
