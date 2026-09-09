@@ -45,6 +45,8 @@ func _ready() -> void:
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = FOV_DEFAULT
+	if pause_menu != null:
+		pause_requested.connect(pause_menu.open)
 
 
 @onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
@@ -54,8 +56,11 @@ func _ready() -> void:
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
 @onready var game_over_sound: AudioStreamPlayer = $GameOverSound
 @onready var fade_in: CanvasLayer = get_node_or_null("../FadeIn")
+@onready var pause_menu: Control = get_node_or_null("../HUD/PauseMenu")
 
 var _input_locked := false
+
+signal pause_requested
 
 func _lock_check() -> bool:
 	# Live check: the fade overlay clears its own flag when done.
@@ -83,12 +88,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			_toggle_grab()
 
-	# ESC frees the mouse (or triggers restart during game over).
+	# ESC: restart on the death screen, otherwise open the pause menu.
 	if event.is_action_pressed("ui_cancel"):
 		if _game_over:
 			_restart()
 		elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			pause_requested.emit()
 
 
 ## Crosshair interaction: grab or release the block under the crosshair.

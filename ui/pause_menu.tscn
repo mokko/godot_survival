@@ -1,0 +1,63 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pause_menu.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="Style_panel"]
+bg_color = Color(0.08, 0.08, 0.1, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PauseMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="Resume" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Continue"
+
+[node name="Save" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Save"
+
+[node name="Quit" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Quit to Menu"
+
+[connection signal="pressed" from="Center/Panel/VBox/Resume" to="." method="_on_resume"]
+[connection signal="pressed" from="Center/Panel/VBox/Save" to="." method="_on_save"]
+[connection signal="pressed" from="Center/Panel/VBox/Quit" to="." method="_on_quit"]

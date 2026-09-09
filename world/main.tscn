@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://fauna/animals_placed.tscn" id="7_animals"]
 [ext_resource type="PackedScene" path="res://world/movable_block.tscn" id="8_5vw27"]
 [ext_resource type="Script" path="res://ui/fade_in.gd" id="10_fade"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
 
 [sub_resource type="Environment" id="Env_main"]
 background_color = Color(0.69, 0.79, 0.86, 1)
@@ -37,6 +38,8 @@ light_energy = 1.3
 [node name="Water" parent="." unique_id=1286861483 instance=ExtResource("4_water")]
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=991061207]
+
+[node name="PauseMenu" parent="HUD" instance=ExtResource("11_pause")]
 
 [node name="LifeLabel" type="Label" parent="HUD" unique_id=171353629 groups=["life_label"]]
 offset_left = 10.0

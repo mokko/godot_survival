@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://cvrvj16vgpxk7"
-path="res://.godot/imported/orb_pickup.wav-afec89f8a7685fc6431964e6ba835d09.sample"
+path="res://.godot/imported/orb_pickup.wav-9dd2ea1257f85e40b21e770e659330ca.sample"
 
 [deps]
 
-source_file="res://orb_pickup.wav"
-dest_files=["res://.godot/imported/orb_pickup.wav-afec89f8a7685fc6431964e6ba835d09.sample"]
+source_file="res://sounds/orb_pickup.wav"
+dest_files=["res://.godot/imported/orb_pickup.wav-9dd2ea1257f85e40b21e770e659330ca.sample"]
 
 [params]
 
