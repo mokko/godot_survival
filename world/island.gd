@@ -6,7 +6,7 @@ class_name Ezo
 ## functions, so there is exactly one source of truth for the world shape.
 ##
 ## NOTE: throughout this API, Vector2(x, z) stores the Godot Z in .y.
-## Design canon: plants.md and animals.md. Build plan: WORLD_SPEC.md.
+## Design canon: flora/plants.md and fauna/animals.md. Build plan: WORLD_SPEC.md.
 
 # ------------------------------------------------------------------ constants
 

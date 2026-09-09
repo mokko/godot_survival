@@ -1,6 +1,6 @@
 extends SceneTree
 ## Fauna builder — bakes animals/animals_placed.tscn: all 6 species scattered
-## by biome using island.gd (plants.md / animals.md canon).
+## by biome using island.gd (flora/plants.md / fauna/animals.md canon).
 ## Run: cd project && snap run godot-4 --headless --script res://tools/build_animals.gd
 
 const SEED := 20260907

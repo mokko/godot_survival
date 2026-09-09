@@ -1,7 +1,7 @@
 # WORLD_SPEC.md — Ezo build contract
 
 Read this first. It is the single source of truth for how the world is assembled.
-Worldbuilding canon (what things ARE): `plants.md`, `animals.md`.
+Worldbuilding canon (what things ARE): `flora/plants.md`, `fauna/animals.md`.
 World math (where things ARE): `island.gd` — read it before writing any placement code.
 This file (how it's BUILT): file ownership, technical constraints, integration contract.
 

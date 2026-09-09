@@ -6,7 +6,7 @@ extends SceneTree
 const SEED := 20260906
 
 # species -> {scene, placements: [biome or ["grove", center_biome, count, spread]]}
-# Counts follow plants.md. "inland" filters out the beach band via signed_distance.
+# Counts follow flora/plants.md. "inland" filters out the beach band via signed_distance.
 const PLAN := {
 	"windsinger": {"scene": "res://flora/windsinger.tscn", "mode": "groves",
 		"groves": [["massif", 5], ["massif", 7], ["massif", 4], ["ne_cape", 5]]},
@@ -31,7 +31,7 @@ const PLAN := {
 	"frostneedle": {"scene": "res://flora/frostneedle.tscn", "mode": "ring",
 		"center": Vector2(-5.0, -20.0), "r_min": 12.0, "r_max": 48.0, "count": 90},
 	"pulsegrass": {"scene": "res://flora/pulsegrass.tscn", "mode": "biome",
-		"placements": []},  # shader-pass placeholder; zero instances (plants.md)
+		"placements": []},  # shader-pass placeholder; zero instances (flora/plants.md)
 }
 const GHOSTSILK := {"scene": "res://flora/ghostsilk.tscn", "count": 15,
 	"hosts": ["frostneedle", "windsinger", "sunbulb"]}
