@@ -1,3 +1,6 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# editor lock files (.#<name> symlinks while a file is open in the editor)
+.#*
