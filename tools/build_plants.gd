@@ -44,7 +44,7 @@ var _placed_positions := {}  # species -> Array[Vector3]
 
 func _init() -> void:
 	_rng.seed = SEED
-	DirAccess.open("res://").make_dir_recursive("plants")
+	DirAccess.open("res://").make_dir_recursive("flora")
 	_root = Node3D.new()
 	_root.name = "Plants"
 	for species in PLAN:
@@ -122,7 +122,7 @@ func _silk() -> void:
 		var r := _rng.randf_range(1.0, 2.5)
 		var p := base + Vector3(cos(a) * r, 0.0, sin(a) * r)
 		if Ezo.is_land(p.x, p.z):
-			_place(scene, Vector3(p.x, Ezo.height_at(p.x, p.z), p.y if false else Ezo.height_at(p.x, p.z)), "ghostsilk")
+			_place(scene, Vector3(p.x, Ezo.height_at(p.x, p.z), p.z), "ghostsilk")
 
 
 func _place(scene: PackedScene, pos: Vector3, species: String) -> void:
