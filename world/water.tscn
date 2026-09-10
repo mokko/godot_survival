@@ -7,7 +7,7 @@ metallic = 0.2
 roughness = 0.1
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_qmfkg"]
-size = Vector2(900, 900)
+size = Vector2(1700, 1700)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j0s52"]
 transparency = 1
@@ -20,13 +20,13 @@ top_radius = 14.0
 bottom_radius = 14.0
 height = 0.1
 
-[node name="Water" type="Node3D" unique_id=37788373]
+[node name="Water" type="Node3D" unique_id=1065986565]
 
-[node name="Sea" type="MeshInstance3D" parent="." unique_id=738903893]
+[node name="Sea" type="MeshInstance3D" parent="." unique_id=91433648]
 material_override = SubResource("StandardMaterial3D_0ftyd")
 mesh = SubResource("PlaneMesh_qmfkg")
 
-[node name="CalderaLake" type="MeshInstance3D" parent="." unique_id=1493915912]
+[node name="CalderaLake" type="MeshInstance3D" parent="." unique_id=256400408]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 2.5, -20)
 material_override = SubResource("StandardMaterial3D_j0s52")
 mesh = SubResource("CylinderMesh_wh02e")

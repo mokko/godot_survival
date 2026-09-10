@@ -5,10 +5,10 @@ extends SceneTree
 
 const STEP := 2.5
 const MARGIN := 15.0
-const X_MIN := -165.0
-const X_MAX := 150.0
-const Z_MIN := -133.0
-const Z_MAX := 130.0
+const X_MIN := -210.0
+const X_MAX := 410.0
+const Z_MIN := -150.0
+const Z_MAX := 760.0
 
 const COL_SAND := Color(0.76, 0.7, 0.5)
 const COL_GRASS := Color(0.3, 0.45, 0.22)
@@ -174,7 +174,7 @@ func _build_water() -> void:
 	var sea_mi := MeshInstance3D.new()
 	sea_mi.name = "Sea"
 	var sea_mesh := PlaneMesh.new()
-	sea_mesh.size = Vector2(900.0, 900.0)
+	sea_mesh.size = Vector2(1700.0, 1700.0)
 	sea_mi.mesh = sea_mesh
 	sea_mi.material_override = _water_mat(Color(0.1, 0.3, 0.45, 0.72))
 	water.add_child(sea_mi)

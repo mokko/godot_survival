@@ -51,9 +51,12 @@ func _init() -> void:
 	var p2: CharacterBody3D = main.get_node("Player")
 	# life drains 1/s, so restored 33.0 shows up as just under 33 — but never
 	# as the fresh-start 40. Orbs never drain and prove the restore too.
+	# Position: compare horizontally; the save carries a +0.5 landing clearance.
+	var dxz := Vector2(p2.global_position.x, p2.global_position.z).distance_to(
+			Vector2(saved_pos.x, saved_pos.z))
 	var load_ok: bool = p2.life < 39.0 and p2.life > 31.0 \
 			and p2.sunbulbs_collected == 5 \
-			and p2.global_position.distance_to(saved_pos) < 0.5 \
+			and dxz < 1.0 \
 			and SAVEGAME.pending_load == false
 
 	print("RESULT hidden=%s save=%s visible=%s load=%s" % [hidden_ok, roundtrip_ok, visible_ok, load_ok])

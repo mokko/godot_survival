@@ -12,14 +12,24 @@ func _init() -> void:
 	print("=== Ezo world math self-test ===")
 	_check(EzoScript.is_land(EzoScript.SPAWN_XZ.x, EzoScript.SPAWN_XZ.y), "spawn point is on land")
 	_check(EzoScript.is_land(0.0, 0.0), "island center is on land")
-	_check(not EzoScript.is_land(0.0, 300.0), "far south is sea")
-	_check(not EzoScript.is_land(300.0, 0.0), "far east is sea")
+	_check(not EzoScript.is_land(0.0, 800.0), "far south is sea")
+	_check(not EzoScript.is_land(600.0, 0.0), "far east is sea")
 	var peak: float = EzoScript.height_at(-5.0, -20.0)
 	_check(peak > 8.0, "central massif is tall (h=%.1f)" % peak)
 	var bowl: float = EzoScript.height_at(EzoScript.CALDERA_CENTER.x, EzoScript.CALDERA_CENTER.y)
 	_check(bowl < EzoScript.LAKE_LEVEL - 1.5, "caldera bowl below lake level (h=%.1f)" % bowl)
 	_check(EzoScript.height_at(155.0, 140.0) < -3.0, "offshore is seafloor")
-	for biome in ["sw_cape", "wetlands", "ne_cape", "massif", "coast", "anywhere"]:
+	# --- Japan archipelago checks ---
+	_check(EzoScript.is_land(-10.0, 680.0), "Shikoku is land")
+	_check(EzoScript.is_land(-60.0, 655.0), "Kyushu (Aso) is land")
+	_check(EzoScript.height_at(36.0, 297.0) > 8.0, "Honshu Alps are tall (h=%.1f)" % EzoScript.height_at(36.0, 297.0))
+	_check(EzoScript.height_at(-60.0, 655.0) > 6.0, "Aso caldera cone is tall (h=%.1f)" % EzoScript.height_at(-60.0, 655.0))
+	_check(not EzoScript.is_land(0.0, 122.0), "Tsugaru Strait is water")
+	_check(not EzoScript.is_land(-95.0, 585.0), "Kanmon Strait is water")
+	_check(not EzoScript.is_land(0.0, 595.0), "Seto Inland Sea is water")
+	_check(EzoScript.is_land(-55.0, 610.0), "Seto islet is land")
+	for biome in ["sw_cape", "wetlands", "ne_cape", "massif", "coast", "anywhere",
+			"alps", "tohoku", "chugoku", "kii", "shikoku", "kyushu"]:
 		var bad := 0
 		for i in 300:
 			var p: Vector3 = EzoScript.random_land_point(biome)
@@ -54,11 +64,11 @@ func _check(ok: bool, label: String) -> void:
 func _print_ascii_map() -> void:
 	print("map (x -> east, z -> south; # land, . sea):")
 	var cols := 64
-	var rows := 30
+	var rows := 44
 	for r in rows:
 		var line := ""
-		var z := lerpf(-130.0, 130.0, float(r) / float(rows - 1))
+		var z := lerpf(-150.0, 760.0, float(r) / float(rows - 1))
 		for c in cols:
-			var x := lerpf(-160.0, 160.0, float(c) / float(cols - 1))
+			var x := lerpf(-200.0, 400.0, float(c) / float(cols - 1))
 			line += "#" if EzoScript.is_land(x, z) else "."
 		print(line)
