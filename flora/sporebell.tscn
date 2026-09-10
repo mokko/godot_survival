@@ -6,19 +6,19 @@ bottom_radius = 0.1
 height = 1.5
 
 [sub_resource type="StandardMaterial3D" id="Mat_stem"]
-albedo_color = Color(0.6, 0.58, 0.55, 1)
-roughness = 0.95
+albedo_color = Color(0.4, 0.35, 0.45, 1)
+roughness = 0.65
 
 [sub_resource type="SphereMesh" id="Mesh_cap"]
 radius = 0.45
 height = 0.9
 
 [sub_resource type="StandardMaterial3D" id="Mat_cap"]
-albedo_color = Color(0.85, 0.8, 0.9, 1)
-roughness = 0.8
+albedo_color = Color(0.4, 0.35, 0.45, 1)
+roughness = 0.65
 emission_enabled = true
-emission = Color(0.7, 0.6, 0.8, 1)
-emission_energy_multiplier = 0.6
+emission = Color(0.65, 0.55, 0.8, 1)
+emission_energy_multiplier = 0.9
 
 [node name="Sporebell" type="Node3D"]
 

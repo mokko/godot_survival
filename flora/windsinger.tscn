@@ -10,18 +10,19 @@ bottom_radius = 0.55
 height = 12.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_trunk"]
-albedo_color = Color(0.62, 0.66, 0.6, 1)
-roughness = 0.8
+albedo_color = Color(0.2, 0.4, 0.5, 1)
+roughness = 0.45
 
 [sub_resource type="TorusMesh" id="Mesh_ring"]
 inner_radius = 0.32
 outer_radius = 0.42
 
 [sub_resource type="StandardMaterial3D" id="Mat_ring"]
-albedo_color = Color(0.7, 0.95, 1, 1)
+albedo_color = Color(0.2, 0.4, 0.5, 1)
+roughness = 0.45
 emission_enabled = true
-emission = Color(0.5, 0.9, 1, 1)
-emission_energy_multiplier = 1.5
+emission = Color(0.45, 0.85, 1, 1)
+emission_energy_multiplier = 1.6
 
 [sub_resource type="CylinderMesh" id="Mesh_spine"]
 top_radius = 0.0
@@ -29,8 +30,8 @@ bottom_radius = 0.05
 height = 0.8
 
 [sub_resource type="StandardMaterial3D" id="Mat_spine"]
-albedo_color = Color(0.55, 0.6, 0.55, 1)
-roughness = 0.7
+albedo_color = Color(0.2, 0.4, 0.5, 1)
+roughness = 0.45
 
 [node name="Windsinger" type="StaticBody3D"]
 
