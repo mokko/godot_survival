@@ -12,6 +12,19 @@ experience, but rather a *complete* game including many elements games
 have: a story, a world, a player, a main menu, graphics, sounds, etc. None
 of these need to be fantastic.
 
+## Decisions
+
+- **One hand-made map.** The world is a single, hand-designed map — not
+  procedural generation. Terrain, biomes and placement all come from a
+  fixed, readable definition (`world/island.gd`), so coordinates stay
+  stable across rebuilds and every feature can be tuned deliberately.
+- **The map is Japan.** The archipelago is modeled on real Japan at
+  1:1000 scale — Ezo (Hokkaido) with Honshu, Shikoku, Kyushu and the
+  Seto Inland Sea, real capes, straits and highlands. We are looking for
+  ways to work more knowledge about Japan into the game this way: the
+  geography is the first layer, and later content (flora, fauna, story)
+  should keep pointing back at the real places.
+
 ## Team
 
 - **Maurice** — executive director; has the last word in any decision.
@@ -26,6 +39,11 @@ via snap on this machine, run as `snap run godot-4`):
 ```bash
 godot --path .
 ```
+
+## Story
+
+Currently we are exploring this story: you have to survive while finding
+out who you are and why you are on this planet.
 
 ## Development
 
