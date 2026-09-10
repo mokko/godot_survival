@@ -14,7 +14,7 @@ func _init() -> void:
 	var tree := self
 
 	# Give the player known state to save.
-	player.orbs_collected = 7
+	player.sunbulbs_collected = 7
 	player.life = 55.0
 
 	menu._on_save()
@@ -24,7 +24,7 @@ func _init() -> void:
 	var ok_save := false
 	if f != null:
 		var data = JSON.parse_string(f.get_as_text())
-		ok_save = data != null and int(data.get("orbs", -1)) == 7 \
+		ok_save = data != null and int(data.get("sunbulbs", -1)) == 7 \
 				and absf(float(data.get("life", -1.0)) - 55.0) < 0.01 \
 				and data.get("pos", []).size() == 3
 

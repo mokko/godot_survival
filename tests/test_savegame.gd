@@ -22,14 +22,14 @@ func _init() -> void:
 	root.add_child(player)
 	await physics_frame
 	player.life = 33.0
-	player.orbs_collected = 5
+	player.sunbulbs_collected = 5
 	var Island := load("res://world/island.gd")
 	player.global_position = Island.spawn_point() + Vector3(0.0, 0.5, 0.0)
 	var save_ok: bool = SAVEGAME.write(player)
 	var data := SAVEGAME.read()
 	var roundtrip_ok: bool = save_ok \
 			and absf(float(data.get("life", -1.0)) - 33.0) < 0.01 \
-			and int(data.get("orbs", -1)) == 5 \
+			and int(data.get("sunbulbs", -1)) == 5 \
 			and data.get("pos", []).size() == 3
 
 	# -- Part C: save exists -> splash shows Continue.
@@ -52,7 +52,7 @@ func _init() -> void:
 	# life drains 1/s, so restored 33.0 shows up as just under 33 — but never
 	# as the fresh-start 40. Orbs never drain and prove the restore too.
 	var load_ok: bool = p2.life < 39.0 and p2.life > 31.0 \
-			and p2.orbs_collected == 5 \
+			and p2.sunbulbs_collected == 5 \
 			and p2.global_position.distance_to(saved_pos) < 0.5 \
 			and SAVEGAME.pending_load == false
 

@@ -80,239 +80,239 @@ transform = Transform3D(0.68865097, 0, 0.5172192, 0, 0.8612525, 0, -0.5172192, 0
 [node name="@StaticBody3D@21" type="StaticBody3D" parent="." unique_id=1987687533 instance=ExtResource("1_te6i2")]
 transform = Transform3D(-0.8853669, 0, 0.5620935, 0, 1.0487248, 0, -0.5620935, 0, -0.8853669, 90.188354, 3.3017402, -71.40889)
 
-[node name="Sunbulb" type="Area3D" parent="." unique_id=1206728218 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="Sunbulb" type="Area3D" parent="." unique_id=1206728218 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.8846639, 0, -0.74396974, 0, 1.155907, 0, 0.74396974, 0, 0.8846639, 81.94602, 4.0755343, -66.3424)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@22" type="Area3D" parent="." unique_id=1103858382 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@22" type="Area3D" parent="." unique_id=1103858382 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.68781596, 0, 0.63838047, 0, 0.9384138, 0, -0.63838047, 0, -0.68781596, -8.469072, 11.333499, -34.986652)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@23" type="Area3D" parent="." unique_id=227427732 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@23" type="Area3D" parent="." unique_id=227427732 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.66390175, 0, 0.94587535, 0, 1.1556149, 0, -0.94587535, 0, -0.66390175, -92.15417, 1.0565864, 105.69477)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@24" type="Area3D" parent="." unique_id=1849267595 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@24" type="Area3D" parent="." unique_id=1849267595 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.9594466, 0, -0.7140246, 0, 1.1959803, 0, 0.7140246, 0, 0.9594466, -41.194763, 6.479172, 18.293215)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@25" type="Area3D" parent="." unique_id=349091875 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@25" type="Area3D" parent="." unique_id=349091875 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.1432723, 0, 0.26509678, 0, 1.1736046, 0, -0.26509678, 0, 1.1432723, -8.130439, 3.193491, 63.969685)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@26" type="Area3D" parent="." unique_id=1476772047 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@26" type="Area3D" parent="." unique_id=1476772047 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.97341514, 0, -0.2928102, 0, 1.0165013, 0, 0.2928102, 0, -0.97341514, -13.856973, 9.062791, 9.286714)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@27" type="Area3D" parent="." unique_id=880192112 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@27" type="Area3D" parent="." unique_id=880192112 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-1.0756899, 0, -0.22136398, 0, 1.0982307, 0, 0.22136398, 0, -1.0756899, -32.683002, 3.6509004, -91.87707)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@28" type="Area3D" parent="." unique_id=1119200231 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@28" type="Area3D" parent="." unique_id=1119200231 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.89094746, 0, 0.015812311, 0, 0.8910878, 0, -0.015812311, 0, -0.89094746, -13.454182, 4.210118, 48.90378)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@29" type="Area3D" parent="." unique_id=1423569930 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@29" type="Area3D" parent="." unique_id=1423569930 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.59718084, 0, 0.6881774, 0, 0.9111603, 0, -0.6881774, 0, -0.59718084, -100.06827, 2.923881, -45.07757)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@30" type="Area3D" parent="." unique_id=1025493270 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@30" type="Area3D" parent="." unique_id=1025493270 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.5475336, 0, -0.88788694, 0, 1.0431377, 0, 0.88788694, 0, 0.5475336, 92.42402, 3.2273831, -30.48869)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@31" type="Area3D" parent="." unique_id=216419482 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@31" type="Area3D" parent="." unique_id=216419482 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.79817194, 0, 0.7193024, 0, 1.0744647, 0, -0.7193024, 0, 0.79817194, -79.02754, 2.0340858, -83.116455)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@32" type="Area3D" parent="." unique_id=651218634 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@32" type="Area3D" parent="." unique_id=651218634 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.8929586, 0, -0.54239535, 0, 1.0447812, 0, 0.54239535, 0, -0.8929586, 91.748726, 1.352278, 28.580984)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@33" type="Area3D" parent="." unique_id=149289319 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@33" type="Area3D" parent="." unique_id=149289319 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.84138477, 0, -0.4046915, 0, 0.9336507, 0, 0.4046915, 0, 0.84138477, -48.112484, 3.0728931, -95.08333)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@34" type="Area3D" parent="." unique_id=1376040863 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@34" type="Area3D" parent="." unique_id=1376040863 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-1.1131103, 0, 0.048345413, 0, 1.1141597, 0, -0.048345413, 0, -1.1131103, 99.03535, 3.1533666, -43.234447)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@35" type="Area3D" parent="." unique_id=2106312143 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@35" type="Area3D" parent="." unique_id=2106312143 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.02127039, 0, -1.0230947, 0, 1.0233158, 0, 1.0230947, 0, 0.02127039, 74.86359, 1.5493342, 1.5263274)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@36" type="Area3D" parent="." unique_id=2128331520 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@36" type="Area3D" parent="." unique_id=2128331520 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.41763428, 0, 0.83788556, 0, 0.9362001, 0, -0.83788556, 0, -0.41763428, -39.96755, 4.889072, -71.99669)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@37" type="Area3D" parent="." unique_id=1614527007 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@37" type="Area3D" parent="." unique_id=1614527007 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.9265656, 0, -0.34141633, 0, 0.9874659, 0, 0.34141633, 0, -0.9265656, -60.39876, 6.209427, 15.692831)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@38" type="Area3D" parent="." unique_id=575781710 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@38" type="Area3D" parent="." unique_id=575781710 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.6158705, 0, 0.5999722, 0, 0.85980403, 0, -0.5999722, 0, 0.6158705, -43.777794, 2.3661678, 86.69126)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@39" type="Area3D" parent="." unique_id=348515356 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@39" type="Area3D" parent="." unique_id=348515356 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.1329658, 0, -0.24554785, 0, 1.1592693, 0, 0.24554785, 0, 1.1329658, -135.13528, 2.290503, 61.130615)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@40" type="Area3D" parent="." unique_id=2062096322 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@40" type="Area3D" parent="." unique_id=2062096322 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.4659712, 0, 0.7940208, 0, 0.92065096, 0, -0.7940208, 0, 0.4659712, 26.161432, 8.525494, -63.913162)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@41" type="Area3D" parent="." unique_id=571542605 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@41" type="Area3D" parent="." unique_id=571542605 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.0747333, 0, 0.33861285, 0, 1.1268142, 0, -0.33861285, 0, 1.0747333, -77.1799, 3.2385335, -62.900623)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@42" type="Area3D" parent="." unique_id=116206882 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@42" type="Area3D" parent="." unique_id=116206882 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.1979771, 0, 0.018363815, 0, 1.1981179, 0, -0.018363815, 0, 1.1979771, 23.523027, 6.896391, 16.511473)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@43" type="Area3D" parent="." unique_id=2132528414 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@43" type="Area3D" parent="." unique_id=2132528414 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.26660207, 0, -0.9486141, 0, 0.9853656, 0, 0.9486141, 0, -0.26660207, -126.829346, 3.433324, 5.331384)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@44" type="Area3D" parent="." unique_id=2080954608 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@44" type="Area3D" parent="." unique_id=2080954608 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.7189855, 0, -0.4568397, 0, 0.85184664, 0, 0.4568397, 0, 0.7189855, -58.71863, 3.6700811, 46.47491)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@45" type="Area3D" parent="." unique_id=1520225798 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@45" type="Area3D" parent="." unique_id=1520225798 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.76239693, 0, -0.8460023, 0, 1.1388454, 0, 0.8460023, 0, -0.76239693, 15.458808, 11.622522, -18.337057)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@46" type="Area3D" parent="." unique_id=2088611359 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@46" type="Area3D" parent="." unique_id=2088611359 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.4114239, 0, 0.8891431, 0, 0.97971684, 0, -0.8891431, 0, -0.4114239, -1.9728428, 9.06564, -57.457943)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@47" type="Area3D" parent="." unique_id=943668942 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@47" type="Area3D" parent="." unique_id=943668942 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.31192774, 0, 0.9094197, 0, 0.9614277, 0, -0.9094197, 0, 0.31192774, -58.50282, 6.941766, -2.2725832)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@48" type="Area3D" parent="." unique_id=1579237859 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@48" type="Area3D" parent="." unique_id=1579237859 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.9727742, 0, 0.54444516, 0, 1.1147691, 0, -0.54444516, 0, 0.9727742, -65.52453, 6.6875, -4.7156963)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@49" type="Area3D" parent="." unique_id=592461249 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@49" type="Area3D" parent="." unique_id=592461249 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.5685156, 0, 0.97200775, 0, 1.126059, 0, -0.97200775, 0, 0.5685156, 0.46102294, 9.355532, 8.618711)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@50" type="Area3D" parent="." unique_id=823332836 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@50" type="Area3D" parent="." unique_id=823332836 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.6828114, 0, 0.5719978, 0, 0.8907373, 0, -0.5719978, 0, -0.6828114, -102.33884, 5.6382236, 11.247063)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@51" type="Area3D" parent="." unique_id=783415037 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@51" type="Area3D" parent="." unique_id=783415037 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.79215825, 0, -0.7623697, 0, 1.099419, 0, 0.7623697, 0, -0.79215825, -94.387985, 2.752358, 60.342663)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@52" type="Area3D" parent="." unique_id=1807066871 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@52" type="Area3D" parent="." unique_id=1807066871 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.7643971, 0, 0.89056623, 0, 1.1736315, 0, -0.89056623, 0, -0.7643971, 4.034868, 9.320336, 8.310475)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@53" type="Area3D" parent="." unique_id=1067021554 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@53" type="Area3D" parent="." unique_id=1067021554 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.12340359, 0, -0.93774956, 0, 0.9458344, 0, 0.93774956, 0, -0.12340359, 12.930907, 9.693357, -56.304085)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@54" type="Area3D" parent="." unique_id=1471345310 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@54" type="Area3D" parent="." unique_id=1471345310 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.0865104, 0, 0.44202188, 0, 1.1729826, 0, -0.44202188, 0, 1.0865104, -68.89447, 2.8394642, 60.756554)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@55" type="Area3D" parent="." unique_id=1428860882 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@55" type="Area3D" parent="." unique_id=1428860882 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.9428244, 0, 0.41030964, 0, 1.0282372, 0, -0.41030964, 0, -0.9428244, -10.326199, 10.941701, -38.387135)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@56" type="Area3D" parent="." unique_id=305228 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@56" type="Area3D" parent="." unique_id=305228 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-1.0460385, 0, 0.23730431, 0, 1.0726182, 0, -0.23730431, 0, -1.0460385, -5.2207036, 2.6084461, 79.496376)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@57" type="Area3D" parent="." unique_id=1881808829 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@57" type="Area3D" parent="." unique_id=1881808829 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.9496114, 0, -0.2941768, 0, 0.9941337, 0, 0.2941768, 0, -0.9496114, -117.80156, 2.7306497, 50.874214)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@58" type="Area3D" parent="." unique_id=1009474177 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@58" type="Area3D" parent="." unique_id=1009474177 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.16369475, 0, -1.159787, 0, 1.1712822, 0, 1.159787, 0, 0.16369475, -13.363523, 2.7933023, 72.953606)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@59" type="Area3D" parent="." unique_id=1237229872 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@59" type="Area3D" parent="." unique_id=1237229872 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.8107815, 0, 0.3731327, 0, 0.8925215, 0, -0.3731327, 0, 0.8107815, -63.821873, 6.4404984, -15.465612)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@60" type="Area3D" parent="." unique_id=818775883 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@60" type="Area3D" parent="." unique_id=818775883 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.5497075, 0, -1.0055068, 0, 1.145959, 0, 1.0055068, 0, 0.5497075, 53.012005, 2.4687467, 68.09356)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@61" type="Area3D" parent="." unique_id=690869561 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@61" type="Area3D" parent="." unique_id=690869561 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.15549533, 0, -1.0623717, 0, 1.073691, 0, 1.0623717, 0, 0.15549533, 116.363976, 1.4889592, -53.698563)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@62" type="Area3D" parent="." unique_id=1446951882 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@62" type="Area3D" parent="." unique_id=1446951882 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.33763596, 0, -0.8240464, 0, 0.8905338, 0, 0.8240464, 0, 0.33763596, 50.584766, 8.111462, -55.801567)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@63" type="Area3D" parent="." unique_id=1794526207 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@63" type="Area3D" parent="." unique_id=1794526207 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.43409032, 0, 0.94321805, 0, 1.0383134, 0, -0.94321805, 0, -0.43409032, -52.059483, 2.3307607, 87.500534)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@64" type="Area3D" parent="." unique_id=1832847276 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@64" type="Area3D" parent="." unique_id=1832847276 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.92098826, 0, -0.7473375, 0, 1.1860577, 0, 0.7473375, 0, 0.92098826, -99.45147, 2.3487802, 74.64792)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@65" type="Area3D" parent="." unique_id=1526107555 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@65" type="Area3D" parent="." unique_id=1526107555 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.26227477, 0, -1.1465373, 0, 1.176153, 0, 1.1465373, 0, -0.26227477, 77.23719, 4.1053023, -72.90921)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@66" type="Area3D" parent="." unique_id=886165402 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@66" type="Area3D" parent="." unique_id=886165402 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.86489725, 0, -0.8090731, 0, 1.1843338, 0, 0.8090731, 0, 0.86489725, 62.16671, 2.567016, -2.7277513)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@67" type="Area3D" parent="." unique_id=1214072311 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@67" type="Area3D" parent="." unique_id=1214072311 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.96028376, 0, 0.44690573, 0, 1.0591835, 0, -0.44690573, 0, 0.96028376, 22.542881, 6.969025, -73.8694)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@68" type="Area3D" parent="." unique_id=1329554514 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@68" type="Area3D" parent="." unique_id=1329554514 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.25753182, 0, 1.02117, 0, 1.0531433, 0, -1.02117, 0, -0.25753182, 13.450575, 2.6597524, 75.818436)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@69" type="Area3D" parent="." unique_id=1771368309 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@69" type="Area3D" parent="." unique_id=1771368309 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(1.1259202, 0, 0.07815424, 0, 1.1286294, 0, -0.07815424, 0, 1.1259202, 5.5669985, 10.257654, 0.8934247)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@70" type="Area3D" parent="." unique_id=890462569 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@70" type="Area3D" parent="." unique_id=890462569 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.10352503, 0, -0.92239887, 0, 0.92819023, 0, 0.92239887, 0, 0.10352503, 7.112837, 5.7735415, 33.389412)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@71" type="Area3D" parent="." unique_id=1921512445 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@71" type="Area3D" parent="." unique_id=1921512445 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.31586266, 0, 0.9342363, 0, 0.98618793, 0, -0.9342363, 0, 0.31586266, 105.87193, 2.8266957, -46.054916)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@72" type="Area3D" parent="." unique_id=1826800803 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@72" type="Area3D" parent="." unique_id=1826800803 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.020145124, 0, 0.9091567, 0, 0.90937984, 0, -0.9091567, 0, 0.020145124, -101.852486, 2.2274249, 90.72827)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@73" type="Area3D" parent="." unique_id=1519723937 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@73" type="Area3D" parent="." unique_id=1519723937 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.74947065, 0, -0.5213329, 0, 0.9129591, 0, 0.5213329, 0, 0.74947065, -78.67284, 5.542328, 26.912188)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@74" type="Area3D" parent="." unique_id=922394795 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@74" type="Area3D" parent="." unique_id=922394795 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.88369095, 0, -0.6565496, 0, 1.1008937, 0, 0.6565496, 0, 0.88369095, -79.19415, 4.5019608, 37.62598)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@75" type="Area3D" parent="." unique_id=284065939 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@75" type="Area3D" parent="." unique_id=284065939 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.9173968, 0, -0.13791673, 0, 0.9277057, 0, 0.13791673, 0, 0.9173968, 38.132294, 6.6489353, -0.7598663)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@76" type="Area3D" parent="." unique_id=280131010 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@76" type="Area3D" parent="." unique_id=280131010 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.29751337, 0, 0.87728155, 0, 0.9263569, 0, -0.87728155, 0, 0.29751337, -61.96213, 3.6534157, -71.20088)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@77" type="Area3D" parent="." unique_id=1680777345 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@77" type="Area3D" parent="." unique_id=1680777345 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-0.77130646, 0, 0.5558122, 0, 0.9507054, 0, -0.5558122, 0, -0.77130646, -32.890884, 3.6757674, -91.41)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@78" type="Area3D" parent="." unique_id=222943522 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@78" type="Area3D" parent="." unique_id=222943522 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(-1.0818198, 0, -0.44231924, 0, 1.1687516, 0, 0.44231924, 0, -1.0818198, -0.2745929, 11.836429, -33.357235)
 script = ExtResource("3_38q56")
 
-[node name="@Area3D@79" type="Area3D" parent="." unique_id=806671607 groups=["orb"] instance=ExtResource("2_er4yg")]
+[node name="@Area3D@79" type="Area3D" parent="." unique_id=806671607 groups=["pickup"] instance=ExtResource("2_er4yg")]
 transform = Transform3D(0.6710566, 0, -0.7277281, 0, 0.9899016, 0, 0.7277281, 0, 0.6710566, 42.630676, 9.50974, -32.781425)
 script = ExtResource("3_38q56")
 

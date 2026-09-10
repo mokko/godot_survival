@@ -32,7 +32,7 @@ func _process(delta: float) -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player"):
-		body.heal(body.ORB_HEAL)
+		body.heal(body.SUNBULB_HEAL)
 		visible = false
 		$CollisionShape3D.set_deferred("disabled", true)
 		_waiting = true

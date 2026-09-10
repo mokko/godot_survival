@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bma1n0000001"]
 
 [ext_resource type="PackedScene" uid="uid://bp1ayer000000" path="res://player/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://orb/orb.tscn" id="2_orb"]
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://ktpyengs8xr1" path="res://world/water.tscn" id="4_water"]
 [ext_resource type="PackedScene" path="res://flora/ghostsilk.tscn" id="5_lquwl"]
@@ -48,7 +47,7 @@ offset_right = 200.0
 offset_bottom = 40.0
 text = "Life: 100"
 
-[node name="OrbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["orb_label"]]
+[node name="SunbulbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["sunbulb_label"]]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -56,7 +55,7 @@ offset_left = -190.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 40.0
-text = "Orbs: 0"
+text = "Sunbulbs: 0"
 horizontal_alignment = 2
 
 [node name="Crosshair" type="Control" parent="HUD" unique_id=1069155976]
@@ -120,53 +119,6 @@ horizontal_alignment = 1
 
 [node name="Player" parent="." unique_id=1305561506 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
-
-[node name="Orbs" type="Node3D" parent="." unique_id=1214481042]
-
-[node name="Orb1" parent="Orbs" unique_id=234079540 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 14.361109, -20)
-
-[node name="Orb2" parent="Orbs" unique_id=729478081 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 20.203749, -20)
-
-[node name="Orb3" parent="Orbs" unique_id=1987959602 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 11.503707, 20)
-
-[node name="Orb4" parent="Orbs" unique_id=1665067046 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 11.491187, 20)
-
-[node name="Orb5" parent="Orbs" unique_id=87680657 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 11.503707, 0)
-
-[node name="Orb6" parent="Orbs" unique_id=179656602 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 11.491187, 0)
-
-[node name="Orb7" parent="Orbs" unique_id=1770817593 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.394945, -40)
-
-[node name="Orb8" parent="Orbs" unique_id=2055474374 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.503707, 40)
-
-[node name="Orb9" parent="Orbs" unique_id=890253867 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 14.361109, -32)
-
-[node name="Orb10" parent="Orbs" unique_id=466979474 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.060272, 14.742237, -37.71524)
-
-[node name="Orb11" parent="Orbs" unique_id=385646981 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 8.630524, 32)
-
-[node name="Orb12" parent="Orbs" unique_id=633529588 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 11.491187, 32)
-
-[node name="Orb13" parent="Orbs" unique_id=576526972 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 14.361109, -12)
-
-[node name="Orb14" parent="Orbs" unique_id=1841852346 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.67647, 7.1647844, 20.801477)
-
-[node name="Orb15" parent="Orbs" unique_id=207959194 instance=ExtResource("2_orb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 8.435422, 48)
 
 [node name="Terrain" parent="." unique_id=1213454053 instance=ExtResource("3_terrain")]
 transform = Transform3D(1, 0, 0, 0, 1.0935413, 0, 0, 0, 1, 0, 0, 0)

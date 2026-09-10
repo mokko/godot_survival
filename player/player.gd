@@ -4,7 +4,7 @@ const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
-const ORB_HEAL = 15.0
+const SUNBULB_HEAL = 15.0
 const SAVEGAME := preload("res://world/savegame.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
@@ -16,7 +16,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var life: float = START_LIFE
 var _drain_accum: float = 0.0
 var _game_over: bool = false
-var orbs_collected: int = 0
+var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
 
 var _snd_jump: AudioStreamPlayer
@@ -42,14 +42,14 @@ func save_state() -> Dictionary:
 	return {
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"life": life,
-		"orbs": orbs_collected,
+		"sunbulbs": sunbulbs_collected,
 	}
 
 
 func load_state(data: Dictionary) -> void:
 	## Restore from a savegame Dictionary (missing/invalid keys ignored).
 	life = float(data.get("life", START_LIFE))
-	orbs_collected = int(data.get("orbs", 0))
+	sunbulbs_collected = int(data.get("sunbulbs", data.get("orbs", 0)))
 	var pos: Array = data.get("pos", [])
 	if pos.size() == 3:
 		global_position = Vector3(pos[0], pos[1], pos[2])
@@ -76,7 +76,7 @@ func _ready() -> void:
 
 @onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
-@onready var orb_label: Label = get_tree().get_first_node_in_group("orb_label")
+@onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
 @onready var camera: Camera3D = $Camera3D
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
 @onready var game_over_sound: AudioStreamPlayer = $GameOverSound
@@ -217,7 +217,7 @@ func damage(amount: float) -> void:
 
 func heal(amount: float) -> void:
 	life += amount
-	orbs_collected += 1
+	sunbulbs_collected += 1
 	if pickup_sound:
 		pickup_sound.play()
 	_update_hud()
@@ -245,7 +245,7 @@ func _restart() -> void:
 	_game_over = false
 	life = START_LIFE
 	_drain_accum = 0.0
-	orbs_collected = 0
+	sunbulbs_collected = 0
 	velocity = Vector3.ZERO
 	camera.fov = FOV_DEFAULT
 	# Respawn at the game's starting point on the SW cape.
@@ -256,14 +256,14 @@ func _restart() -> void:
 		game_over_label.visible = false
 	# Re-capture mouse.
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	# Respawn all orbs.
-	for orb in get_tree().get_nodes_in_group("orb"):
-		orb.respawn()
+	# Respawn all pickups (sunbulbs).
+	for pickup in get_tree().get_nodes_in_group("pickup"):
+		pickup.respawn()
 	_update_hud()
 
 
 func _update_hud() -> void:
 	if life_label:
 		life_label.text = "Life: %d" % int(ceil(life))
-	if orb_label:
-		orb_label.text = "Sunbulbs: %d" % orbs_collected
+	if sunbulb_label:
+		sunbulb_label.text = "Sunbulbs: %d" % sunbulbs_collected
