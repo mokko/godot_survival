@@ -6,7 +6,7 @@ extends Control
 
 signal quit_to_menu
 
-const SAVE_PATH := "user://savegame.json"
+const SAVEGAME := preload("res://world/savegame.gd")
 
 @onready var resume_btn: Button = $Center/Panel/VBox/Resume
 @onready var save_btn: Button = $Center/Panel/VBox/Save
@@ -32,16 +32,8 @@ func _on_resume() -> void:
 
 
 func _on_save() -> void:
-	var main := get_tree().current_scene
-	var player: CharacterBody3D = main.get_node("Player")
-	var data := {
-		"pos": [player.global_position.x, player.global_position.y,
-				player.global_position.z],
-		"orbs": player.orbs_collected,
-		"life": player.life,
-	}
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	f.store_string(JSON.stringify(data))
+	var player: CharacterBody3D = get_tree().current_scene.get_node("Player")
+	SAVEGAME.write(player)
 
 
 func _on_quit() -> void:

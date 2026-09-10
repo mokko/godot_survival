@@ -40,4 +40,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Start"
 
+[node name="Continue" type="Button" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Continue"
+visible = false
+
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]

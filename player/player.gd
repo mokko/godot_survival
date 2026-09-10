@@ -5,6 +5,7 @@ const JUMP_VELOCITY = 4.5
 const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const ORB_HEAL = 15.0
+const SAVEGAME := preload("res://world/savegame.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -36,6 +37,26 @@ func _make_snd(path: String, volume_db: float = 0.0) -> AudioStreamPlayer:
 	return p
 
 
+func save_state() -> Dictionary:
+	## Everything a Continue needs to restore.
+	return {
+		"pos": [global_position.x, global_position.y, global_position.z],
+		"life": life,
+		"orbs": orbs_collected,
+	}
+
+
+func load_state(data: Dictionary) -> void:
+	## Restore from a savegame Dictionary (missing/invalid keys ignored).
+	life = float(data.get("life", START_LIFE))
+	orbs_collected = int(data.get("orbs", 0))
+	var pos: Array = data.get("pos", [])
+	if pos.size() == 3:
+		global_position = Vector3(pos[0], pos[1], pos[2])
+		velocity = Vector3.ZERO
+	_update_hud()
+
+
 func _ready() -> void:
 	_snd_jump = _make_snd("res://sounds/jump.wav", -8.0)
 	_snd_land = _make_snd("res://sounds/land.wav", -6.0)
@@ -47,6 +68,10 @@ func _ready() -> void:
 	camera.fov = FOV_DEFAULT
 	if pause_menu != null:
 		pause_requested.connect(pause_menu.open)
+	# Continue flow: restore a saved game exactly once, when launched from
+	# the splash screen's Continue button.
+	if SAVEGAME.take_pending_load():
+		load_state(SAVEGAME.read())
 
 
 @onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
