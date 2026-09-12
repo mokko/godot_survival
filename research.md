@@ -90,3 +90,58 @@ Three immediately buildable, culturally grounded object sets: an **inaw
 grove**, a **chise village ruin with hearth**, and an **ikupasuy** as a
 puzzle key. Audio layer: tonkori/upopo recordings (cf. Ainu musician Oki's
 revival work) for night ambience near Ainu sites.
+
+## 4. Old Ainu religion
+
+Caveat: what we know comes largely through Japanese and Western recorders
+(Batchelor, ethnographers), and Ainu religion is a living tradition still
+practiced today — not just a relic.
+
+### Core: animism of the kamuy
+Everything in nature — animals, plants, weather, tools, fire — has a
+**kamuy** (spirit/god) dwelling inside it. The human world (*ainu mosir*)
+and the kamuy world (*kamuy mosir*) are parallel realms; kamuy visit the
+human world by "wearing" the bodies of animals and things, and return home
+when those are released. Notable kamuy:
+- **Kim-un-kamuy** — bear/mountain kamuy (the most famous)
+- **Kotan-kor-kamuy** — Blakiston's fish owl, guardian of villages
+- **Repun-kamuy** — the orca, deity of the sea
+- **Kamuy-huci** — hearth-goddess, most important female deity; prayers
+  and healing rites happen at the hearth
+
+Key belief: **anything made with deep sincerity becomes imbued with
+spirit** — hence the carved prayer wands (**inau**, singular; **nusa** at
+the altar fence), the carved ikupasuy, and pattern-protection in clothing
+invoking ancestral power.
+
+### Iyomante (bear-sending ceremony)
+A "kamuy-sending" rite: a bear cub captured in winter is raised in the
+village with honor, then ritually killed so its kamuy returns to kamuy
+mosir, carrying gifts and stories of its good treatment — ensuring
+prosperity for the village. Also practiced for owls and foxes; the bear
+version is the archetype (bear worship, *arctolatry*). The logic is
+reciprocity: the ceremony sustains the exchange between worlds.
+
+### Cosmology, world-sense
+- The world rests on the back of a giant fish; when it stirs, earthquakes.
+- Human spirits are immortal and ascend to kamuy mosir after death.
+- Burials and house orientations (13th-17th c. settlements) aligned with
+  spiritual beliefs; the hearth (**chise nomi**) was the ritual center.
+
+### Practice: shamanism and daily rite
+- **Tusu** (shamans), usually women, mediated illness and misfortune —
+  healing rites at the hearth.
+- Daily thanks to the kamuy before eating; libations offered with the
+  **ikupasuy**.
+- **Inau** set at rivers, sea, and the **nusa** altar fence outside the
+  village — points of contact with the kamuy world.
+- The **yukar** epics — chantered first-person narratives *by* the kamuy —
+  are the theology in oral form.
+
+### Game resonance
+The kamuy-in-things premise maps almost 1:1 onto our glow-plant lore — a
+world where objects and places are literally animated by spirits the
+builder commemorated. Grounded set pieces: an inaw-lined path, a hearth
+shrine to Kamuy-huci, an iyomante site as a solemn story beat. Sensitivity
+note: iyomante is a real, sensitive rite — better alluded to than
+re-enacted.
