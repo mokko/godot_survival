@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://world/movable_block.tscn" id="8_5vw27"]
 [ext_resource type="Script" path="res://ui/fade_in.gd" id="10_fade"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
+[ext_resource type="Script" path="res://world/day_cycle.gd" id="12_day"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -51,6 +52,9 @@ transform = Transform3D(0.83205026, 0.2769187, 0.4806332, -0.31092045, 0.9503901
 light_energy = 1.3
 shadow_enabled = true
 directional_shadow_max_distance = 120.0
+
+[node name="DayCycle" type="Node" parent="." unique_id=424242001]
+script = ExtResource("12_day")
 
 [node name="Water" parent="." unique_id=1286861483 instance=ExtResource("4_water")]
 
