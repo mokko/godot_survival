@@ -45,3 +45,48 @@ underneath the Japanese ones (Ezo itself, Noboribetsu from Ainu
 
 First buildable step: one ruin site on Ezo with three fragments; picking
 up all three unlocks a map UI showing the island labeled 蝦夷 (Ezo).
+
+## 3. Ezo and Ainu culture
+
+Ezo (蝦夷) was the Japanese name for the island and its lands from medieval
+times until 1869, when Japan formally incorporated it and renamed it
+Hokkaidō (北海道). "Ezo" originally referred to the northern peoples and
+their lands — the ancestors of and neighbors to the Ainu, who are the
+island's indigenous people. Ezo was always the Ainu's island in the sense
+of being their homeland; "Ezo" is what Yamato Japanese called it. The 1869
+renaming is the layer where the Ainu were written out of the official
+naming — a strong late-game puzzle beat.
+
+### Objects that represent Ainu culture
+
+**Patterns/attire:**
+- **Morew/aiue patterns** — the distinctive spiral, swirl, and geometric
+  embroidery (whites on indigo). The single most recognizable visual
+  signature; great for robes, banners, stele carvings in-game.
+- **Attush** — elm-bark woven robes.
+- **Sapanpe** (men's ceremonial crown) and **matanpushi** (women's
+  headband).
+- **Ikupasuy** — the carved libation wand used to offer sake to kamuy; a
+  superb sacred/puzzle object.
+- **Makiri** (small sheathed knife) and **tamasaï/sipka** (women's
+  ceremonial chopsticks).
+
+**Spiritual/social:**
+- **Kamuy** — the Ainu spirit-beings (bear, owl, orca…). The bear ceremony
+  (**Iyomante**) is the most famous rite; **Blakiston's fish owl
+  (kotan-kor-kamuy**, village-protecting deity**)** and **orca
+  (repun-kamuy)** are strong in-game motifs.
+- **Inaw** — carved, whittled prayer sticks; the physical form of prayers.
+- **Chise** — the thatched house; hearth at its center.
+- **Tonkori** — plucked string instrument; **mukkuri** (jew's harp);
+  **upopo** songs and **rekukkara** dance forms.
+
+**Everyday-but-distinctive:**
+- **Marimo** (Lake Akan, Ainu lore), **sante-wa** wooden trays, **nimbu**
+  baskets, and the **yukar** — epic oral sagas.
+
+### For the game
+Three immediately buildable, culturally grounded object sets: an **inaw
+grove**, a **chise village ruin with hearth**, and an **ikupasuy** as a
+puzzle key. Audio layer: tonkori/upopo recordings (cf. Ainu musician Oki's
+revival work) for night ambience near Ainu sites.
