@@ -36,6 +36,8 @@ ruins).
   ways to work more knowledge about Japan into the game this way: the
   geography is the first layer, and later content (flora, fauna, story)
   should keep pointing back at the real places.
+- **Single player.** The game is a single-player experience — no
+  multiplayer or network play.
 
 ## Team
 
