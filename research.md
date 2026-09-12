@@ -22,3 +22,26 @@ player has found three glow plants whose seasonal words (kigo, 季語) match
 the season inscribed on the gate — e.g. a spring gate wants cherry-blossom
 (桜, sakura) plants. Passing through the torii enters the shrine grounds,
 where the next layer of the commemoration waits.
+
+## 2. Finding out the islands' names — the cartographer's ruined survey
+
+Frame story: the world's builder was a cartographer commemorating Japan,
+and their map tower / survey office lies in ruins. You find torn map
+fragments (like Subnautica's fragments or Outer Wilds's ship log): one
+shows a coastline with no label, one a haiku mentioning "the northernmost
+cape" (最北端の岬), one a compass reading. Assembling them lets you *name the
+islands yourself* — Ezo (蝦夷, old name for Hokkaidō), Honshu, Shikoku,
+Kyushu — by sailing/flying to the matching shapes. The reveal: the island
+group you've been surviving on is Japan, and the archipelago names are the
+reward.
+
+This is the recommended spine. Seed it with standing stones (石碑, sekihi)
+as collectibles: each blank stone inscribes itself when you stand before
+the real geographic feature it commemorates (e.g. the northernmost cape →
+宗谷岬, Sōya-misaki), completing map fragments in the pause menu. A
+late-game layer can ask "what was this island called before?" — Ainu names
+underneath the Japanese ones (Ezo itself, Noboribetsu from Ainu
+*nupur-pet*) — teaching who was erased from the naming.
+
+First buildable step: one ruin site on Ezo with three fragments; picking
+up all three unlocks a map UI showing the island labeled 蝦夷 (Ezo).
