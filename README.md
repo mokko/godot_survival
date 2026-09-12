@@ -6,11 +6,23 @@ with AI. It is the first experiment — others will follow.
 We currently develop using [Hermes](https://hermes-agent.nousresearch.com)
 and a GLM model.
 
+FIRST ITERATION
+
 The game starts out as a relatively generic 3D survival game with a sci-fi
 theme. At this point it is not supposed to be an interesting game
 experience, but rather a *complete* game including many elements games
 have: a story, a world, a player, a main menu, graphics, sounds, etc. None
 of these need to be fantastic.
+
+Beyond survival, we want the game to teach the player something about
+Japan. The working idea: we are in a fictional world that someone created
+to commemorate Japan, and they left puzzles for us to solve — shrine sites,
+kana and counting locks, haiku collectibles — so the knowledge is part of
+the world itself rather than a quiz layered on top. Games to be inspired
+by: Myst and Riven (an authored world whose puzzles teach its culture),
+Outer Wilds (progression through understanding), Tunic (learning a
+language by immersion), and Subnautica (survival loop + story told through
+ruins).
 
 ## Decisions
 
