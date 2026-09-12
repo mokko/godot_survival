@@ -81,6 +81,35 @@ naming — a strong late-game puzzle beat.
 - **Tonkori** — plucked string instrument; **mukkuri** (jew's harp);
   **upopo** songs and **rekukkara** dance forms.
 
+### Music: instruments and genres (detail)
+
+**Instruments** — Ainu music is overwhelmingly vocal; instruments are
+accompaniment:
+- **Tonkori** — long, narrow five-string (sometimes 3 or 6) plucked lute,
+  fretless, shallow boat-shaped body carved from one piece of wood.
+  Played mainly by women; associated with Sakhalin/Karafuto Ainu. Nearly
+  extinct mid-20th century, revived by **OKI (Oki Kano)**.
+- **Mukkuri** — bamboo jew's-harp (idiophone), mouth-held; pulse-like
+  drones where rhythm carries the melody.
+- **Frame drum** — hand drum for dance accompaniment.
+- Reed whistles/mouth flutes appear in accounts; tonkori + mukkuri are
+  the core pair.
+
+**Genres** —
+- **Upopo** — seated group songs (often women in a circle), interlocking
+  handclaps, polyphonic ostinati; hospitality/ritual.
+- **Kamuy yukar** — epics chanted from the deity's first-person view
+  (see §4); **iyomante-upopo** — bear-ceremony songs.
+- **Rimse** — circle dances (drum/mukkuri); **horokku** sword dance;
+  crane dances; **rekukkara** throat-game/harmonic singing (related to
+  Inuit katajjaq); **ukocke** call-and-response dance songs; **ihonka**
+  lullabies; shaman chants.
+
+**Modern context** — revival centers: Nibutani (Biratori), Lake Akan,
+Sapporo; **Uppopoy** (National Ainu Museum, Shiraoi, opened 2020) is the
+flagship institution. OKI's tonkori albums and Upopoy performance
+archives are the reference listening for the game's audio layer.
+
 **Everyday-but-distinctive:**
 - **Marimo** (Lake Akan, Ainu lore), **sante-wa** wooden trays, **nimbu**
   baskets, and the **yukar** — epic oral sagas.
