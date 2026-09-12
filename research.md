@@ -145,3 +145,37 @@ builder commemorated. Grounded set pieces: an inaw-lined path, a hearth
 shrine to Kamuy-huci, an iyomante site as a solemn story beat. Sensitivity
 note: iyomante is a real, sensitive rite — better alluded to than
 re-enacted.
+
+## 5. Going south: the island chain beyond Kyushu
+
+South of Kyushu (Cape Sata, ~31 N, mainland Japan's southernmost point)
+the archipelago continues in steps — a natural roadmap for expanding the
+1:1000 map southward:
+
+- **Osumi Islands** — Tanegashima, Yakushima, Mageshima
+- **Tokara Islands** — small volcanic chain (Kuchinoshima ... Suwanosejima,
+  Takarajima), the stepping-stones
+- **Amami Islands** — Amami Oshima, Tokunoshima; distinct Ryukyuan culture
+- **Okinawa Islands** — Okinawa-honto (Ryukyu kingdom heartland)
+- **Sakishima / Yaeyama Islands** — Ishigaki, Iriomote, Yonaguni — the
+  far end, nearest Taiwan
+
+Each link has its own culture and could teach a distinct layer: Ryukyuan
+kingdom history, gusuku castle ruins, bingata textile patterns, sanshin
+music (the southern counterpart to the tonkori).
+
+## 6. Tanegashima (and its neighbor Yakushima)
+
+**Tanegashima** (Tanegashima) is about 43 km south of Kyushu, the
+easternmost and second-largest of the Osumi Islands. Its great historical
+hook: in 1543 a Portuguese ship ran aground here and introduced firearms
+(teppo) to Japan — the "Tanegashima" musket took the island's name. A
+ready-made puzzle/story beat: the wreck site, the first musket, the
+daimyo Tanegashima Tokitaka ordering copies.
+
+**Yakushima** (Yakushima), 20 km northwest of Tanegashima, is the more
+evocative survivalm location: a UNESCO World Natural Heritage site famed
+for ancient cedar (yakusugi, including Jomon Sugi, thousands of years
+old) and the real-world inspiration for the forest in Miyazaki's
+*Princess Mononoke*. Ancient-giant-tree shrine groves fit the
+commemorative-world premise perfectly.
