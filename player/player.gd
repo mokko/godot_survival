@@ -442,10 +442,17 @@ func _apply_damage(amount: float) -> void:
 
 
 func heal(amount: float) -> void:
+	## Restore life only. Collection counting happens in collect_sunbulb().
 	life += amount
-	sunbulbs_collected += 1
 	if pickup_sound:
 		pickup_sound.play()
+	_update_hud()
+
+
+func collect_sunbulb() -> void:
+	## Pickup path: heal + count the collection (sunbulb.tscn calls this).
+	heal(SUNBULB_HEAL)
+	sunbulbs_collected += 1
 	_update_hud()
 
 
