@@ -81,6 +81,20 @@ func add_item(item_id: String) -> bool:
 	return false
 
 
+func consume_one_equipped() -> bool:
+	## Remove one unit from the equipped stack (arrows). Returns false when
+	## the equipped slot is empty. Empties the slot when the stack runs out.
+	if equipped_slot < 0 or equipped_slot >= SLOTS or slots[equipped_slot] == "":
+		return false
+	counts[equipped_slot] = maxi(counts[equipped_slot] - 1, 0)
+	if counts[equipped_slot] == 0:
+		slots[equipped_slot] = ""
+		counts[equipped_slot] = 0
+		# Keep the now-empty slot equipped rather than jumping elsewhere.
+	_refresh()
+	return true
+
+
 func equip(slot: int) -> void:
 	if slot < 0 or slot >= SLOTS or slots[slot] == "":
 		return

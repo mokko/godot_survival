@@ -157,6 +157,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera.fov = min(camera.fov + ZOOM_SPEED, FOV_MAX)
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			_toggle_grab()
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_begin_draw_bow()
+	elif event is InputEventMouseButton and not event.pressed \
+			and event.button_index == MOUSE_BUTTON_RIGHT:
+		_release_bow()
 
 	# ESC: restart on the death screen, otherwise open the pause menu.
 	if event.is_action_pressed("ui_cancel"):
@@ -185,6 +190,57 @@ func _toggle_grab() -> void:
 	if collider is MovableBlock:
 		_held_block = collider
 		_held_block.grab(camera)
+		_snd_grab.play()
+
+# ----------------------------------------------------------------- bow shooting
+
+const ArrowScene := preload("res://items/arrow_projectile.tscn")
+const BOW_RANGE := 60.0
+
+var _bow_drawn := false
+
+
+func has_bow() -> bool:
+	for i in 16:
+		if inventory != null and inventory.slots[i] == "bow":
+			return true
+	return false
+
+
+func has_arrows() -> bool:
+	if inventory == null:
+		return false
+	for i in 16:
+		if inventory.slots[i] == "arrows" and inventory.counts[i] > 0:
+			return true
+	return false
+
+
+func _begin_draw_bow() -> void:
+	if not has_bow():
+		return
+	if not has_arrows():
+		return
+	_bow_drawn = true
+
+
+func _release_bow() -> void:
+	if not _bow_drawn:
+		return
+	_bow_drawn = false
+	if not has_arrows() or _game_over:
+		return
+	# Consume one arrow from the first stack that has any.
+	for i in 16:
+		if inventory.slots[i] == "arrows" and inventory.counts[i] > 0:
+			inventory.equip(i)
+			inventory.consume_one_equipped()
+			break
+	var dir: Vector3 = -camera.global_transform.basis.z
+	var arrow := ArrowScene.instantiate()
+	get_tree().current_scene.add_child(arrow)
+	arrow.launch(camera.global_position + dir * 0.5, dir)
+	if _snd_grab:
 		_snd_grab.play()
 
 
