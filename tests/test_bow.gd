@@ -68,7 +68,7 @@ func _init() -> void:
 	inv._refresh()
 	player._begin_draw_bow()
 	player._release_bow()
-	if player._bow_drawn:
+	if player.combat.get_meta("bow_drawn", false):
 		fails.append("no_bow_no_draw")
 
 	# Clean up test arrows + restore save.

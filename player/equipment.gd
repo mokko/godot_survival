@@ -310,3 +310,11 @@ func show_for_equipped(item_id: String) -> void:
 func show_armor(worn: bool) -> void:
 	if _props.has("leather_armor"):
 		_props["leather_armor"].visible = worn
+
+
+func get_sword_pivot() -> Node3D:
+	return _sword_pivot
+
+
+func get_trail() -> MeshInstance3D:
+	return _trail

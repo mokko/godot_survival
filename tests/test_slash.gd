@@ -28,7 +28,7 @@ func _init() -> void:
 
 	# 1. Slash starts: swing flag set, trail appears mid-swing.
 	player.do_slash()
-	var slash: Node3D = player._slash
+	var slash: Node3D = player.combat._slash
 	if slash == null or not slash._swinging:
 		fails.append("no_swing")
 	for i in 10:

@@ -6,7 +6,6 @@ const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const SUNBULB_HEAL = 15.0
 const SAVEGAME := preload("res://world/savegame.gd")
-const ARMOR := preload("res://items/armor.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -22,6 +21,7 @@ var _held_block: MovableBlock = null
 const InventoryScene := preload("res://ui/inventory.tscn")
 @onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
 @onready var equipment: Node3D = $Equipment
+@onready var combat: Node3D = $Combat
 
 var _snd_jump: AudioStreamPlayer
 var _snd_land: AudioStreamPlayer
@@ -51,8 +51,8 @@ func save_state() -> Dictionary:
 		"items": inventory.slots.duplicate() if inventory != null else [],
 		"counts": inventory.counts.duplicate() if inventory != null else [],
 		"equipped": inventory.equipped_slot if inventory != null else -1,
-		"armor": _armor_id,
-		"armor_durability": _armor_durability,
+		"armor": combat.armor_id,
+		"armor_durability": combat.armor_durability,
 	}
 
 
@@ -82,8 +82,8 @@ func load_state(data: Dictionary) -> void:
 			inventory._refresh()
 		var saved_armor := str(data.get("armor", ""))
 		if saved_armor != "":
-			_armor_id = saved_armor
-			_armor_durability = float(data.get("armor_durability", 0.0))
+			combat.load_armor_state(saved_armor,
+					float(data.get("armor_durability", 0.0)))
 			inventory.worn_armor_id = saved_armor
 			inventory._refresh()
 	_update_hud()
@@ -104,6 +104,7 @@ func _ready() -> void:
 	if inventory != null:
 		inventory.armor_changed.connect(_on_armor_changed)
 		inventory.item_equipped.connect(_on_item_equipped)
+	combat.armor_changed.connect(_on_combat_armor_changed)
 	# Continue flow: restore a saved game exactly once, when launched from
 	# the splash screen's Continue button.
 	if SAVEGAME.take_pending_load():
@@ -210,99 +211,20 @@ func _toggle_grab() -> void:
 		_held_block.grab(camera)
 		_snd_grab.play()
 
-# ----------------------------------------------------------------- katana slash
+## ----------------------------------------------------------------- katana slash
 
 const SlashScene := preload("res://player/slash.gd")
-const SLASH_RANGE := 2.2
-const SLASH_HALF_ANGLE := 0.7
-const BARE_HAND_DAMAGE := 5.0
-
-var _slash: Node3D = null
-
-
-func _ensure_slash() -> void:
-	if _slash != null or equipment == null:
-		return
-	_slash = Node3D.new()
-	_slash.set_script(SlashScene)
-	add_child(_slash)
-	var sword_pivot: Node3D = equipment.get("_sword_pivot")
-	var trail: MeshInstance3D = equipment.get("_trail")
-	_slash.setup(sword_pivot, trail, _slash_damage)
-
 
 func do_slash() -> void:
-	_ensure_slash()
-	if _slash != null and not _slash.can_slash():
-		return
+	combat.try_slash()
+
+
+func play_slash_sound() -> void:
 	if _snd_slash:
 		_snd_slash.play()
-	_slash.slash()
 
 
-func _slash_damage() -> void:
-	## Cone check in front of the drone: scan the "damageable" group only,
-	## filter by distance + half-angle.
-	var dir: Vector3 = -global_transform.basis.z
-	dir.y = 0.0
-	dir = dir.normalized()
-	var hit_list: Array = []
-	for node in get_tree().get_nodes_in_group("damageable"):
-		if not is_instance_valid(node) or node == self:
-			continue
-		var to: Vector3 = node.global_position - global_position
-		to.y = 0.0
-		var dist: float = to.length()
-		if dist > SLASH_RANGE:
-			continue
-		if dist > 0.01 and dir.angle_to(to.normalized()) > SLASH_HALF_ANGLE:
-			continue
-		hit_list.append(node)
-	for node in hit_list:
-		node.damage(25.0)
-
-
-# ----------------------------------------------------------------- bow shooting
-
-const ArrowScene := preload("res://items/arrow_projectile.tscn")
-const BOW_RANGE := 60.0
-
-var _bow_drawn := false
-var _armor_id := ""            # equipped armor item id, "" = none
-var _armor_durability := 0.0
-
-
-func has_bow() -> bool:
-	for i in 16:
-		if inventory != null and inventory.slots[i] == "bow":
-			return true
-	return false
-
-
-func has_arrows() -> bool:
-	if inventory == null:
-		return false
-	for i in 16:
-		if inventory.slots[i] == "arrows" and inventory.counts[i] > 0:
-			return true
-	return false
-
-
-func equip_armor(item_id: String) -> bool:
-	## Programmatic equip (tests, savegame load). UI path: inventory key E.
-	if inventory == null:
-		return false
-	var stats: Dictionary = ARMOR.STATS.get(item_id, {})
-	if stats.is_empty():
-		return false
-	for i in 16:
-		if inventory.slots[i] == item_id:
-			_armor_id = item_id
-			_armor_durability = float(stats.get("durability", 100.0))
-			inventory.wear_armor(item_id, _armor_durability)
-			return true
-	return false
-
+# --------------------------------------------------------------------- bow shooting
 
 func _on_item_equipped(slot: int) -> void:
 	if equipment != null and inventory != null:
@@ -311,60 +233,45 @@ func _on_item_equipped(slot: int) -> void:
 
 
 func _on_armor_changed(armor_id: String, durability: float) -> void:
+	## UI path: inventory emits when the player presses E on an armor slot.
+	combat.load_armor_state(armor_id, durability)
+
+
+func _on_combat_armor_changed(armor_id: String, durability: float) -> void:
+	## Combat node armor state changed (degraded/broken/equipped): sync visuals.
 	if equipment != null:
 		equipment.show_armor(armor_id != "")
 		equipment.play_flourish()
-	## UI path: inventory emits when the player presses E on an armor slot.
-	_armor_id = armor_id
-	_armor_durability = durability
+	if inventory != null:
+		inventory.worn_armor_id = armor_id
 	_update_hud()
 
 
-func damage(amount: float) -> void:
-	## Player damage route: armor soaks its share first, degrading.
-	if _armor_id != "" and _armor_durability > 0.0:
-		var stats: Dictionary = ARMOR.STATS.get(_armor_id, {})
-		var absorption: float = float(stats.get("absorption", 0.0))
-		var eaten: float = clampf(amount * absorption, 0.0, amount)
-		_armor_durability = maxf(_armor_durability - eaten * 0.5, 0.0)
-		if _armor_durability <= 0.0:
-			_armor_id = ""   # armor broke
-			if inventory != null:
-				inventory.worn_armor_id = ""
-		elif inventory != null:
-			inventory.worn_armor_id = _armor_id
-		amount -= eaten
-	_apply_damage(amount)
+func has_bow() -> bool:
+	return combat.has_bow()
+
+
+func has_arrows() -> bool:
+	return combat.has_arrows()
+
+
+func equip_armor(item_id: String) -> bool:
+	return combat.equip_armor(item_id)
 
 
 func armor_status() -> Dictionary:
-	return {"id": _armor_id, "durability": _armor_durability}
+	return combat.armor_status()
 
 
 func _begin_draw_bow() -> void:
-	if not has_bow():
-		return
-	if not has_arrows():
-		return
-	_bow_drawn = true
+	combat.begin_draw_bow()
 
 
 func _release_bow() -> void:
-	if not _bow_drawn:
-		return
-	_bow_drawn = false
-	if not has_arrows() or _game_over:
-		return
-	# Consume one arrow from the first stack that has any.
-	for i in 16:
-		if inventory.slots[i] == "arrows" and inventory.counts[i] > 0:
-			inventory.equip(i)
-			inventory.consume_one_equipped()
-			break
-	var dir: Vector3 = -camera.global_transform.basis.z
-	var arrow := ArrowScene.instantiate()
-	get_tree().current_scene.add_child(arrow)
-	arrow.launch(camera.global_position + dir * 0.5, dir)
+	combat.release_bow()
+
+
+func play_grab_sound() -> void:
 	if _snd_grab:
 		_snd_grab.play()
 
@@ -429,6 +336,12 @@ func _physics_process(delta: float) -> void:
 			_snd_step.play()
 	else:
 		_step_accum = STEP_INTERVAL   # ready to step immediately on move
+
+
+func damage(amount: float) -> void:
+	## Player damage route: armor (combat node) soaks its share first.
+	var through: float = combat.absorb(amount)
+	_apply_damage(through)
 
 
 func _apply_damage(amount: float) -> void:
@@ -519,9 +432,10 @@ func _update_hud() -> void:
 			_armor_label.add_theme_font_size_override("font_size", 14)
 			hud.add_child(_armor_label)
 	if _armor_label != null:
-		if _armor_id != "" and _armor_durability > 0.0:
-			var pretty: String = _armor_id.replace("_", " ").capitalize()
-			_armor_label.text = "Armor: %s (%d%%)" % [pretty, int(_armor_durability)]
+		var st: Dictionary = combat.armor_status()
+		if st["id"] != "" and st["durability"] > 0.0:
+			var pretty: String = str(st["id"]).replace("_", " ").capitalize()
+			_armor_label.text = "Armor: %s (%d%%)" % [pretty, int(st["durability"])]
 			_armor_label.visible = true
 		else:
 			_armor_label.visible = false

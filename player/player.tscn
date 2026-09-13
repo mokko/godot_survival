@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ckqqqfm5rt87e" path="res://player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://player/equipment.gd" id="4_equip"]
+[ext_resource type="Script" path="res://player/combat.gd" id="5_combat"]
 [ext_resource type="AudioStream" uid="uid://cvrvj16vgpxk7" path="res://sounds/orb_pickup.wav" id="2_sound"]
 [ext_resource type="AudioStream" uid="uid://be8twbqk47ggu" path="res://sounds/game_over.wav" id="3_gameover_sound"]
 
@@ -16,6 +17,9 @@ script = ExtResource("1_player")
 
 [node name="Equipment" type="Node3D" parent="." unique_id=1179555768]
 script = ExtResource("4_equip")
+
+[node name="Combat" type="Node3D" parent="."]
+script = ExtResource("5_combat")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=118845614]
 transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 0.99649537, 0)
