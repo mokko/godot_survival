@@ -6,6 +6,7 @@ const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const SUNBULB_HEAL = 15.0
 const SAVEGAME := preload("res://world/savegame.gd")
+const ARMOR := preload("res://items/armor.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -291,7 +292,7 @@ func equip_armor(item_id: String) -> bool:
 	## Programmatic equip (tests, savegame load). UI path: inventory key E.
 	if inventory == null:
 		return false
-	var stats: Dictionary = load("res://items/armor.gd").STATS.get(item_id, {})
+	var stats: Dictionary = ARMOR.STATS.get(item_id, {})
 	if stats.is_empty():
 		return false
 	for i in 16:
@@ -322,7 +323,7 @@ func _on_armor_changed(armor_id: String, durability: float) -> void:
 func damage(amount: float) -> void:
 	## Player damage route: armor soaks its share first, degrading.
 	if _armor_id != "" and _armor_durability > 0.0:
-		var stats: Dictionary = load("res://items/armor.gd").STATS.get(_armor_id, {})
+		var stats: Dictionary = ARMOR.STATS.get(_armor_id, {})
 		var absorption: float = float(stats.get("absorption", 0.0))
 		var eaten: float = clampf(amount * absorption, 0.0, amount)
 		_armor_durability = maxf(_armor_durability - eaten * 0.5, 0.0)
@@ -485,8 +486,7 @@ func _restart() -> void:
 	velocity = Vector3.ZERO
 	camera.fov = FOV_DEFAULT
 	# Respawn at the game's starting point on the SW cape.
-	var island = load("res://world/island.gd")
-	var spawn: Vector3 = island.spawn_point()
+	var spawn: Vector3 = Ezo.spawn_point()
 	global_position = spawn + Vector3(0.0, 0.5, 0.0)   # small clearance so we land, not clip
 	if game_over_label:
 		game_over_label.visible = false
