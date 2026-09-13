@@ -18,6 +18,8 @@ var _drain_accum: float = 0.0
 var _game_over: bool = false
 var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
+const InventoryScene := preload("res://ui/inventory.tscn")
+@onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
 
 var _snd_jump: AudioStreamPlayer
 var _snd_land: AudioStreamPlayer
@@ -43,6 +45,8 @@ func save_state() -> Dictionary:
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"life": life,
 		"sunbulbs": sunbulbs_collected,
+		"items": inventory.slots.duplicate() if inventory != null else [],
+		"equipped": inventory.equipped_slot if inventory != null else -1,
 	}
 
 
@@ -54,6 +58,18 @@ func load_state(data: Dictionary) -> void:
 	if pos.size() == 3:
 		global_position = Vector3(pos[0], pos[1], pos[2])
 		velocity = Vector3.ZERO
+	if inventory != null:
+		var items: Array = data.get("items", [])
+		inventory.slots.resize(16)
+		inventory.slots.fill("")
+		for i in mini(items.size(), 16):
+			inventory.slots[i] = str(items[i])
+		inventory.equipped_slot = -1
+		var eq := int(data.get("equipped", -1))
+		if eq >= 0 and eq < 16 and inventory.slots[eq] != "":
+			inventory.equip(eq)
+		else:
+			inventory._refresh()
 	_update_hud()
 
 
@@ -86,6 +102,30 @@ func _ready() -> void:
 var _input_locked := false
 
 signal pause_requested
+signal equipped_item_changed(item_id: String)
+
+
+func add_item(item_id: String) -> bool:
+	## Pickups call this: insert into the first free inventory slot.
+	if inventory == null:
+		# Fallback: HUD wasn't ready yet — create it under the HUD layer.
+		var hud: CanvasLayer = get_node_or_null("../HUD")
+		if hud != null:
+			inventory = InventoryScene.instantiate()
+			hud.add_child(inventory)
+	if inventory == null:
+		return false
+	var ok: bool = inventory.add_item(item_id)
+	if ok:
+		if _snd_grab:
+			_snd_grab.play()
+	return ok
+
+
+func get_equipped_item() -> String:
+	if inventory != null:
+		return inventory.get_equipped_item()
+	return ""
 
 func _lock_check() -> bool:
 	# Live check: the fade overlay clears its own flag when done.
@@ -226,6 +266,16 @@ func heal(amount: float) -> void:
 func _trigger_game_over() -> void:
 	_game_over = true
 	velocity = Vector3.ZERO
+	# Death penalty: you lose everything you were carrying.
+	if inventory != null:
+		inventory.slots.fill("")
+		inventory.equipped_slot = -1
+		inventory._refresh()
+	# Drop the saved items too: a fresh run must start empty.
+	if SaveGame.exists():
+		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
+		if f:
+			f.store_string("{}")
 	if game_over_label:
 		game_over_label.visible = true
 	if game_over_sound:
