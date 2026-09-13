@@ -37,15 +37,26 @@ func _init() -> void:
 	if not inv.is_full() or player.add_item("flint"):
 		fails.append("full_rejects")
 
-	# 5. Savegame round-trip.
+	# 7. Arrows stack: packs of 5 top up to the 50 ceiling, then next slot.
+	player.add_item("arrows")
+	player.add_item("arrows")
+	if inv.slots[0] != "arrows" or inv.counts[0] != 10:
+		fails.append("arrow_stack")   # 5 + 5 = one stack of 10
+	for i in 8:
+		player.add_item("arrows")
+	if inv.counts[0] != 50 or inv.slots[1] != "arrows" or inv.counts[1] != 5:
+		fails.append("arrow_ceil")    # 10 + 40 -> 50, remainder starts slot 2
+
+	# 7. Savegame round-trip.
 	var state: Dictionary = player.save_state()
 	inv.slots.fill("")
+	inv.counts.fill(0)
 	inv.equipped_slot = -1
 	player.load_state(state)
-	if inv.slots[0] != "flint" or inv.equipped_slot != 1:
+	if inv.slots[0] != "arrows" or inv.counts[0] != 50 or inv.equipped_slot != 1:
 		fails.append("save")
 
-	# 6. Death wipes inventory (and its own saved items).
+	# 8. Death wipes inventory (and its own saved items).
 	player._trigger_game_over()
 	if not inv.slots.all(func(s): return s == "") or inv.equipped_slot != -1:
 		fails.append("death_wipes")

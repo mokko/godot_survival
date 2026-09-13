@@ -46,6 +46,7 @@ func save_state() -> Dictionary:
 		"life": life,
 		"sunbulbs": sunbulbs_collected,
 		"items": inventory.slots.duplicate() if inventory != null else [],
+		"counts": inventory.counts.duplicate() if inventory != null else [],
 		"equipped": inventory.equipped_slot if inventory != null else -1,
 	}
 
@@ -60,10 +61,14 @@ func load_state(data: Dictionary) -> void:
 		velocity = Vector3.ZERO
 	if inventory != null:
 		var items: Array = data.get("items", [])
+		var cnts: Array = data.get("counts", [])
 		inventory.slots.resize(16)
 		inventory.slots.fill("")
+		inventory.counts.resize(16)
+		inventory.counts.fill(0)
 		for i in mini(items.size(), 16):
 			inventory.slots[i] = str(items[i])
+			inventory.counts[i] = int(cnts[i]) if i < cnts.size() else 1
 		inventory.equipped_slot = -1
 		var eq := int(data.get("equipped", -1))
 		if eq >= 0 and eq < 16 and inventory.slots[eq] != "":
@@ -269,6 +274,7 @@ func _trigger_game_over() -> void:
 	# Death penalty: you lose everything you were carrying.
 	if inventory != null:
 		inventory.slots.fill("")
+		inventory.counts.fill(0)
 		inventory.equipped_slot = -1
 		inventory._refresh()
 	# Drop the saved items too: a fresh run must start empty.

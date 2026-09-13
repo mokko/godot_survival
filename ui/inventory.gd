@@ -6,9 +6,11 @@ extends Control
 signal item_equipped(slot: int)
 
 const SLOTS := 16
+const STACK_LIMITS := {"arrows": 50}   # item id -> max per slot (stackable)
 const ItemDB := preload("res://items/item_db.gd")
 
 var slots: Array = []            # String item ids, "" = empty
+var counts: Array = []           # stack count per slot (1 for normal items)
 var equipped_slot: int = -1
 
 var _slot_panels: Array = []
@@ -20,6 +22,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slots.resize(SLOTS)
 	slots.fill("")
+	counts.resize(SLOTS)
+	counts.fill(0)
 
 	# Held-item name floating above the bar.
 	_held_label = Label.new()
@@ -49,10 +53,25 @@ func _ready() -> void:
 
 
 func add_item(item_id: String) -> bool:
-	## First-free-slot insert; returns false when the inventory is full.
+	## Stackable items first top up existing stacks (up to the stack limit),
+	## then take a free slot. Normal items go to the first free slot.
+	## Returns false when nothing fits.
+	var limit: int = STACK_LIMITS.get(item_id, 1)
+	if limit > 1:
+		# Top up existing stacks that have room.
+		for i in SLOTS:
+			if slots[i] == item_id and counts[i] < limit:
+				var take: int = mini(limit - counts[i], 5)   # arrows come in packs of 5
+				counts[i] += take
+				if equipped_slot == -1:
+					equip(i)
+				else:
+					_refresh()
+				return true
 	for i in SLOTS:
 		if slots[i] == "":
 			slots[i] = item_id
+			counts[i] = limit if limit > 1 else 1
 			if equipped_slot == -1:
 				equip(i)
 			else:
@@ -92,7 +111,11 @@ func _refresh() -> void:
 		var panel: PanelContainer = ui["panel"]
 		var lab: Label = ui["label"]
 		var id: String = slots[i]
-		lab.text = ItemDB.item_name(id) if id != "" else str(i + 1)
+		if id != "":
+			var n: int = counts[i]
+			lab.text = ItemDB.item_name(id) if n <= 1 else "%s x%d" % [ItemDB.item_name(id), n]
+		else:
+			lab.text = str(i + 1)
 		var style := StyleBoxFlat.new()
 		style.bg_color = Color(0, 0, 0, 0.55)
 		style.set_corner_radius_all(4)
