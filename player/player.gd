@@ -198,6 +198,8 @@ const ArrowScene := preload("res://items/arrow_projectile.tscn")
 const BOW_RANGE := 60.0
 
 var _bow_drawn := false
+var _armor_id := ""            # equipped armor item id, "" = none
+var _armor_durability := 0.0
 
 
 func has_bow() -> bool:
@@ -214,6 +216,38 @@ func has_arrows() -> bool:
 		if inventory.slots[i] == "arrows" and inventory.counts[i] > 0:
 			return true
 	return false
+
+
+func equip_armor(item_id: String) -> bool:
+	## Equip the first armor stack in the inventory with this id.
+	if inventory == null:
+		return false
+	for i in 16:
+		if inventory.slots[i] == item_id:
+			var stats: Dictionary = load("res://items/armor.gd").STATS.get(item_id, {})
+			if stats.is_empty():
+				return false
+			_armor_id = item_id
+			_armor_durability = float(stats.get("durability", 100.0))
+			return true
+	return false
+
+
+func damage(amount: float) -> void:
+	## Player damage route: armor soaks its share first, degrading.
+	if _armor_id != "" and _armor_durability > 0.0:
+		var stats: Dictionary = load("res://items/armor.gd").STATS.get(_armor_id, {})
+		var absorption: float = float(stats.get("absorption", 0.0))
+		var eaten: float = clampf(amount * absorption, 0.0, amount)
+		_armor_durability = maxf(_armor_durability - eaten * 0.5, 0.0)
+		if _armor_durability <= 0.0:
+			_armor_id = ""   # armor broke
+		amount -= eaten
+	_apply_damage(amount)
+
+
+func armor_status() -> Dictionary:
+	return {"id": _armor_id, "durability": _armor_durability}
 
 
 func _begin_draw_bow() -> void:
@@ -306,7 +340,7 @@ func _physics_process(delta: float) -> void:
 		_step_accum = STEP_INTERVAL   # ready to step immediately on move
 
 
-func damage(amount: float) -> void:
+func _apply_damage(amount: float) -> void:
 	if _game_over:
 		return
 	life = maxf(life - amount, 0.0)

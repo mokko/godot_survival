@@ -227,6 +227,10 @@ item_id = "arrows"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 2.2, 5)
 item_id = "arrows"
 
+[node name="Pickup14" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108, 3.5, 78)
+item_id = "leather_armor"
+
 [node name="FadeIn" type="CanvasLayer" parent="."]
 layer = 10
 script = ExtResource("10_fade")

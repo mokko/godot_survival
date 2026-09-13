@@ -37,13 +37,16 @@ func _physics_process(delta: float) -> void:
 
 
 const Destroyable := preload("res://items/destroyable.gd")
+const Weapon := preload("res://items/weapon.gd")
+
+const ARROW_DAMAGE := 15.0
 
 func _on_body_entered(body: Node) -> void:
 	if _stuck or body.is_in_group("player"):
 		return
 	_stuck = true
 	if body is Destroyable:
-		body.damage(DAMAGE)
+		body.damage(ARROW_DAMAGE)
 	elif body.has_method("damage"):
-		body.damage(DAMAGE)   # composed destroyables (Area3D-based flora)
+		body.damage(ARROW_DAMAGE)   # composed destroyables (Area3D-based flora)
 	set_deferred("monitoring", false)
