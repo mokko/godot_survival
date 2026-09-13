@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://world/day_cycle.gd" id="12_day"]
 [ext_resource type="PackedScene" path="res://ui/inventory.tscn" id="13_inv"]
 [ext_resource type="PackedScene" path="res://items/item_pickup.tscn" id="14_pick"]
+[ext_resource type="Script" path="res://ui/fps_counter.gd" id="15_fps"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -140,6 +141,14 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Press ESC to start over"
 horizontal_alignment = 1
+
+[node name="FPSLabel" type="Label" parent="HUD"]
+offset_left = 10.0
+offset_top = 64.0
+offset_right = 150.0
+offset_bottom = 90.0
+text = "FPS: --"
+script = ExtResource("15_fps")
 
 [node name="Inventory" parent="HUD" instance=ExtResource("13_inv")]
 

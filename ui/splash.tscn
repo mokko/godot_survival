@@ -40,11 +40,53 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Start"
 
+[node name="Options" type="Button" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Options"
+
 [node name="Continue" type="Button" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Continue"
 visible = false
 
+[node name="OptionsPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="OptionsPanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="OptionsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Options"
+horizontal_alignment = 1
+
+[node name="ShowFPS" type="CheckButton" parent="OptionsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Show FPS counter"
+button_pressed = true
+
+[node name="Back" type="Button" parent="OptionsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Back"
+
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]
+[connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
+[connection signal="pressed" from="OptionsPanel/VBox/Back" to="." method="_on_options_back_pressed"]
