@@ -1,5 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
+[ext_resource type="Script" path="res://fauna/drifter.gd" id="1_script"]
+
 [sub_resource type="SphereMesh" id="Mesh_bell"]
 radius = 0.75
 height = 1.5
@@ -24,6 +26,7 @@ emission_energy_multiplier = 1.0
 roughness = 0.5
 
 [node name="Drifter" type="Node3D"]
+script = ExtResource("1_script")
 
 [node name="Bell" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, 0, 0, 0)

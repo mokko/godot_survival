@@ -36,10 +36,14 @@ func _physics_process(delta: float) -> void:
 			look_at(to, Vector3.UP)
 
 
+const Destroyable := preload("res://items/destroyable.gd")
+
 func _on_body_entered(body: Node) -> void:
 	if _stuck or body.is_in_group("player"):
 		return
 	_stuck = true
-	if body.has_method("damage"):
+	if body is Destroyable:
 		body.damage(DAMAGE)
+	elif body.has_method("damage"):
+		body.damage(DAMAGE)   # composed destroyables (Area3D-based flora)
 	set_deferred("monitoring", false)

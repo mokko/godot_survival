@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://items/destroyable.gd"
 ## Lantern Drifter — slow wind drift + vertical bob, ignores the player
 ## (fauna/animals.md #3). Softly steers back toward the wetlands when it drifts
 ## over the coast or out to sea.
@@ -40,3 +40,4 @@ func _physics_process(delta: float) -> void:
 		var look := p + dir
 		if p.distance_squared_to(look) > 0.0001:
 			look_at(look, Vector3.UP)
+

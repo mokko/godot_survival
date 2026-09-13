@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://items/destroyable.gd"
 ## Dusk Stalker — patrol-chase NPC (fauna/animals.md #5). The island's only real
 ## danger. Patrols 2 points inside a territory; chases the player when they
 ## are within sight radius AND inside the territory; contact does damage
@@ -99,3 +99,4 @@ func _arrive_home() -> bool:
 		return true
 	_steer_to(home, PATROL_SPEED, get_physics_process_delta_time())
 	return false
+

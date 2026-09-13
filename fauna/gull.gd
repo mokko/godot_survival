@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://items/destroyable.gd"
 ## Windvane Gull — orbits a fixed anchor point (fauna/animals.md #4).
 ## Never lands; flocks circle landmarks (massif, caldera). The integrator
 ## sets anchor / orbit_radius / orbit_height / angular_speed per gull.
@@ -32,3 +32,4 @@ func _physics_process(delta: float) -> void:
 	global_position = p
 	if p.distance_squared_to(next) > 0.0001:
 		look_at(next, Vector3.UP)
+

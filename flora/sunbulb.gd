@@ -1,4 +1,18 @@
 extends Area3D
+## Destroyable composition: 50 life, dies in a puff (Destroyable is Node3D-based;
+## sunbulb needs Area3D for its pickup sensor).
+const DestroyableScene := preload("res://items/death_puff.tscn")
+var life := 50.0
+
+func damage(amount: float) -> void:
+	life -= amount
+	if life <= 0.0:
+		var pos := global_position
+		var puff: Node3D = DestroyableScene.instantiate()
+		if get_parent():
+			get_parent().add_child(puff)
+			puff.global_position = pos
+		queue_free()
 ## Sunbulb — the heal pickup (plants.md #2). Mirrors orb.gd: hide + disable
 ## + timed respawn at a new nearby spot on dry, vegetated ground.
 
@@ -70,3 +84,4 @@ func _set_glow(on: bool) -> void:
 	var mat := mesh.material_override as StandardMaterial3D
 	if mat:
 		mat.emission_enabled = on
+

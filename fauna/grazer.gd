@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://items/destroyable.gd"
 ## Velvetback Grazer — wander-flee NPC (fauna/animals.md #1).
 ## IDLE 2-6 s -> walk to a nearby point 3-8 units away -> repeat.
 ## Player within 6 units: flee directly away at 2x walk speed for 4 s.
@@ -77,3 +77,4 @@ func _move(dir: Vector3, speed: float, delta: float) -> void:
 		var look := global_position + dir
 		if global_position.distance_squared_to(look) > 0.0001:
 			look_at(look, Vector3.UP)
+

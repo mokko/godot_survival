@@ -1,5 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
+[ext_resource type="Script" path="res://fauna/grazer.gd" id="1_script"]
+
 [sub_resource type="CapsuleMesh" id="Mesh_body"]
 radius = 0.25
 height = 1.0
@@ -22,6 +24,7 @@ albedo_color = Color(0.3, 0.28, 0.22, 1)
 roughness = 0.9
 
 [node name="Grazer" type="Node3D"]
+script = ExtResource("1_script")
 
 [node name="Body" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)

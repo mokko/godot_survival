@@ -1,5 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
+[ext_resource type="Script" path="res://fauna/gull.gd" id="1_script"]
+
 [sub_resource type="BoxMesh" id="Mesh_body"]
 size = Vector3(0.25, 0.2, 0.5)
 
@@ -18,6 +20,7 @@ roughness = 0.7
 size = Vector3(0.04, 0.04, 0.35)
 
 [node name="Gull" type="Node3D"]
+script = ExtResource("1_script")
 
 [node name="Body" type="MeshInstance3D" parent="."]
 material_override = SubResource("Mat_body")

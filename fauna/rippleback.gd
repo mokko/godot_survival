@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://items/destroyable.gd"
 ## Rippleback — the caldera mystery (fauna/animals.md #6). Swims a rounded-triangle
 ## loop under the lake surface; every 40-70 s surfaces for 5 s, then dives.
 ## Pure ambiance: never interacts with the player.
@@ -62,3 +62,4 @@ func _physics_process(delta: float) -> void:
 	var look := p + dir
 	if p.distance_squared_to(look) > 0.0001:
 		look_at(look, Vector3.UP)
+
