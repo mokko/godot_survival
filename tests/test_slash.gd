@@ -33,7 +33,7 @@ func _init() -> void:
 		fails.append("no_swing")
 	for i in 10:
 		await process_frame
-	var trail: MeshInstance3D = player.equipment.get("_trail")
+	var trail: MeshInstance3D = player.equipment.get_trail()
 	if trail == null or not trail.visible:
 		fails.append("no_trail")
 

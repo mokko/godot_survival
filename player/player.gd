@@ -67,25 +67,19 @@ func load_state(data: Dictionary) -> void:
 	if inventory != null:
 		var items: Array = data.get("items", [])
 		var cnts: Array = data.get("counts", [])
-		inventory.slots.resize(16)
-		inventory.slots.fill("")
-		inventory.counts.resize(16)
-		inventory.counts.fill(0)
-		for i in mini(items.size(), 16):
-			inventory.slots[i] = str(items[i])
-			inventory.counts[i] = int(cnts[i]) if i < cnts.size() else 1
+		inventory.restore(items, cnts)
 		inventory.equipped_slot = -1
 		var eq := int(data.get("equipped", -1))
-		if eq >= 0 and eq < 16 and inventory.slots[eq] != "":
+		if eq >= 0 and eq < inventory.SLOTS and inventory.slots[eq] != "":
 			inventory.equip(eq)
 		else:
-			inventory._refresh()
+			inventory.refresh()
 		var saved_armor := str(data.get("armor", ""))
 		if saved_armor != "":
 			combat.load_armor_state(saved_armor,
 					float(data.get("armor_durability", 0.0)))
-			inventory.worn_armor_id = saved_armor
-			inventory._refresh()
+			inventory.wear_armor(saved_armor, combat.armor_durability)
+			inventory.refresh()
 	_update_hud()
 
 
@@ -374,15 +368,9 @@ func _trigger_game_over() -> void:
 	velocity = Vector3.ZERO
 	# Death penalty: you lose everything you were carrying.
 	if inventory != null:
-		inventory.slots.fill("")
-		inventory.counts.fill(0)
-		inventory.equipped_slot = -1
-		inventory._refresh()
+		inventory.clear_all()
 	# Drop the saved items too: a fresh run must start empty.
-	if SaveGame.exists():
-		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
-		if f:
-			f.store_string("{}")
+	SaveGame.clear()
 	if game_over_label:
 		game_over_label.visible = true
 	if game_over_sound:

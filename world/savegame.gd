@@ -43,3 +43,14 @@ static func take_pending_load() -> bool:
 	var take := pending_load
 	pending_load = false
 	return take
+
+
+## Wipe the savefile (death penalty: a fresh run must start empty).
+## Keeps an empty valid JSON so exists() stays true and consistent.
+static func clear() -> bool:
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		push_error("SaveGame.clear failed: %s" % error_string(FileAccess.get_open_error()))
+		return false
+	f.store_string("{}")
+	return true

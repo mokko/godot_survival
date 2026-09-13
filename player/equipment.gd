@@ -318,3 +318,8 @@ func get_sword_pivot() -> Node3D:
 
 func get_trail() -> MeshInstance3D:
 	return _trail
+
+
+func refresh_visuals(equipped_item_id: String) -> void:
+	## Public wrapper: re-show props for the given equipped item id.
+	show_for_equipped(equipped_item_id)

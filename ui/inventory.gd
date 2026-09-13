@@ -151,6 +151,32 @@ func _unhandled_input(event: InputEvent) -> void:
 			equip_armor_from_inventory()
 
 
+func restore(items: Array, counts_in: Array) -> void:
+	## Replace the whole inventory (savegame load). Invalid ids are kept as-is;
+	## arrays are clamped to SLOTS.
+	slots.resize(SLOTS)
+	slots.fill("")
+	counts.resize(SLOTS)
+	counts.fill(0)
+	for i in mini(items.size(), SLOTS):
+		slots[i] = str(items[i])
+		counts[i] = int(counts_in[i]) if i < counts_in.size() else 1
+	_refresh()
+
+
+func clear_all() -> void:
+	## Empty every slot (death penalty).
+	slots.fill("")
+	counts.fill(0)
+	equipped_slot = -1
+	_refresh()
+
+
+func refresh() -> void:
+	## Public refresh entry point (savegame load, external mutations).
+	_refresh()
+
+
 func _refresh() -> void:
 	for i in SLOTS:
 		var ui: Dictionary = _slot_panels[i]
