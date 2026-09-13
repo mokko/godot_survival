@@ -14,3 +14,15 @@ const ITEMS := {
 	"bow": {"name": "Yumi Bow", "color": Color(0.5, 0.35, 0.15)},
 	"arrows": {"name": "Arrows x5", "color": Color(0.85, 0.8, 0.55)},
 }
+
+
+static func item_name(id: String) -> String:
+	if ITEMS.has(id):
+		return ITEMS[id]["name"]
+	return id
+
+
+static func item_color(id: String) -> Color:
+	if ITEMS.has(id):
+		return ITEMS[id]["color"]
+	return Color(0.8, 0.8, 0.8)
