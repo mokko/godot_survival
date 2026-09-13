@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://ui/fade_in.gd" id="10_fade"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
 [ext_resource type="Script" path="res://world/day_cycle.gd" id="12_day"]
+[ext_resource type="PackedScene" path="res://ui/inventory.tscn" id="13_inv"]
+[ext_resource type="PackedScene" path="res://items/item_pickup.tscn" id="14_pick"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -139,6 +141,8 @@ layout_mode = 2
 text = "Press ESC to start over"
 horizontal_alignment = 1
 
+[node name="Inventory" parent="HUD" instance=ExtResource("13_inv")]
+
 [node name="Player" parent="." unique_id=1305561506 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
 
@@ -168,6 +172,28 @@ mass = 10.0
 
 [node name="MovableBlock" parent="Blocks" unique_id=548078291 instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
+
+[node name="Items" type="Node3D" parent="."]
+
+[node name="Pickup1" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 3.5, 80)
+item_id = "flint"
+
+[node name="Pickup2" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -113, 3.5, 79)
+item_id = "stick"
+
+[node name="Pickup3" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.5, 3.5, 84)
+item_id = "vine"
+
+[node name="Pickup4" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -114.5, 3.5, 81.5)
+item_id = "shell"
+
+[node name="Pickup5" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109, 3.5, 76.5)
+item_id = "emberstone"
 
 [node name="FadeIn" type="CanvasLayer" parent="."]
 layer = 10
