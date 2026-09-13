@@ -127,8 +127,9 @@ const FEATURES := [
 	# Ezo: central massif, NE hills (Kitami), SW highlands
 	[Vector2(-5.0, -20.0), 9.0, 40.0], [Vector2(45.0, -45.0), 4.0, 30.0],
 	[Vector2(-90.0, 10.0), 3.5, 25.0],
-	# Honshu: Tohoku highlands, Japan Alps, Chugoku mountains, Kii
+	# Honshu: Tohoku highlands, Japan Alps, Fujisan, Chugoku mountains, Kii
 	[Vector2(200.0, 430.0), 7.0, 35.0], [Vector2(40.0, 300.0), 10.0, 45.0],
+	[Vector2(95.0, 390.0), 14.0, 7.0],
 	[Vector2(-60.0, 485.0), 6.0, 30.0], [Vector2(10.0, 520.0), 4.5, 25.0],
 	# Shikoku mountains
 	[Vector2(-10.0, 680.0), 5.5, 25.0],

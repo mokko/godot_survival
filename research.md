@@ -208,3 +208,24 @@ for ancient cedar (yakusugi, including Jomon Sugi, thousands of years
 old) and the real-world inspiration for the forest in Miyazaki's
 *Princess Mononoke*. Ancient-giant-tree shrine groves fit the
 commemorative-world premise perfectly.
+
+## 7. Fujisan (富士山) — the icon on Honshu
+
+Real-world: Mount Fuji stands on Honshu, between Yamanashi and Shizuoka
+prefectures, about 100 km west-southwest of Tokyo. It is Japan's highest
+peak (3776 m), a near-perfect stratovolcano cone on the Pacific side of
+the island, last erupting in 1707 (the Hōei eruption, which dusted Edo
+with ash). Its silhouette is *the* image of Japan — which makes it the
+map's most valuable landmark.
+
+On the 1:1000 game map it sits on south-central Honshu, on the Tokai
+side between the Japan Alps region and Suruga/Tokyo Bay (world coords
+≈ (95, 390), just inland from the coast between Omaezaki and Izu).
+Implementation: a steep, narrow cone feature — amplitude 14, sigma 7,
+higher than any other peak on the map (summit ≈ 17 vs. the alps' 12) —
+so it reads instantly from a distance. Puzzle hooks that fit the
+commemorative-world premise: a crater-summit shrine (Fuji is a sacred
+mountain, an active Sōtō/Shugendō pilgrimage site as well as a UNESCO
+World Heritage site since 2013), a Hōei-eruption time capsule, or a
+standing stone that only inscribes itself at the top — "climb the
+highest peak" as a late-game beat.
