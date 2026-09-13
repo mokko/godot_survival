@@ -195,6 +195,38 @@ item_id = "shell"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109, 3.5, 76.5)
 item_id = "emberstone"
 
+[node name="Pickup6" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 12.6, -20)
+item_id = "sword"
+
+[node name="Pickup7" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 7.6, -5)
+item_id = "shield"
+
+[node name="Pickup8" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.5, -45)
+item_id = "dagger"
+
+[node name="Pickup9" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 10.1, -45)
+item_id = "arrows"
+
+[node name="Pickup10" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 4.3, -10)
+item_id = "arrows"
+
+[node name="Pickup11" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 8.1, 20)
+item_id = "arrows"
+
+[node name="Pickup12" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 7.1, 10)
+item_id = "arrows"
+
+[node name="Pickup13" parent="Items" instance=ExtResource("14_pick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 2.2, 5)
+item_id = "arrows"
+
 [node name="FadeIn" type="CanvasLayer" parent="."]
 layer = 10
 script = ExtResource("10_fade")
