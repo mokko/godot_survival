@@ -6,6 +6,7 @@ extends Control
 signal item_equipped(slot: int)
 
 const SLOTS := 16
+const PACK_SIZE := 5                  # arrows come in packs of 5
 const STACK_LIMITS := {"arrows": 50}   # item id -> max per slot (stackable)
 const ItemDB := preload("res://items/item_db.gd")
 
@@ -61,7 +62,7 @@ func add_item(item_id: String) -> bool:
 		# Top up existing stacks that have room.
 		for i in SLOTS:
 			if slots[i] == item_id and counts[i] < limit:
-				var take: int = mini(limit - counts[i], 5)   # arrows come in packs of 5
+				var take: int = mini(limit - counts[i], PACK_SIZE)   # arrows come in packs of 5
 				counts[i] += take
 				if equipped_slot == -1:
 					equip(i)
@@ -71,7 +72,7 @@ func add_item(item_id: String) -> bool:
 	for i in SLOTS:
 		if slots[i] == "":
 			slots[i] = item_id
-			counts[i] = limit if limit > 1 else 1
+			counts[i] = mini(PACK_SIZE, limit) if limit > 1 else 1
 			if equipped_slot == -1:
 				equip(i)
 			else:

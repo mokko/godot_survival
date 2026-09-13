@@ -31,21 +31,22 @@ func _init() -> void:
 	if player.get_equipped_item() != "stick":
 		fails.append("equip")
 
-	# 4. Fill up; 17th item is rejected.
-	for i in 14:
+	# 4. Arrows stack: packs of 5 top up to the 50 ceiling, then next slot.
+	# (Done on a half-empty inventory: 2 items + 10 packs = 12 slots used.)
+	player.add_item("arrows")
+	player.add_item("arrows")
+	if inv.slots[2] != "arrows" or inv.counts[2] != 10:
+		fails.append("arrow_stack")   # 5 + 5 = one stack of 10
+	for i in 9:
+		player.add_item("arrows")
+	if inv.counts[2] != 50 or inv.slots[3] != "arrows" or inv.counts[3] != 5:
+		fails.append("arrow_ceil")    # 11 packs = 55: 50 fills slot 3, 5 spill to slot 4
+
+	# 5. Fill up; a further item is rejected.
+	for i in 12:
 		player.add_item("shell")
 	if not inv.is_full() or player.add_item("flint"):
 		fails.append("full_rejects")
-
-	# 7. Arrows stack: packs of 5 top up to the 50 ceiling, then next slot.
-	player.add_item("arrows")
-	player.add_item("arrows")
-	if inv.slots[0] != "arrows" or inv.counts[0] != 10:
-		fails.append("arrow_stack")   # 5 + 5 = one stack of 10
-	for i in 8:
-		player.add_item("arrows")
-	if inv.counts[0] != 50 or inv.slots[1] != "arrows" or inv.counts[1] != 5:
-		fails.append("arrow_ceil")    # 10 + 40 -> 50, remainder starts slot 2
 
 	# 7. Savegame round-trip.
 	var state: Dictionary = player.save_state()
@@ -53,7 +54,7 @@ func _init() -> void:
 	inv.counts.fill(0)
 	inv.equipped_slot = -1
 	player.load_state(state)
-	if inv.slots[0] != "arrows" or inv.counts[0] != 50 or inv.equipped_slot != 1:
+	if inv.slots[2] != "arrows" or inv.counts[2] != 50 or inv.equipped_slot != 1:
 		fails.append("save")
 
 	# 8. Death wipes inventory (and its own saved items).
