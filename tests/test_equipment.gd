@@ -13,15 +13,16 @@ func _init() -> void:
 	var equip: Node3D = player.get_node("Equipment")
 	var fails: PackedStringArray = []
 
-	# Drone body built: core mesh + 4 rotors exist.
+	# Droid body built: treads, body, dome, eye etc. exist.
 	var meshes := equip.find_children("*", "MeshInstance3D", true, false)
-	if meshes.size() < 10:   # core + eye + 4 arms + 4 rotors = 10
-		fails.append("drone_body")
-	var rotors := equip.find_children("*", "MeshInstance3D", true, false).filter(
-			func(n): return (n as MeshInstance3D).mesh is BoxMesh \
-				and (n as MeshInstance3D).mesh.size.y < 0.02)
-	if rotors.size() != 4:
-		fails.append("rotors")
+	if meshes.size() < 12:   # 2 treads + 6 hubs + body + band + lens + neck + dome + stripe + eye
+		fails.append("droid_body")
+	# Dome head present (a sphere mesh with radius 0.22)
+	var domes := equip.find_children("*", "MeshInstance3D", true, false).filter(
+			func(n): return (n as MeshInstance3D).mesh is SphereMesh \
+				and absf((n as MeshInstance3D).mesh.radius - 0.22) < 0.01)
+	if domes.size() != 1:
+		fails.append("dome_head")
 
 	# All props start hidden.
 	for id in ["sword", "bow", "dagger", "leather_armor"]:
@@ -41,8 +42,8 @@ func _init() -> void:
 	inv.equip(1)   # sword
 	for i in 3:
 		await process_frame
-	var sword_vis := _prop_visible(equip, Vector3(0.35, 0.95, 0.1))
-	var bow_vis := _prop_visible(equip, Vector3(-0.32, 0.95, 0.12))
+	var sword_vis := _prop_visible(equip, Vector3(0.38, 0.7, 0.1))
+	var bow_vis := _prop_visible(equip, Vector3(-0.34, 0.72, 0.12))
 	if not sword_vis or bow_vis:
 		fails.append("katana_swap")
 
@@ -50,7 +51,7 @@ func _init() -> void:
 	inv.equip(0)
 	for i in 3:
 		await process_frame
-	if _prop_visible(equip, Vector3(0.35, 0.95, 0.1)) or not _prop_visible(equip, Vector3(-0.32, 0.95, 0.12)):
+	if _prop_visible(equip, Vector3(0.38, 0.7, 0.1)) or not _prop_visible(equip, Vector3(-0.34, 0.72, 0.12)):
 		fails.append("bow_swap")
 
 	# Wear armor -> plates visible; remove -> hidden.
