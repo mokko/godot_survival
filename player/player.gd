@@ -20,6 +20,7 @@ var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
 const InventoryScene := preload("res://ui/inventory.tscn")
 @onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
+@onready var equipment: Node3D = $Equipment
 
 var _snd_jump: AudioStreamPlayer
 var _snd_land: AudioStreamPlayer
@@ -99,6 +100,7 @@ func _ready() -> void:
 		pause_requested.connect(pause_menu.open)
 	if inventory != null:
 		inventory.armor_changed.connect(_on_armor_changed)
+		inventory.item_equipped.connect(_on_item_equipped)
 	# Continue flow: restore a saved game exactly once, when launched from
 	# the splash screen's Continue button.
 	if SAVEGAME.take_pending_load():
@@ -244,7 +246,14 @@ func equip_armor(item_id: String) -> bool:
 	return false
 
 
+func _on_item_equipped(slot: int) -> void:
+	if equipment != null and inventory != null:
+		equipment.show_for_equipped(inventory.get_equipped_item())
+
+
 func _on_armor_changed(armor_id: String, durability: float) -> void:
+	if equipment != null:
+		equipment.show_armor(armor_id != "")
 	## UI path: inventory emits when the player presses E on an armor slot.
 	_armor_id = armor_id
 	_armor_durability = durability
