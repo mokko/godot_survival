@@ -4,6 +4,7 @@ extends Control
 ## a number "equips" that slot (highlight; held item name shown above).
 
 signal item_equipped(slot: int)
+signal armor_changed(armor_id: String, durability: float)
 
 const SLOTS := 16
 const PACK_SIZE := 5                  # arrows come in packs of 5
@@ -109,6 +110,34 @@ func get_equipped_item() -> String:
 	return ""
 
 
+var worn_armor_id := ""        # armor currently worn (slot stays in inventory)
+
+
+func equip_armor_from_inventory() -> void:
+	## Key E: wear the armor in the equipped slot, or take armor off if the
+	## equipped slot holds the worn armor.
+	if equipped_slot < 0 or equipped_slot >= SLOTS:
+		return
+	var id: String = slots[equipped_slot]
+	if id == worn_armor_id:
+		worn_armor_id = ""      # take it off
+		armor_changed.emit("", 0.0)
+		_refresh()
+		return
+	var stats: Dictionary = load("res://items/armor.gd").STATS.get(id, {})
+	if stats.is_empty():
+		return                  # equipped item is not armor
+	worn_armor_id = id
+	armor_changed.emit(id, float(stats.get("durability", 100.0)))
+	_refresh()
+
+
+func wear_armor(id: String, durability: float) -> void:
+	## Programmatic wear (used on savegame load).
+	worn_armor_id = id
+	armor_changed.emit(id, durability)
+
+
 func is_full() -> bool:
 	return not slots.has("")
 
@@ -118,6 +147,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var idx: int = event.keycode - KEY_1
 		if idx >= 0 and idx < 9:
 			equip(idx)
+		elif event.keycode == KEY_E:
+			equip_armor_from_inventory()
 
 
 func _refresh() -> void:
@@ -135,7 +166,9 @@ func _refresh() -> void:
 		style.bg_color = Color(0, 0, 0, 0.55)
 		style.set_corner_radius_all(4)
 		style.set_border_width_all(2)
-		if i == equipped_slot:
+		if id == worn_armor_id:
+			style.border_color = Color(0.3, 0.8, 0.9)   # worn: cyan
+		elif i == equipped_slot:
 			style.border_color = Color(1.0, 0.85, 0.2)
 		elif id != "":
 			style.border_color = Color(0.4, 0.5, 0.6)

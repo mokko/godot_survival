@@ -48,6 +48,8 @@ func save_state() -> Dictionary:
 		"items": inventory.slots.duplicate() if inventory != null else [],
 		"counts": inventory.counts.duplicate() if inventory != null else [],
 		"equipped": inventory.equipped_slot if inventory != null else -1,
+		"armor": _armor_id,
+		"armor_durability": _armor_durability,
 	}
 
 
@@ -75,6 +77,12 @@ func load_state(data: Dictionary) -> void:
 			inventory.equip(eq)
 		else:
 			inventory._refresh()
+		var saved_armor := str(data.get("armor", ""))
+		if saved_armor != "":
+			_armor_id = saved_armor
+			_armor_durability = float(data.get("armor_durability", 0.0))
+			inventory.worn_armor_id = saved_armor
+			inventory._refresh()
 	_update_hud()
 
 
@@ -89,6 +97,8 @@ func _ready() -> void:
 	camera.fov = FOV_DEFAULT
 	if pause_menu != null:
 		pause_requested.connect(pause_menu.open)
+	if inventory != null:
+		inventory.armor_changed.connect(_on_armor_changed)
 	# Continue flow: restore a saved game exactly once, when launched from
 	# the splash screen's Continue button.
 	if SAVEGAME.take_pending_load():
@@ -219,18 +229,26 @@ func has_arrows() -> bool:
 
 
 func equip_armor(item_id: String) -> bool:
-	## Equip the first armor stack in the inventory with this id.
+	## Programmatic equip (tests, savegame load). UI path: inventory key E.
 	if inventory == null:
+		return false
+	var stats: Dictionary = load("res://items/armor.gd").STATS.get(item_id, {})
+	if stats.is_empty():
 		return false
 	for i in 16:
 		if inventory.slots[i] == item_id:
-			var stats: Dictionary = load("res://items/armor.gd").STATS.get(item_id, {})
-			if stats.is_empty():
-				return false
 			_armor_id = item_id
 			_armor_durability = float(stats.get("durability", 100.0))
+			inventory.wear_armor(item_id, _armor_durability)
 			return true
 	return false
+
+
+func _on_armor_changed(armor_id: String, durability: float) -> void:
+	## UI path: inventory emits when the player presses E on an armor slot.
+	_armor_id = armor_id
+	_armor_durability = durability
+	_update_hud()
 
 
 func damage(amount: float) -> void:
@@ -242,6 +260,10 @@ func damage(amount: float) -> void:
 		_armor_durability = maxf(_armor_durability - eaten * 0.5, 0.0)
 		if _armor_durability <= 0.0:
 			_armor_id = ""   # armor broke
+			if inventory != null:
+				inventory.worn_armor_id = ""
+		elif inventory != null:
+			inventory.worn_armor_id = _armor_id
 		amount -= eaten
 	_apply_damage(amount)
 
@@ -408,8 +430,25 @@ func _restart() -> void:
 	_update_hud()
 
 
+var _armor_label: Label
+
+
 func _update_hud() -> void:
 	if life_label:
 		life_label.text = "Life: %d" % int(ceil(life))
+	if _armor_label == null:
+		var hud: CanvasLayer = get_node_or_null("../HUD")
+		if hud != null:
+			_armor_label = Label.new()
+			_armor_label.position = Vector2(10, 40)
+			_armor_label.add_theme_font_size_override("font_size", 14)
+			hud.add_child(_armor_label)
+	if _armor_label != null:
+		if _armor_id != "" and _armor_durability > 0.0:
+			var pretty: String = _armor_id.replace("_", " ").capitalize()
+			_armor_label.text = "Armor: %s (%d%%)" % [pretty, int(_armor_durability)]
+			_armor_label.visible = true
+		else:
+			_armor_label.visible = false
 	if sunbulb_label:
 		sunbulb_label.text = "Sunbulbs: %d" % sunbulbs_collected
