@@ -70,6 +70,17 @@ func _init() -> void:
 	if _prop_visible(equip, Vector3.ZERO, true):
 		fails.append("armor_hide")
 
+	# Flourish: on equip, drone bobs up then settles; rotors spin faster.
+	player.equipment.play_flourish()
+	var peaked := false
+	for i in 90:
+		await process_frame
+		if player.equipment.position.y > 0.2:
+			peaked = true
+	var settled: bool = absf(player.equipment.position.y) < 0.01 or is_zero_approx(player.equipment.position.y)
+	if not peaked or not settled:
+		fails.append("flourish")
+
 	if fails.is_empty():
 		print("RESULT ALL PASS")
 		quit(0)

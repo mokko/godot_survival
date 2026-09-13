@@ -249,11 +249,13 @@ func equip_armor(item_id: String) -> bool:
 func _on_item_equipped(slot: int) -> void:
 	if equipment != null and inventory != null:
 		equipment.show_for_equipped(inventory.get_equipped_item())
+		equipment.play_flourish()
 
 
 func _on_armor_changed(armor_id: String, durability: float) -> void:
 	if equipment != null:
 		equipment.show_armor(armor_id != "")
+		equipment.play_flourish()
 	## UI path: inventory emits when the player presses E on an armor slot.
 	_armor_id = armor_id
 	_armor_durability = durability

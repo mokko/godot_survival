@@ -8,6 +8,8 @@ const ItemDB := preload("res://items/item_db.gd")
 var _rotors: Array = []
 var _spin := 0.0
 var _props := {}         # item id -> Node3D
+var _flourish := 0.0     # counts down while the equip flourish plays
+var _eye: MeshInstance3D = null
 
 
 func _ready() -> void:
@@ -16,9 +18,29 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_spin += delta * 12.0
+	# Base hover spin, boosted while the flourish is active.
+	_spin += delta * (30.0 if _flourish > 0.0 else 12.0)
 	for r in _rotors:
 		r.rotation.y = _spin
+	# Whole-body bob: quick hop while the flourish plays.
+	if _flourish > 0.0:
+		_flourish = maxf(_flourish - delta, 0.0)
+		var t := 1.0 - _flourish / FLOURISH_TIME   # 0..1
+		position.y = 0.35 * sin(t * PI)            # up and back down
+		# Eye flashes brighter during the flourish.
+		if _eye != null and _eye.material_override is StandardMaterial3D:
+			var m: StandardMaterial3D = _eye.material_override
+			m.emission_energy_multiplier = 1.0 + 2.0 * sin(t * PI)
+	else:
+		position.y = 0.0
+
+
+const FLOURISH_TIME := 0.6
+
+
+func play_flourish() -> void:
+	## Brief rotor burst + bob: "look at my drone" moment on equip changes.
+	_flourish = FLOURISH_TIME
 
 
 ## ---- body ---------------------------------------------------------------
@@ -39,6 +61,7 @@ func _build_drone_body() -> void:
 
 	# Sensor eye: small emissive sphere at the front.
 	var eye := MeshInstance3D.new()
+	_eye = eye
 	var eye_mesh := SphereMesh.new()
 	eye_mesh.radius = 0.08
 	eye_mesh.height = 0.16
