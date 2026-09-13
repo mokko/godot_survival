@@ -24,6 +24,7 @@ const InventoryScene := preload("res://ui/inventory.tscn")
 
 var _snd_jump: AudioStreamPlayer
 var _snd_land: AudioStreamPlayer
+var _snd_slash: AudioStreamPlayer
 var _snd_step: AudioStreamPlayer
 var _snd_grab: AudioStreamPlayer
 var _snd_drop: AudioStreamPlayer
@@ -92,6 +93,7 @@ func _ready() -> void:
 	_snd_land = _make_snd("res://sounds/land.wav", -6.0)
 	_snd_step = _make_snd("res://sounds/step.wav", -18.0)
 	_snd_grab = _make_snd("res://sounds/grab.wav", -10.0)
+	_snd_slash = _make_snd("res://sounds/slash.wav", -6.0)
 	_snd_drop = _make_snd("res://sounds/drop.wav", -10.0)
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -168,7 +170,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			camera.fov = min(camera.fov + ZOOM_SPEED, FOV_MAX)
 		elif event.button_index == MOUSE_BUTTON_LEFT:
-			_toggle_grab()
+			if get_equipped_item() == "sword":
+				do_slash()
+			else:
+				_toggle_grab()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_begin_draw_bow()
 	elif event is InputEventMouseButton and not event.pressed \
@@ -203,6 +208,58 @@ func _toggle_grab() -> void:
 		_held_block = collider
 		_held_block.grab(camera)
 		_snd_grab.play()
+
+# ----------------------------------------------------------------- katana slash
+
+const SlashScene := preload("res://player/slash.gd")
+const SLASH_RANGE := 2.2
+const SLASH_HALF_ANGLE := 0.7
+const BARE_HAND_DAMAGE := 5.0
+
+var _slash: Node3D = null
+
+
+func _ensure_slash() -> void:
+	if _slash != null or equipment == null:
+		return
+	_slash = Node3D.new()
+	_slash.set_script(SlashScene)
+	add_child(_slash)
+	var sword_pivot: Node3D = equipment.get("_sword_pivot")
+	var trail: MeshInstance3D = equipment.get("_trail")
+	_slash.setup(sword_pivot, trail, _slash_damage)
+
+
+func do_slash() -> void:
+	_ensure_slash()
+	if _slash != null and not _slash.can_slash():
+		return
+	if _snd_slash:
+		_snd_slash.play()
+	_slash.slash()
+
+
+func _slash_damage() -> void:
+	## Cone check in front of the drone: scan the "damageable" group only,
+	## filter by distance + half-angle.
+	var dir: Vector3 = -global_transform.basis.z
+	dir.y = 0.0
+	dir = dir.normalized()
+	var hit_list: Array = []
+	for node in get_tree().get_nodes_in_group("damageable"):
+		if not is_instance_valid(node) or node == self:
+			continue
+		var to: Vector3 = node.global_position - global_position
+		to.y = 0.0
+		var dist: float = to.length()
+		if dist > SLASH_RANGE:
+			continue
+		if dist > 0.01 and dir.angle_to(to.normalized()) > SLASH_HALF_ANGLE:
+			continue
+		hit_list.append(node)
+	for node in hit_list:
+		node.damage(25.0)
+
 
 # ----------------------------------------------------------------- bow shooting
 

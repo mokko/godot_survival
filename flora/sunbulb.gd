@@ -4,6 +4,9 @@ extends Area3D
 const DestroyableScene := preload("res://items/death_puff.tscn")
 var life := 50.0
 
+func _enter_tree() -> void:
+	add_to_group("damageable")
+
 func damage(amount: float) -> void:
 	life -= amount
 	if life <= 0.0:
