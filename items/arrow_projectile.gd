@@ -4,7 +4,7 @@ extends Area3D
 
 const SPEED := 30.0
 const GRAVITY := 4.0          # mild arc, not full physics
-const LIFETIME := 10.0
+const LIFETIME := 60.0
 const DAMAGE := 12.0
 
 var _velocity := Vector3.ZERO
