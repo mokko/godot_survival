@@ -80,3 +80,5 @@ write_wav("step.wav", noise(0.07, 0.12, curve=6.0))
 write_wav("splash.wav", mix(noise(0.5, 0.25, curve=2.5),
                             tone(0.5, 300, 90, curve=3.0)))
 write_wav("flopp.wav", mix(tone(0.25, 220, 70, curve=6.0), noise(0.2, 0.1, curve=3.0)))
+write_wav("slash.wav", mix(noise(0.18, 0.9, curve=3.5),
+                            tone(0.18, 1400, 400, curve=4.0, harmonics=((0.4, 1.0),))))

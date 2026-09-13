@@ -13,6 +13,7 @@ const ITEMS := {
 	"dagger": {"name": "Tanto Dagger", "color": Color(0.7, 0.72, 0.8)},
 	"bow": {"name": "Yumi Bow", "color": Color(0.5, 0.35, 0.15)},
 	"arrows": {"name": "Arrows x5", "color": Color(0.85, 0.8, 0.55)},
+	"leather_armor": {"name": "Leather Armor", "color": Color(0.55, 0.4, 0.25)},
 }
 
 
