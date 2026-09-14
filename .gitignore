@@ -4,3 +4,6 @@
 
 # editor lock files (.#<name> symlinks while a file is open in the editor)
 .#*
+
+# export output
+/builds/
