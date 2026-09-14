@@ -176,12 +176,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			and event.button_index == MOUSE_BUTTON_RIGHT:
 		_release_bow()
 
-	# ESC: restart on the death screen, otherwise open the pause menu.
+	# ESC: restart on the death screen, otherwise toggle the pause menu.
+	# Deliberately NOT gated on mouse mode: if capture ever fails (window
+	# focus loss, Wayland quirks), ESC must still open the menu.
 	if event.is_action_pressed("ui_cancel"):
 		if _game_over:
 			_restart()
-		elif Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		else:
 			pause_requested.emit()
+			# Stop the SAME event from reaching the pause menu's own ESC
+			# handler, which would instantly resume (open+close race).
+			get_viewport().set_input_as_handled()
 
 
 ## Crosshair interaction: grab or release the block under the crosshair.
