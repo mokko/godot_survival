@@ -19,6 +19,7 @@ this text introduces character, setting and reasons for game play
 
 var _shown := 0.0            # characters revealed so far (float accumulator)
 var _done := false
+var _starting := false
 
 
 func _ready() -> void:
@@ -45,4 +46,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _start_game() -> void:
+	if _starting:
+		return
+	_starting = true
+	# Immediate visual feedback: the world scene takes a while to load, but
+	# the player should see the skip register the instant they press.
+	$Center/VBox/Text.hide()
+	$Center/VBox/Hint.text = "Loading..."
+	$Center/VBox/Hint.show()
+	await get_tree().process_frame   # let the label draw before the freeze
 	get_tree().change_scene_to_file(GAME_SCENE)

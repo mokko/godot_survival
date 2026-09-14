@@ -29,31 +29,34 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Padding" type="MarginContainer" parent="Center"]
+layout_mode = 2
+
+[node name="Panel" type="PanelContainer" parent="Center/Padding"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+[node name="VBox" type="VBoxContainer" parent="Center/Padding/Panel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Center/Panel/VBox"]
+[node name="Title" type="Label" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Paused"
 horizontal_alignment = 1
 
-[node name="Resume" type="Button" parent="Center/Panel/VBox"]
+[node name="Resume" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Continue"
 
-[node name="Save" type="Button" parent="Center/Panel/VBox"]
+[node name="Save" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Save"
 
-[node name="Quit" type="Button" parent="Center/Panel/VBox"]
+[node name="Quit" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Quit"
@@ -76,6 +79,6 @@ theme_override_font_sizes/font_size = 28
 text = "Saved!"
 horizontal_alignment = 1
 
-[connection signal="pressed" from="Center/Panel/VBox/Resume" to="." method="_on_resume"]
-[connection signal="pressed" from="Center/Panel/VBox/Save" to="." method="_on_save"]
-[connection signal="pressed" from="Center/Panel/VBox/Quit" to="." method="_on_quit"]
+[connection signal="pressed" from="Center/Padding/Panel/VBox/Resume" to="." method="_on_resume"]
+[connection signal="pressed" from="Center/Padding/Panel/VBox/Save" to="." method="_on_save"]
+[connection signal="pressed" from="Center/Padding/Panel/VBox/Quit" to="." method="_on_quit"]

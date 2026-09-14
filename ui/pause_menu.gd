@@ -8,9 +8,9 @@ signal quit_to_menu   # kept for compatibility; quit now changes scene directly
 
 const SAVEGAME := preload("res://world/savegame.gd")
 
-@onready var resume_btn: Button = $Center/Panel/VBox/Resume
-@onready var save_btn: Button = $Center/Panel/VBox/Save
-@onready var quit_btn: Button = $Center/Panel/VBox/Quit
+@onready var resume_btn: Button = $Center/Padding/Panel/VBox/Resume
+@onready var save_btn: Button = $Center/Padding/Panel/VBox/Save
+@onready var quit_btn: Button = $Center/Padding/Panel/VBox/Quit
 @onready var save_label: Label = $SaveLabel
 
 var _save_label_tween: Tween
@@ -31,14 +31,30 @@ func _unhandled_input(event: InputEvent) -> void:
 func open() -> void:
 	visible = true
 	save_label.hide()
+	_set_crosshair_visible(false)
+	_apply_padding()
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
+func _apply_padding() -> void:
+	## ~10% of the viewport width on each side of the panel.
+	var pad: int = int(size.x * 0.1)
+	$Center/Padding.add_theme_constant_override("margin_left", pad)
+	$Center/Padding.add_theme_constant_override("margin_right", pad)
+
+
 func _on_resume() -> void:
 	visible = false
+	_set_crosshair_visible(true)
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _set_crosshair_visible(shown: bool) -> void:
+	var crosshair: Node = get_tree().current_scene.get_node_or_null("HUD/Crosshair")
+	if crosshair != null:
+		crosshair.visible = shown
 
 
 func _on_save() -> void:
