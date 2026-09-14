@@ -4,9 +4,17 @@ extends RefCounted
 
 const PATH := "user://options.json"
 
+## Supported window resolutions (width, height). "res" option stores an
+## index into this list; default is HD 1920x1080.
+const RESOLUTIONS := [
+	[1280, 720],
+	[1920, 1080],
+]
+
 ## option -> [key, default]
 const DEFAULTS := {
 	"show_fps": true,
+	"res": 1,   # index into RESOLUTIONS — 1920x1080
 }
 
 static var _cache: Dictionary = {}
@@ -23,6 +31,20 @@ static func set_option(key: String, value: Variant) -> void:
 		_load()
 	_cache[key] = value
 	_save()
+
+
+static func apply_resolution() -> void:
+	## Set the window size from the persisted "res" option.
+	var idx: int = clampi(int(get_option("res")), 0, RESOLUTIONS.size() - 1)
+	var size: Array = RESOLUTIONS[idx]
+	DisplayServer.window_set_size(Vector2i(size[0], size[1]))
+	# Re-center the window so a resolution switch doesn't leave it off-screen.
+	var screen := DisplayServer.window_get_current_screen()
+	var screen_size := DisplayServer.screen_get_size(screen)
+	var screen_pos := DisplayServer.screen_get_position(screen)
+	var win := DisplayServer.window_get_size()
+	DisplayServer.window_set_position(
+			screen_pos + (screen_size - win) / 2)
 
 
 static func _load() -> void:
