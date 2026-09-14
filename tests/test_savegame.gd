@@ -10,11 +10,11 @@ func _init() -> void:
 	# Clean slate: remove any save from previous runs.
 	DirAccess.open("user://").remove("savegame.json")
 
-	# -- Part A: no save -> splash hides Continue.
+	# -- Part A: no save -> Load Game is still visible (always shown).
 	var splash = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash)
 	await process_frame
-	var hidden_ok: bool = splash.get_node("Center/VBox/Continue").visible == false
+	var hidden_ok: bool = splash.get_node("Center/VBox/Continue").visible == true
 	splash.free()
 
 	# -- Part B: write a save from a player instance, roundtrip it.
@@ -32,7 +32,7 @@ func _init() -> void:
 			and int(data.get("sunbulbs", -1)) == 5 \
 			and data.get("pos", []).size() == 3
 
-	# -- Part C: save exists -> splash shows Continue.
+	# -- Part C: save exists -> Load Game still visible (always shown).
 	var splash2 = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash2)
 	await process_frame
