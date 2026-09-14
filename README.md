@@ -1,4 +1,4 @@
-# Survivalm
+# Survivalm (v0.0.1-alpha)
 
 Survivalm is an experiment to learn more about Godot, games, and developing
 with AI. It is the first experiment — others will follow.
