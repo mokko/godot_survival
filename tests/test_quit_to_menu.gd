@@ -10,7 +10,7 @@ func _init() -> void:
 	for i in 90:
 		await physics_frame
 	var menu: Control = main.get_node("HUD/PauseMenu")
-	var label: Button = menu.get_node("Center/Panel/VBox/Quit")
+	var label: Button = menu.get_node("Center/Padding/Panel/VBox/Quit")
 	var text_ok: bool = label.text == "Quit"
 
 	# Open the menu (paused state), then press Quit.
