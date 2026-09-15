@@ -15,6 +15,7 @@ const RESOLUTIONS := [
 const DEFAULTS := {
 	"show_fps": true,
 	"res": 1,   # index into RESOLUTIONS — 1920x1080
+	"fullscreen": true,
 }
 
 static var _cache: Dictionary = {}
@@ -33,16 +34,40 @@ static func set_option(key: String, value: Variant) -> void:
 	_save()
 
 
+static func apply_display() -> void:
+	## Honour the persisted "fullscreen" option. The project boots fullscreen
+	## (project.godot: window/size/mode=3), so this only has to switch back to
+	## a window when the player opted out — and re-apply their window size,
+	## which fullscreen ignores.
+	if bool(get_option("fullscreen")):
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		# Restore the saved window size rather than keeping the monitor-sized
+		# window fullscreen leaves behind.
+		apply_resolution()
+
+
 static func apply_resolution() -> void:
-	## Set the window size from the persisted "res" option.
+	## Set the window size from the persisted "res" option. Has no visible
+	## effect while fullscreen, where the desktop size wins.
+	if bool(get_option("fullscreen")):
+		return
 	var idx: int = clampi(int(get_option("res")), 0, RESOLUTIONS.size() - 1)
 	var size: Array = RESOLUTIONS[idx]
 	DisplayServer.window_set_size(Vector2i(size[0], size[1]))
-	# Re-center the window so a resolution switch doesn't leave it off-screen.
+	_clamp_window()
+
+
+static func _clamp_window() -> void:
+	## Re-center the window so a mode/resolution switch can't leave it
+	## off-screen, and never let it grow past the current screen.
 	var screen := DisplayServer.window_get_current_screen()
 	var screen_size := DisplayServer.screen_get_size(screen)
 	var screen_pos := DisplayServer.screen_get_position(screen)
 	var win := DisplayServer.window_get_size()
+	win = Vector2i(mini(win.x, screen_size.x), mini(win.y, screen_size.y))
+	DisplayServer.window_set_size(win)
 	DisplayServer.window_set_position(
 			screen_pos + (screen_size - win) / 2)
 
