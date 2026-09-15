@@ -17,6 +17,7 @@ var equipped_slot: int = -1
 
 var _slot_panels: Array = []
 var _held_label: Label
+var _slot_styles: Dictionary = {}   # kind -> shared StyleBoxFlat
 
 
 func _ready() -> void:
@@ -184,6 +185,28 @@ func refresh() -> void:
 	_refresh()
 
 
+func _slot_style(kind: String) -> StyleBoxFlat:
+	## The four slot styles, built once and shared. Rebuilding a StyleBoxFlat
+	## per slot per refresh allocated 16 objects on every inventory change.
+	if _slot_styles.has(kind):
+		return _slot_styles[kind]
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.55)
+	style.set_corner_radius_all(4)
+	style.set_border_width_all(2)
+	match kind:
+		"worn":
+			style.border_color = Color(0.3, 0.8, 0.9)    # worn: cyan
+		"equipped":
+			style.border_color = Color(1.0, 0.85, 0.2)
+		"filled":
+			style.border_color = Color(0.4, 0.5, 0.6)
+		_:
+			style.border_color = Color(0.25, 0.25, 0.28)
+	_slot_styles[kind] = style
+	return style
+
+
 func _refresh() -> void:
 	for i in SLOTS:
 		var ui: Dictionary = _slot_panels[i]
@@ -195,19 +218,15 @@ func _refresh() -> void:
 			lab.text = ItemDB.item_name(id) if n <= 1 else "%s x%d" % [ItemDB.item_name(id), n]
 		else:
 			lab.text = str(i + 1)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0, 0, 0, 0.55)
-		style.set_corner_radius_all(4)
-		style.set_border_width_all(2)
+		# Same precedence as before: worn beats equipped beats merely filled.
+		var kind := "empty"
 		if id == worn_armor_id:
-			style.border_color = Color(0.3, 0.8, 0.9)   # worn: cyan
+			kind = "worn"
 		elif i == equipped_slot:
-			style.border_color = Color(1.0, 0.85, 0.2)
+			kind = "equipped"
 		elif id != "":
-			style.border_color = Color(0.4, 0.5, 0.6)
-		else:
-			style.border_color = Color(0.25, 0.25, 0.28)
-		panel.add_theme_stylebox_override("panel", style)
+			kind = "filled"
+		panel.add_theme_stylebox_override("panel", _slot_style(kind))
 	if equipped_slot >= 0 and slots[equipped_slot] != "":
 		_held_label.text = "Held: %s" % ItemDB.item_name(slots[equipped_slot])
 	else:

@@ -412,11 +412,20 @@ func _restart() -> void:
 
 
 var _armor_label: Label
+## Last values written to the HUD. _update_hud() runs every physics frame, so
+## every write is guarded: a steady frame must cost nothing and allocate
+## nothing (armor_status() used to build a Dictionary 60x/s).
+var _hud_life := -1
+var _hud_sunbulbs := -1
+var _hud_armor := ""
+var _hud_armor_shown := true   # the Label starts visible; force a first sync
 
 
 func _update_hud() -> void:
-	if life_label:
-		life_label.text = "Life: %d" % int(ceil(life))
+	var shown_life: int = int(ceil(life))
+	if life_label and shown_life != _hud_life:
+		_hud_life = shown_life
+		life_label.text = "Life: %d" % shown_life
 	if _armor_label == null:
 		var hud: CanvasLayer = get_node_or_null("../HUD")
 		if hud != null:
@@ -425,12 +434,17 @@ func _update_hud() -> void:
 			_armor_label.add_theme_font_size_override("font_size", 14)
 			hud.add_child(_armor_label)
 	if _armor_label != null:
-		var st: Dictionary = combat.armor_status()
-		if st["id"] != "" and st["durability"] > 0.0:
-			var pretty: String = str(st["id"]).replace("_", " ").capitalize()
-			_armor_label.text = "Armor: %s (%d%%)" % [pretty, int(st["durability"])]
-			_armor_label.visible = true
-		else:
-			_armor_label.visible = false
-	if sunbulb_label:
+		var text := ""
+		if combat.armor_id != "" and combat.armor_durability > 0.0:
+			var pretty: String = combat.armor_id.replace("_", " ").capitalize()
+			text = "Armor: %s (%d%%)" % [pretty, int(combat.armor_durability)]
+		if text != _hud_armor:
+			_hud_armor = text
+			_armor_label.text = text
+		var shown := text != ""
+		if shown != _hud_armor_shown:
+			_hud_armor_shown = shown
+			_armor_label.visible = shown
+	if sunbulb_label and sunbulbs_collected != _hud_sunbulbs:
+		_hud_sunbulbs = sunbulbs_collected
 		sunbulb_label.text = "Sunbulbs: %d" % sunbulbs_collected

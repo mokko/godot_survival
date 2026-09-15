@@ -2,18 +2,20 @@ extends Label
 ## FPS counter — top-left under Life. Reads show_fps from options.gd every
 ## frame so toggling in the menu takes effect immediately.
 
+const Options := preload("res://ui/options.gd")
+
 var _enabled: bool = true
 var _accum := 0.0
 var _frames := 0
 
 
 func _ready() -> void:
-	_enabled = load("res://ui/options.gd").get_option("show_fps")
+	_enabled = bool(Options.get_option("show_fps"))
 	visible = _enabled
 
 
 func _process(delta: float) -> void:
-	var opt = load("res://ui/options.gd").get_option("show_fps")
+	var opt: bool = bool(Options.get_option("show_fps"))
 	if opt != _enabled:
 		_enabled = opt
 		visible = _enabled
