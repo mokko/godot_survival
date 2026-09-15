@@ -26,9 +26,18 @@ func _init() -> void:
 	player.add_item("arrows")
 	if not player.has_bow() or not player.has_arrows():
 		fails.append("has_items")
+	# Regression: firing must not change what the player is holding. release
+	# used to equip the arrow stack, so the held item became "arrows" and the
+	# next left-click grabbed blocks instead of slashing.
+	var held_before: String = inv.get_equipped_item()
+	var slot_before: int = inv.equipped_slot
 	var start: Vector3 = player.global_position
 	player._begin_draw_bow()
 	player._release_bow()
+	if held_before != "bow":
+		fails.append("held_before_was_bow")
+	if inv.get_equipped_item() != held_before or inv.equipped_slot != slot_before:
+		fails.append("held_weapon_swapped")
 	var arrows: Array = root.find_children("*", "Area3D", true, false).filter(
 			func(n): return n.get_script() != null \
 				and str(n.get_script().resource_path).contains("arrow_projectile"))
