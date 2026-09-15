@@ -1,7 +1,14 @@
 extends Control
 ## Story screen — sits between the splash menu and the game. Shows intro
 ## text typed letter by letter on a near-black background. ESC or a left
-## click immediately enters the game (no text advancement).
+## click (at any point, even mid-typing) immediately enters the game.
+##
+## The click is handled in _unhandled_input, so every node in story.tscn must
+## keep mouse_filter = MOUSE_FILTER_IGNORE: a Control on the default STOP grabs
+## the click during GUI hit-testing, marks it handled, and the event never
+## reaches this script (that is why only ESC used to work). If you add a button
+## here later, give it STOP but connect it — do not re-enable STOP on the
+## full-rect Background/Center container, which would swallow every click.
 
 const GAME_SCENE := "res://world/main.tscn"
 const CHARS_PER_SEC := 40.0
