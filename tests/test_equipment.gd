@@ -65,6 +65,24 @@ func _init() -> void:
 		raised = maxf(raised, (arms[0] as Node3D).rotation.x)
 	if not swayed:
 		fails.append("arm_sway")
+
+	# Unarmed jab: the right arm drives forward, the left only counter-rotates.
+	# Stepped with a fixed delta so the check doesn't depend on headless frame
+	# pacing: 20 * 0.02 s covers the whole 0.34 s punch.
+	player.do_punch()
+	var punch_started: bool = eq._punch > 0.0
+	var jab_peak := 0.0
+	var left_peak := 0.0
+	for i in 20:
+		eq._animate_arms(0.02)
+		jab_peak = maxf(jab_peak, (arms[1] as Node3D).rotation.x)
+		left_peak = maxf(left_peak, absf((arms[0] as Node3D).rotation.x))
+	if not punch_started:
+		fails.append("punch_not_started")
+	if jab_peak < 0.9:
+		fails.append("punch_jab=%.2f" % jab_peak)
+	if left_peak > 0.6:
+		fails.append("punch_left_too_far=%.2f" % left_peak)
 	if moving_span <= parked_span:
 		fails.append("arm_gait parked=%.3f moving=%.3f" % [parked_span, moving_span])
 	if not mirrored:

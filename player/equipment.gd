@@ -12,6 +12,7 @@ var _sword_pivot: Node3D = null
 var _trail: MeshInstance3D = null
 var _arm_pivots: Array[Node3D] = []   # left, right — shoulder joints
 var _arm_time := 0.0                  # seconds, drives the arm gait
+var _punch := 0.0                     # counts down while a jab plays
 
 
 func _ready() -> void:
@@ -41,6 +42,7 @@ func _animate_arms(delta: float) -> void:
 	if _arm_pivots.is_empty():
 		return
 	_arm_time += delta
+	_punch = maxf(_punch - delta, 0.0)
 	var speed := 0.0
 	var body := get_parent() as CharacterBody3D
 	if body != null:
@@ -55,10 +57,28 @@ func _animate_arms(delta: float) -> void:
 		lift = 1.1 * sin((1.0 - _flourish / FLOURISH_TIME) * PI)
 	for i in _arm_pivots.size():
 		var mirror := 1.0 if i == 0 else -1.0
-		_arm_pivots[i].rotation.x = idle + lift + mirror * swing
+		# Unarmed jab: the right arm (appended second) drives forward and snaps
+		# back; the left counter-rotates slightly so it reads as a body action,
+		# not a floating limb.
+		var jab := 0.0
+		var counter := 0.0
+		if _punch > 0.0:
+			var punch_t := sin((1.0 - _punch / PUNCH_TIME) * PI)
+			if i == 1:
+				jab = JAB_ANGLE * punch_t
+			else:
+				counter = -0.25 * JAB_ANGLE * punch_t
+		_arm_pivots[i].rotation.x = idle + lift + mirror * swing + jab + counter
 
 
 const FLOURISH_TIME := 0.6
+const PUNCH_TIME := 0.34        # full jab: extend and snap back
+const JAB_ANGLE := 1.5          # radians; +x tips the hanging arm forward
+
+
+func play_punch() -> void:
+	## Unarmed attack flourish: a quick one-two with the right arm.
+	_punch = PUNCH_TIME
 
 
 func play_flourish() -> void:

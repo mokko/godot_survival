@@ -1,7 +1,8 @@
 extends CharacterBody3D
 
 const SPEED = 5.0
-const JUMP_VELOCITY = 4.5
+const JUMP_VELOCITY = 4.72   # 4.5 * sqrt(1.1): peak height scales with the
+                             # square of the launch velocity, so +10% height
 const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const SUNBULB_HEAL = 15.0
@@ -29,6 +30,7 @@ var _snd_slash: AudioStreamPlayer
 var _snd_step: AudioStreamPlayer
 var _snd_grab: AudioStreamPlayer
 var _snd_drop: AudioStreamPlayer
+var _snd_punch: AudioStreamPlayer
 var _was_on_floor := true
 var _step_accum := 0.0
 
@@ -44,7 +46,7 @@ func _make_snd(path: String, volume_db: float = 0.0) -> AudioStreamPlayer:
 
 func save_state() -> Dictionary:
 	## Everything a Load Game needs to restore.
-	return {
+	var state := {
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"life": life,
 		"sunbulbs": sunbulbs_collected,
@@ -54,6 +56,11 @@ func save_state() -> Dictionary:
 		"armor": combat.armor_id,
 		"armor_durability": combat.armor_durability,
 	}
+	# Time of day lives on the DayCycle node (a sibling), not on the player.
+	var cycle := get_node_or_null("../DayCycle")
+	if cycle != null:
+		state["time_of_day"] = cycle.time_of_day
+	return state
 
 
 func load_state(data: Dictionary) -> void:
@@ -64,6 +71,11 @@ func load_state(data: Dictionary) -> void:
 	if pos.size() == 3:
 		global_position = Vector3(pos[0], pos[1], pos[2])
 		velocity = Vector3.ZERO
+	# Put the sun back where it was: loading an evening save at noon broke the
+	# day/night illusion (and with it the glow plants and light budget).
+	var cycle := get_node_or_null("../DayCycle")
+	if cycle != null and data.has("time_of_day"):
+		cycle.time_of_day = clampf(float(data["time_of_day"]), 0.0, 1.0)
 	if inventory != null:
 		var items: Array = data.get("items", [])
 		var cnts: Array = data.get("counts", [])
@@ -109,6 +121,9 @@ func _ready() -> void:
 	_snd_grab = _make_snd("res://sounds/grab.wav", -10.0)
 	_snd_slash = _make_snd("res://sounds/slash.wav", -6.0)
 	_snd_drop = _make_snd("res://sounds/drop.wav", -10.0)
+	# Reuses the flopp thump: it reads as a jab landing and there is no
+	# dedicated punch sample in sounds/.
+	_snd_punch = _make_snd("res://sounds/flopp.wav", -14.0)
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = FOV_DEFAULT
@@ -171,8 +186,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if get_equipped_item() == "sword":
 				do_slash()
-			else:
-				_toggle_grab()
+			elif not _toggle_grab():
+				# Nothing to grab under the crosshair and no weapon equipped:
+				# the drone jabs instead of clicking at thin air.
+				do_punch()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_begin_draw_bow()
 	elif event is InputEventMouseButton and not event.pressed \
@@ -193,12 +210,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Crosshair interaction: grab or release the block under the crosshair.
-func _toggle_grab() -> void:
+## Returns true when it actually grabbed or dropped a block, so the caller can
+## fall back to an unarmed punch when there was nothing to interact with.
+func _toggle_grab() -> bool:
 	if _held_block != null:
 		_held_block.release()
 		_held_block = null
 		_snd_drop.play()
-		return
+		return true
 	var space := get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(
 			camera.global_position,
@@ -206,12 +225,22 @@ func _toggle_grab() -> void:
 	query.collide_with_bodies = true
 	var hit := space.intersect_ray(query)
 	if hit.is_empty():
-		return
+		return false
 	var collider: Object = hit["collider"]
 	if collider is MovableBlock:
 		_held_block = collider
 		_held_block.grab(camera)
 		_snd_grab.play()
+		return true
+	return false
+
+
+func do_punch() -> void:
+	## Unarmed left click: the drone throws a jab. Visual and audible only —
+	## nothing here deals damage yet, the arms just sell the input.
+	if equipment != null:
+		equipment.play_punch()
+	_snd_punch.play()
 
 ## ----------------------------------------------------------------- katana slash
 
