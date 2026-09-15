@@ -10,6 +10,8 @@ var _flourish := 0.0     # counts down while the equip flourish plays
 var _eye: MeshInstance3D = null
 var _sword_pivot: Node3D = null
 var _trail: MeshInstance3D = null
+var _arm_pivots: Array[Node3D] = []   # left, right — shoulder joints
+var _arm_time := 0.0                  # seconds, drives the arm gait
 
 
 func _ready() -> void:
@@ -29,6 +31,31 @@ func _process(delta: float) -> void:
 			m.emission_energy_multiplier = 1.0 + 2.0 * sin(t * PI)
 	else:
 		position.y = 0.0
+	_animate_arms(delta)
+
+
+func _animate_arms(delta: float) -> void:
+	## Arm life: opposite-phase swing while rolling, a slow idle sway, and a
+	## two-armed raise during the equip flourish. Pivot rotation.x is the only
+	## axis touched — positive tips the hanging arm forward (the drone faces -Z).
+	if _arm_pivots.is_empty():
+		return
+	_arm_time += delta
+	var speed := 0.0
+	var body := get_parent() as CharacterBody3D
+	if body != null:
+		speed = Vector2(body.velocity.x, body.velocity.z).length()
+	# Gait: swing amplitude scales with ground speed, so a parked drone
+	# doesn't march in place.
+	var gait := clampf(speed / 4.0, 0.0, 1.0)
+	var swing := 0.45 * gait * sin(_arm_time * 6.0)
+	var idle := 0.05 * sin(_arm_time * 1.5)
+	var lift := 0.0
+	if _flourish > 0.0:
+		lift = 1.1 * sin((1.0 - _flourish / FLOURISH_TIME) * PI)
+	for i in _arm_pivots.size():
+		var mirror := 1.0 if i == 0 else -1.0
+		_arm_pivots[i].rotation.x = idle + lift + mirror * swing
 
 
 const FLOURISH_TIME := 0.6
@@ -160,6 +187,86 @@ func _build_drone_body() -> void:
 	eye.material_override = eye_mat
 	add_child(eye)
 	_eye = eye
+
+	_build_arms(white, blue, dark)
+
+
+## ---- arms ---------------------------------------------------------------
+## Two thin arms off the body sides: ball shoulder, upper arm, blue cuff,
+## forearm and a two-finger claw. Each arm hangs from its own pivot Node3D so
+## _animate_arms can swing it as a unit.
+
+const ARM_SHOULDER_Y := 0.72   # just above the blue chest band
+const ARM_SHOULDER_X := 0.36   # outside the body half-width (0.28)
+
+func _build_arms(white: StandardMaterial3D, blue: StandardMaterial3D,
+		dark: StandardMaterial3D) -> void:
+	for side in [-1.0, 1.0]:
+		var pivot := Node3D.new()
+		pivot.name = "ArmL" if side < 0.0 else "ArmR"
+		pivot.position = Vector3(side * ARM_SHOULDER_X, ARM_SHOULDER_Y, 0.0)
+		pivot.rotation.z = side * 0.10     # splay the arms slightly outward
+		add_child(pivot)
+		_arm_pivots.append(pivot)
+
+		# Shoulder ball.
+		var ball := MeshInstance3D.new()
+		var bm := SphereMesh.new()
+		bm.radius = 0.07
+		bm.height = 0.14
+		ball.mesh = bm
+		ball.material_override = dark
+		pivot.add_child(ball)
+
+		# Upper arm.
+		var upper := MeshInstance3D.new()
+		var um := BoxMesh.new()
+		um.size = Vector3(0.09, 0.26, 0.10)
+		upper.mesh = um
+		upper.position.y = -0.15
+		upper.material_override = white
+		pivot.add_child(upper)
+
+		# Elbow joint.
+		var elbow := MeshInstance3D.new()
+		var em := CylinderMesh.new()
+		em.top_radius = 0.045
+		em.bottom_radius = 0.045
+		em.height = 0.11
+		elbow.mesh = em
+		elbow.position.y = -0.29
+		elbow.rotation.z = PI / 2           # axle across the arm
+		elbow.material_override = dark
+		pivot.add_child(elbow)
+
+		# Blue cuff, then the forearm below it.
+		var cuff := MeshInstance3D.new()
+		var cm := BoxMesh.new()
+		cm.size = Vector3(0.105, 0.06, 0.115)
+		cuff.mesh = cm
+		cuff.position.y = -0.34
+		cuff.material_override = blue
+		pivot.add_child(cuff)
+
+		var fore := MeshInstance3D.new()
+		var fm := BoxMesh.new()
+		fm.size = Vector3(0.075, 0.20, 0.085)
+		fore.mesh = fm
+		fore.position.y = -0.46
+		fore.material_override = white
+		pivot.add_child(fore)
+
+		# Two-finger claw: small dark paddles angled open.
+		for finger in [-1.0, 1.0]:
+			var claw := MeshInstance3D.new()
+			var km := BoxMesh.new()
+			km.size = Vector3(0.025, 0.10, 0.03)
+			claw.mesh = km
+			claw.position = Vector3(finger * 0.04, -0.60, 0.0)
+			claw.rotation.z = finger * 0.28
+			claw.material_override = dark
+			pivot.add_child(claw)
+
 
 ## ---- props ---------------------------------------------------------------
 

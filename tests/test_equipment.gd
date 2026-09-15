@@ -24,6 +24,54 @@ func _init() -> void:
 	if domes.size() != 1:
 		fails.append("dome_head")
 
+	# Two arms: shoulder pivots ArmL/ArmR, each carrying shoulder ball, upper
+	# arm, elbow, cuff, forearm and two claw fingers.
+	var arms: Array = equip.find_children("Arm*", "Node3D", true, false)
+	if arms.size() != 2:
+		fails.append("arm_count=%d" % arms.size())
+	else:
+		var names: Array = arms.map(func(n): return String(n.name))
+		names.sort()
+		if names != ["ArmL", "ArmR"]:
+			fails.append("arm_names")
+		for arm in arms:
+			if (arm as Node3D).find_children("*", "MeshInstance3D", true, false).size() < 7:
+				fails.append("%s_parts" % arm.name)
+			# Shoulders sit left/right of the body, above the chest band.
+			var pos: Vector3 = (arm as Node3D).position
+			if absf(pos.x) < 0.3 or pos.y < 0.6:
+				fails.append("%s_place" % arm.name)
+
+	# Arms are animated: the gait clock drives the idle sway, and ground speed
+	# widens the swing (a parked drone must not march in place).
+	var eq = player.equipment
+	var t0: float = (arms[0] as Node3D).rotation.x
+	eq._animate_arms(1.0)   # advance the gait clock by a second
+	var swayed: bool = absf((arms[0] as Node3D).rotation.x - t0) > 0.001
+
+	player.velocity = Vector3.ZERO
+	var parked_span: float = _arm_span(eq, arms[0])
+	player.velocity = Vector3(4.0, 0.0, 0.0)
+	var moving_span: float = _arm_span(eq, arms[0])
+	var mirrored: bool = (arms[0] as Node3D).rotation.x \
+			* (arms[1] as Node3D).rotation.x < 0.0   # opposite swing phase
+	player.velocity = Vector3.ZERO
+
+	# The equip flourish raises both arms.
+	eq.play_flourish()
+	var raised := 0.0
+	for i in 90:
+		await process_frame
+		raised = maxf(raised, (arms[0] as Node3D).rotation.x)
+	if not swayed:
+		fails.append("arm_sway")
+	if moving_span <= parked_span:
+		fails.append("arm_gait parked=%.3f moving=%.3f" % [parked_span, moving_span])
+	if not mirrored:
+		fails.append("arm_mirror")
+	if raised < 0.5:
+		fails.append("arm_lift=%.2f" % raised)
+
 	# All props start hidden.
 	for id in ["sword", "bow", "dagger", "leather_armor"]:
 		var prop: Node3D = equip.get(id) if equip.get(id) != null else null
@@ -88,6 +136,19 @@ func _init() -> void:
 	else:
 		print("RESULT FAIL: ", ", ".join(fails))
 		quit(1)
+
+
+func _arm_span(eq: Node3D, arm: Node3D) -> float:
+	## Peak-to-peak of one arm's swing over a full gait cycle, measured by
+	## stepping the gait clock directly (deterministic, no frame timing).
+	var lo := 1e9
+	var hi := -1e9
+	for i in 24:
+		eq._animate_arms(0.05)
+		var r: float = arm.rotation.x
+		lo = minf(lo, r)
+		hi = maxf(hi, r)
+	return hi - lo
 
 
 func _prop_visible(equip: Node3D, pos: Vector3, near_origin := false) -> bool:
