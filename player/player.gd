@@ -74,10 +74,13 @@ func load_state(data: Dictionary) -> void:
 			inventory.equip(eq)
 		else:
 			inventory.refresh()
-		var saved_armor := str(data.get("armor", ""))
-		if saved_armor != "":
-			combat.load_armor_state(saved_armor,
-					float(data.get("armor_durability", 0.0)))
+	# Armor lives on the combat node, not the inventory, so restore it even
+	# if the inventory could not be resolved this early.
+	var saved_armor := str(data.get("armor", ""))
+	if saved_armor != "":
+		combat.load_armor_state(saved_armor,
+				float(data.get("armor_durability", 0.0)))
+		if inventory != null:
 			inventory.wear_armor(saved_armor, combat.armor_durability)
 			inventory.refresh()
 	_update_hud()

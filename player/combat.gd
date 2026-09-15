@@ -101,8 +101,10 @@ func release_bow() -> void:
 		return
 	var idx := _find_arrow_stack()
 	if idx >= 0:
-		player.inventory.equip(idx)
-		player.inventory.consume_one_equipped()
+		# Consume straight from the arrow stack: equipping it here used to
+		# silently swap the held weapon to "arrows" on every shot, so the
+		# next left-click grabbed blocks instead of slashing.
+		player.inventory.consume_one(idx)
 	var dir: Vector3 = -player.camera.global_transform.basis.z
 	var arrow: Area3D = ArrowScene.instantiate()
 	player.get_tree().current_scene.add_child(arrow)
@@ -149,7 +151,10 @@ func absorb(amount: float) -> float:
 	armor_durability = maxf(armor_durability - eaten * 0.5, 0.0)
 	if armor_durability <= 0.0:
 		armor_id = ""   # armor broke
-	armor_changed.emit(armor_id, armor_durability)
+		# Only signal on a real state change. Emitting per hit made the equip
+		# flourish fire on every scratch; the HUD reads durability straight
+		# from armor_status() each frame, so it still ticks down normally.
+		armor_changed.emit(armor_id, armor_durability)
 	return amount - eaten
 
 

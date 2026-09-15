@@ -9,10 +9,15 @@ extends Node
 const DAY_LENGTH := 1200.0            # seconds for a full day+night
 const JAPAN_MAX_SUN_ELEVATION := 77.0 # deg; ~36 N latitude, equinox-ish
 const GLOW_GROUP := "glow_plants"
+const GLOW_BASE_META := "glow_base_energy"   # authored emission, per mesh
+const GLOW_STEP := 0.01                      # reapply threshold for the glow
 
 ## Time of day in [0, 1): 0 = sunrise, 0.25 = noon, 0.5 = sunset,
 ## 0.5-1 = night. Starts at mid-morning.
 var time_of_day := 0.1
+
+## Last glow factor pushed to the tagged meshes (-1 = never applied yet).
+var _applied_glow := -1.0
 
 @onready var sun: DirectionalLight3D = get_node("../DirectionalLight3D")
 @onready var world_env: WorldEnvironment = get_node("../WorldEnvironment")
@@ -25,16 +30,20 @@ const NIGHT := Color(0.08, 0.1, 0.18)
 
 
 func _ready() -> void:
-	# Tag emissive flora/fauna so _process can scale them.
+	# Tag emissive flora/fauna so _process can scale them, remembering each
+	# mesh's authored emission strength. The night boost scales that value
+	# instead of flattening every species to the same brightness.
 	for path in ["../Plants", "../Animals"]:
 		var root: Node = get_node_or_null(path)
 		if root == null:
 			continue
 		for n in root.find_children("*", "MeshInstance3D", true, false):
 			var mi := n as MeshInstance3D
-			var mat: Material = mi.get_active_material(0)
-			if mat != null and mat.emission_enabled:
-				mi.add_to_group(GLOW_GROUP)
+			var mat := mi.material_override as StandardMaterial3D
+			if mat == null or not mat.emission_enabled:
+				continue
+			mi.add_to_group(GLOW_GROUP)
+			mi.set_meta(GLOW_BASE_META, mat.emission_energy_multiplier)
 
 
 func _process(delta: float) -> void:
@@ -67,7 +76,23 @@ func _process(delta: float) -> void:
 	world_env.environment.fog_light_color = horizon
 	world_env.environment.ambient_light_energy = lerpf(0.25, 1.0, day)
 
-	# Glow plants flare up as the sun dies.
+	# Glow plants flare up as the sun dies. Instance shader parameters only
+	# reach ShaderMaterials (this project has none), so scale the
+	# StandardMaterial3D emission directly. A day lasts 20 minutes, so only
+	# reapply once the factor has actually moved — the walk is not free.
 	var glow := lerpf(2.2, 1.0, day)
-	get_tree().call_group(GLOW_GROUP, "set_instance_shader_parameter",
-			"emission_energy", glow)
+	if absf(glow - _applied_glow) >= GLOW_STEP:
+		_applied_glow = glow
+		_apply_glow(glow)
+
+
+func _apply_glow(factor: float) -> void:
+	for node in get_tree().get_nodes_in_group(GLOW_GROUP):
+		var mi := node as MeshInstance3D
+		if mi == null:
+			continue
+		var mat := mi.material_override as StandardMaterial3D
+		if mat == null:
+			continue
+		var base: float = float(mi.get_meta(GLOW_BASE_META, 1.0))
+		mat.emission_energy_multiplier = base * factor

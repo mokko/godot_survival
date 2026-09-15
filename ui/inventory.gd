@@ -96,6 +96,22 @@ func consume_one_equipped() -> bool:
 	return true
 
 
+func consume_one(slot: int) -> bool:
+	## Remove one unit from a specific stack WITHOUT promoting that slot to
+	## the equipped slot — shooting an arrow must not swap the held weapon.
+	## Returns false when the slot is empty. Clears the slot when it runs out.
+	if slot < 0 or slot >= SLOTS or slots[slot] == "":
+		return false
+	counts[slot] = maxi(counts[slot] - 1, 0)
+	if counts[slot] == 0:
+		slots[slot] = ""
+		counts[slot] = 0
+		if equipped_slot == slot:
+			equipped_slot = -1      # nothing held any more
+	_refresh()
+	return true
+
+
 func equip(slot: int) -> void:
 	if slot < 0 or slot >= SLOTS or slots[slot] == "":
 		return
@@ -160,7 +176,12 @@ func restore(items: Array, counts_in: Array) -> void:
 	counts.fill(0)
 	for i in mini(items.size(), SLOTS):
 		slots[i] = str(items[i])
-		counts[i] = int(counts_in[i]) if i < counts_in.size() else 1
+		if slots[i] == "":
+			counts[i] = 0        # an empty slot must never carry a count
+		else:
+			# A non-empty slot always holds at least one unit.
+			counts[i] = maxi(
+					int(counts_in[i]) if i < counts_in.size() else 1, 1)
 	_refresh()
 
 
