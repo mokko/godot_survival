@@ -10,6 +10,11 @@ const SLOTS := 16
 const PACK_SIZE := 5                  # arrows come in packs of 5
 const STACK_LIMITS := {"arrows": 50}   # item id -> max per slot (stackable)
 const ItemDB := preload("res://items/item_db.gd")
+const ItemIcons := preload("res://ui/item_icons.gd")
+
+const SLOT_SIZE := Vector2(48, 48)
+const ICON_INSET := 6        # px between slot border and icon
+const BADGE_SIZE := 12
 
 var slots: Array = []            # String item ids, "" = empty
 var counts: Array = []           # stack count per slot (1 for normal items)
@@ -41,16 +46,49 @@ func _ready() -> void:
 
 	for i in SLOTS:
 		var panel := PanelContainer.new()
-		panel.custom_minimum_size = Vector2(48, 48)
+		panel.custom_minimum_size = SLOT_SIZE
 		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var lab := Label.new()
-		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lab.add_theme_font_size_override("font_size", 11)
-		lab.text = str(i + 1)
-		panel.add_child(lab)
+		# Cell holds the item icon plus two number-only overlays: the hotkey
+		# index (empty slots) and the stack count badge (stackables only).
+		# Item *names* never appear in a slot any more.
+		var cell := Control.new()
+		cell.custom_minimum_size = SLOT_SIZE
+		cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+		var icon := ItemIcons.new()
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = ICON_INSET
+		icon.offset_top = ICON_INSET
+		icon.offset_right = -ICON_INSET
+		icon.offset_bottom = -ICON_INSET
+		cell.add_child(icon)
+
+		var hotkey := Label.new()
+		hotkey.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hotkey.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		hotkey.add_theme_font_size_override("font_size", 11)
+		hotkey.add_theme_color_override("font_color", Color(1, 1, 1, 0.35))
+		hotkey.set_anchors_preset(Control.PRESET_FULL_RECT)
+		hotkey.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(hotkey)
+
+		var badge := Label.new()
+		badge.add_theme_font_size_override("font_size", BADGE_SIZE)
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		badge.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		badge.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		badge.offset_left = -24
+		badge.offset_top = -16
+		badge.offset_right = -3
+		badge.offset_bottom = -1
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(badge)
+
+		panel.add_child(cell)
 		row.add_child(panel)
-		_slot_panels.append({"panel": panel, "label": lab})
+		_slot_panels.append({"panel": panel, "icon": icon,
+				"hotkey": hotkey, "badge": badge})
 
 	_refresh()
 
@@ -211,13 +249,16 @@ func _refresh() -> void:
 	for i in SLOTS:
 		var ui: Dictionary = _slot_panels[i]
 		var panel: PanelContainer = ui["panel"]
-		var lab: Label = ui["label"]
+		var icon: Control = ui["icon"]
+		var hotkey: Label = ui["hotkey"]
+		var badge: Label = ui["badge"]
 		var id: String = slots[i]
-		if id != "":
-			var n: int = counts[i]
-			lab.text = ItemDB.item_name(id) if n <= 1 else "%s x%d" % [ItemDB.item_name(id), n]
-		else:
-			lab.text = str(i + 1)
+		var n: int = counts[i]
+		icon.set_item(id)
+		# Hotkey index only on empty slots; the count badge only when a stack
+		# holds more than one. Everything else is the icon itself.
+		hotkey.text = "" if id != "" else str(i + 1)
+		badge.text = "x%d" % n if id != "" and n > 1 else ""
 		# Same precedence as before: worn beats equipped beats merely filled.
 		var kind := "empty"
 		if id == worn_armor_id:
