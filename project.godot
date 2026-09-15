@@ -16,9 +16,6 @@ run/main_scene="res://ui/splash.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[rendering]
-textures/vram_compression/import_s3tc_bptc=true
-
 [display]
 
 window/stretch/mode="canvas_items"
@@ -65,3 +62,4 @@ jump={
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_s3tc_bptc=true
