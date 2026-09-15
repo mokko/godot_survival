@@ -32,6 +32,16 @@ func _init() -> void:
 			and int(data.get("sunbulbs", -1)) == 5 \
 			and data.get("pos", []).size() == 3
 
+	# -- Part B2: armor must restore even when there is no inventory in the
+	# tree. The restore used to sit inside the inventory null-guard, so a
+	# player whose HUD was not resolvable silently lost its armor on load.
+	var standalone_ok: bool = player.inventory == null
+	player.load_state({"life": 30.0, "armor": "leather_armor",
+			"armor_durability": 42.0})
+	var armor_state: Dictionary = player.armor_status()
+	var armor_ok: bool = standalone_ok and armor_state["id"] == "leather_armor" \
+			and absf(float(armor_state["durability"]) - 42.0) < 0.01
+
 	# -- Part C: save exists -> Load Game still visible (always shown).
 	var splash2 = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash2)
@@ -59,7 +69,7 @@ func _init() -> void:
 			and dxz < 1.0 \
 			and SAVEGAME.pending_load == false
 
-	print("RESULT hidden=%s save=%s visible=%s load=%s" % [hidden_ok, roundtrip_ok, visible_ok, load_ok])
+	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s" % [hidden_ok, roundtrip_ok, visible_ok, load_ok, standalone_ok, armor_ok])
 	# Clean up: don't leave a bogus save in the user's game dir.
 	DirAccess.open("user://").remove("savegame.json")
-	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok) else 1)
+	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok and armor_ok) else 1)

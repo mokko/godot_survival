@@ -64,6 +64,21 @@ func _init() -> void:
 	if not player.save_state().get("items", []).all(func(s): return s == ""):
 		fails.append("death_save_wiped")
 
+	# 9. restore() invariants: an empty slot never carries a count, and a
+	# non-empty slot is never left at zero. Both were possible before.
+	inv.restore(["flint", "", "arrows"], [0, 0, 7])
+	if inv.counts[1] != 0:
+		fails.append("restore_empty_slot_count")
+	if inv.counts[0] < 1:
+		fails.append("restore_zero_count")
+	if inv.counts[2] != 7:
+		fails.append("restore_kept_count")
+	# Counts array shorter than the slot list: empty slots must read 0, not 1.
+	inv.restore(["", "", ""], [])
+	if inv.counts[0] != 0 or inv.counts[1] != 0 or inv.counts[2] != 0:
+		fails.append("restore_defaulted_counts")
+	inv.clear_all()
+
 	# Restore the user's real save.
 	if not backup.is_empty():
 		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)

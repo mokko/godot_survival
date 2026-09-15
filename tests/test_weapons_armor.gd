@@ -84,6 +84,19 @@ func _init() -> void:
 	if player.equip_armor("golden_plate"):
 		fails.append("unknown_armor")
 
+	# 7. armor_changed reports a state change (equip / break), not every hit.
+	# It used to emit per hit, so the equip flourish fired on every scratch.
+	var sig_count := [0]
+	player.combat.armor_changed.connect(func(_id, _dur): sig_count[0] += 1)
+	player.equip_armor("leather_armor")
+	player.life = 40.0
+	var after_equip: int = sig_count[0]
+	player.damage(5.0)      # chips durability only — must not signal
+	player.life = 40.0
+	player.damage(5.0)
+	if sig_count[0] != after_equip:
+		fails.append("armor_changed_spam")
+
 	if not backup.is_empty():
 		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
 		f.store_string(JSON.stringify(backup))
