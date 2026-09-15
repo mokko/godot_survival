@@ -18,16 +18,18 @@ func _init() -> void:
 		await process_frame
 	var opened: bool = menu.visible and tree.paused \
 			and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE
+	var focused: bool = menu.get_node("Center/Padding/Panel/VBox/Continue").has_focus()
 	var world_frozen: bool = not main.get_node("Player").can_process() \
 			or tree.paused
 
 	# 2. Continue -> menu closes, unpaused, mouse captured again.
-	menu._on_resume()
+	menu._on_continue()
 	for i in 5:
 		await process_frame
 	var mouse_ok: bool = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED \
 			or DisplayServer.get_name() == "headless"
-	var resumed: bool = not menu.visible and not tree.paused and mouse_ok
+	var continued: bool = not menu.visible and not tree.paused and mouse_ok
 
-	print("RESULT opened=%s frozen=%s resumed=%s" % [opened, world_frozen, resumed])
-	quit(0 if (opened and world_frozen and resumed) else 1)
+	print("RESULT opened=%s focused=%s frozen=%s continued=%s"
+			% [opened, focused, world_frozen, continued])
+	quit(0 if (opened and focused and world_frozen and continued) else 1)

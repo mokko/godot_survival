@@ -1,6 +1,6 @@
 extends Control
 ## In-game pause menu. Opens on ESC while playing: darkens the screen,
-## pauses the tree, shows Resume / Save / Quit to Menu. Resume (or ESC
+## pauses the tree, shows Continue / Save / Quit to Menu. Continue (or ESC
 ## again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
 
@@ -18,9 +18,9 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Only runs while visible+paused (this node is WHEN_PAUSED): ESC resumes.
+	# Only runs while visible+paused (this node is WHEN_PAUSED): ESC continues.
 	if visible and event.is_action_pressed("ui_cancel"):
-		_on_resume()
+		_on_continue()
 
 
 func open() -> void:
@@ -30,6 +30,10 @@ func open() -> void:
 	_apply_padding()
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# Give the menu keyboard/gamepad focus so the first button is highlighted
+	# (mirrors splash.gd). Without this nothing is selected and arrow keys do
+	# nothing until the mouse is used.
+	$Center/Padding/Panel/VBox/Continue.grab_focus()
 
 
 func _apply_padding() -> void:
@@ -39,7 +43,7 @@ func _apply_padding() -> void:
 	$Center/Padding.add_theme_constant_override("margin_right", pad)
 
 
-func _on_resume() -> void:
+func _on_continue() -> void:
 	visible = false
 	_set_crosshair_visible(true)
 	get_tree().paused = false
