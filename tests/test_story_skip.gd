@@ -27,9 +27,7 @@ func _init() -> void:
 	for i in 10:
 		await process_frame
 	_left_click()
-	for i in 5:
-		await process_frame
-	var click_ok: bool = current_scene != null and current_scene.name == "Main"
+	var click_ok: bool = await _await_game()
 
 	# --- ESC skips while typing (fresh story) ---
 	var main = current_scene
@@ -41,9 +39,17 @@ func _init() -> void:
 	for i in 10:
 		await process_frame
 	_esc_press()
-	await process_frame
-	await process_frame
-	var esc_ok: bool = current_scene != null and current_scene.name == "Main"
+	var esc_ok: bool = await _await_game()
 
 	print("RESULT click_skips=%s esc_skips=%s" % [click_ok, esc_ok])
 	quit(0 if (click_ok and esc_ok) else 1)
+
+
+func _await_game(max_frames := 900) -> bool:
+	## The swap sits behind a short "Loading..." timer, so poll instead of
+	## counting frames — headless frames are far shorter than real ones.
+	for i in max_frames:
+		await process_frame
+		if current_scene != null and current_scene.name == "Main":
+			return true
+	return false

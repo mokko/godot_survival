@@ -11,7 +11,9 @@ extends Control
 ## full-rect Background/Center container, which would swallow every click.
 
 const GAME_SCENE := "res://world/main.tscn"
-const CHARS_PER_SEC := 40.0
+## Typewriter speed. 28 cps reads as deliberate narration; 40 rushed it (the
+## whole intro lands in ~15 s, and a click or ESC still skips at any point).
+const CHARS_PER_SEC := 28.0
 
 ## The intro, lifted from story.md § Premise. Typed out by _process; the
 ## player skips it with a click or ESC (see research.md/story.md for the fuller
@@ -64,10 +66,16 @@ func _start_game() -> void:
 	if _starting:
 		return
 	_starting = true
-	# Immediate visual feedback: the world scene takes a while to load, but
-	# the player should see the skip register the instant they press.
+	# Immediate visual feedback: the world scene takes a while to load (several
+	# seconds on a Rock 5B), so the player must see the skip register the
+	# instant they press.
 	$Center/VBox/Text.hide()
 	$Center/VBox/Hint.text = "Loading..."
 	$Center/VBox/Hint.show()
-	await get_tree().process_frame   # let the label draw before the freeze
+	# The hint has to actually reach the screen before the load blocks the
+	# main thread. `process_frame` is emitted *before* drawing, and
+	# RenderingServer.frame_post_draw never fires in headless runs, so wait a
+	# few real frames on a short timer instead: change_scene_to_file()
+	# instantiates the new scene on the spot and freezes everything.
+	await get_tree().create_timer(0.15).timeout
 	get_tree().change_scene_to_file(GAME_SCENE)
