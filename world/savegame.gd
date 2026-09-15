@@ -1,7 +1,7 @@
 class_name SaveGame
 ## Savegame I/O for survivalm — one JSON file at user://savegame.json.
 ## Writers: the pause menu's Save button. Readers: the splash screen's
-## Continue button, which sets pending_load so the player restores the
+## Load Game button, which sets pending_load so the player restores the
 ## state in _ready. All methods are static; the player owns its state
 ## via save_state()/load_state().
 

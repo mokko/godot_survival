@@ -70,7 +70,7 @@ offset_left = 10.0
 offset_top = 10.0
 offset_right = 200.0
 offset_bottom = 40.0
-text = "Life: 100"
+text = "Life: --"
 
 [node name="SunbulbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["sunbulb_label"]]
 anchors_preset = 1

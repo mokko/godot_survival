@@ -6,13 +6,21 @@ extends Control
 const GAME_SCENE := "res://world/main.tscn"
 const CHARS_PER_SEC := 40.0
 
-## The story so far: intro sentence repeated 3x (stand-in for the future
-## full-length text, hardwired as one string).
-const FULL_TEXT := """this text introduces character, setting and reasons for game play
+## The intro, lifted from story.md § Premise. Typed out by _process; the
+## player skips it with a click or ESC (see research.md/story.md for the fuller
+## narrative it should eventually grow into).
+const FULL_TEXT := """You are a mind without a body.
 
-this text introduces character, setting and reasons for game play
+Not dead — displaced. Somewhere behind you is a life you can no longer
+reach, and a name you cannot remember.
 
-this text introduces character, setting and reasons for game play
+What you have is a drone: small, patient. Through it you see and hear and
+touch this place — all of it secondhand, remote.
+
+You wake on a shore that is not Japan, and is shaped like Japan.
+Someone built this. Someone put you here.
+
+You do not yet know why.
 """
 
 @onready var label: Label = $Center/VBox/Text

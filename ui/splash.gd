@@ -1,8 +1,9 @@
 extends Control
-## Splash/menu screen — the main scene. Shows the title, Start, and Continue
-## (only when a savegame exists). Continue sets SaveGame.pending_load so the
-## player restores the saved state once the story screen hands off to the
-## game scene.
+## Splash/menu screen — the main scene. Shows the title, Start, Options and the
+## Load Game button. Load Game is always shown, even when no save exists:
+## loading an absent save simply starts a fresh run. It sets
+## SaveGame.pending_load so the player restores the saved state once the story
+## screen hands off to the game scene.
 
 const STORY_SCENE := "res://ui/story.tscn"
 const SAVEGAME := preload("res://world/savegame.gd")

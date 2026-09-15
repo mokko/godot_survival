@@ -43,7 +43,7 @@ func _make_snd(path: String, volume_db: float = 0.0) -> AudioStreamPlayer:
 
 
 func save_state() -> Dictionary:
-	## Everything a Continue needs to restore.
+	## Everything a Load Game needs to restore.
 	return {
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"life": life,
@@ -86,6 +86,22 @@ func load_state(data: Dictionary) -> void:
 	_update_hud()
 
 
+## Node and group references. These are assigned before _ready() runs, so they
+## belong with the other members — declared after _ready() they read like a bug.
+@onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
+@onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
+@onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
+@onready var camera: Camera3D = $Camera3D
+@onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
+@onready var game_over_sound: AudioStreamPlayer = $GameOverSound
+@onready var fade_in: CanvasLayer = get_node_or_null("../FadeIn")
+@onready var pause_menu: Control = get_node_or_null("../HUD/PauseMenu")
+
+var _input_locked := false
+
+signal pause_requested
+
+
 func _ready() -> void:
 	_snd_jump = _make_snd("res://sounds/jump.wav", -8.0)
 	_snd_land = _make_snd("res://sounds/land.wav", -6.0)
@@ -102,24 +118,10 @@ func _ready() -> void:
 		inventory.armor_changed.connect(_on_armor_changed)
 		inventory.item_equipped.connect(_on_item_equipped)
 	combat.armor_changed.connect(_on_combat_armor_changed)
-	# Continue flow: restore a saved game exactly once, when launched from
-	# the splash screen's Continue button.
+	# Load Game flow: restore a saved game exactly once, when launched from
+	# the splash screen's Load Game button.
 	if SAVEGAME.take_pending_load():
 		load_state(SAVEGAME.read())
-
-
-@onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
-@onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
-@onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
-@onready var camera: Camera3D = $Camera3D
-@onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
-@onready var game_over_sound: AudioStreamPlayer = $GameOverSound
-@onready var fade_in: CanvasLayer = get_node_or_null("../FadeIn")
-@onready var pause_menu: Control = get_node_or_null("../HUD/PauseMenu")
-
-var _input_locked := false
-
-signal pause_requested
 
 
 func add_item(item_id: String) -> bool:
@@ -134,8 +136,7 @@ func add_item(item_id: String) -> bool:
 		return false
 	var ok: bool = inventory.add_item(item_id)
 	if ok:
-		if _snd_grab:
-			_snd_grab.play()
+		_snd_grab.play()
 	return ok
 
 
@@ -219,8 +220,7 @@ func do_slash() -> void:
 
 
 func play_slash_sound() -> void:
-	if _snd_slash:
-		_snd_slash.play()
+	_snd_slash.play()
 
 
 # --------------------------------------------------------------------- bow shooting
@@ -271,8 +271,7 @@ func _release_bow() -> void:
 
 
 func play_grab_sound() -> void:
-	if _snd_grab:
-		_snd_grab.play()
+	_snd_grab.play()
 
 
 func _physics_process(delta: float) -> void:
