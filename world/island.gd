@@ -229,7 +229,11 @@ static func random_land_point(biome: String = "anywhere") -> Vector3:
 
 
 static func _sample_biome(biome: String) -> Vector3:
-	if biome == "anywhere":
+	# "coast" has no region of its own: it is sampled like "anywhere" and then
+	# narrowed to the shoreline band by the signed-distance filter in
+	# random_land_point(). Without this the coast loop could never succeed and
+	# every coastal animal fell back to the spawn point.
+	if biome == "anywhere" or biome == "coast":
 		var x := randf_range(GRID_MIN.x, GRID_MAX.x)
 		var z := randf_range(GRID_MIN.y, GRID_MAX.y)
 		return Vector3(x, height_at(x, z), z)
