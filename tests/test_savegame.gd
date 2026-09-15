@@ -69,7 +69,46 @@ func _init() -> void:
 			and dxz < 1.0 \
 			and SAVEGAME.pending_load == false
 
-	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s" % [hidden_ok, roundtrip_ok, visible_ok, load_ok, standalone_ok, armor_ok])
+	# -- Part E: time of day rides along in the save. The sun lives on the
+	# DayCycle node, so a save taken at dusk must come back at dusk.
+	var cycle = main.get_node("DayCycle")
+	cycle.time_of_day = 0.62          # just past sunset
+	SAVEGAME.write(p2)
+	var data2 := SAVEGAME.read()
+	var tod_saved: bool = absf(float(data2.get("time_of_day", -1.0)) - 0.62) < 0.001
+	cycle.time_of_day = 0.1           # knock it back to mid-morning
+	p2.load_state(data2)
+	var tod_restored: bool = absf(cycle.time_of_day - 0.62) < 0.001
+	# ...and an old save without the key must not blow up the load.
+	var legacy_ok := true
+	p2.load_state({"life": 20.0, "pos": [0.0, 5.0, 0.0]})
+	legacy_ok = absf(float(p2.life) - 20.0) < 0.01
+
+	# -- Part F: "Load Game" skips the story screen — only a fresh run plays
+	# the intro. It must land straight in the world.
+	current_scene = null
+	main.free()
+	var splash3 = load("res://ui/splash.tscn").instantiate()
+	root.add_child(splash3)
+	current_scene = splash3
+	await process_frame
+	splash3._on_continue_pressed()
+	var landed := ""
+	for i in 900:
+		await process_frame
+		if current_scene != null and current_scene.name == "Main":
+			landed = "Main"
+			break
+		if current_scene != null and current_scene.name == "Story":
+			landed = "Story"
+			break
+	var skips_story: bool = landed == "Main"
+
+	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s tod_saved=%s tod_restored=%s legacy=%s skips_story=%s"
+			% [hidden_ok, roundtrip_ok, visible_ok, load_ok, standalone_ok,
+			armor_ok, tod_saved, tod_restored, legacy_ok, skips_story])
 	# Clean up: don't leave a bogus save in the user's game dir.
 	DirAccess.open("user://").remove("savegame.json")
-	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok and armor_ok) else 1)
+	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok
+			and armor_ok and tod_saved and tod_restored and legacy_ok
+			and skips_story) else 1)

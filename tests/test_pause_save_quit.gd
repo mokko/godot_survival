@@ -28,7 +28,7 @@ func _init() -> void:
 					and data.get("pos", []).size() == 3
 
 	# Quit: changes scene back to the splash and unpauses.
-	menu._on_quit()
+	menu._on_quit_to_menu()
 	for i in 10:
 		await process_frame
 	var ok_quit: bool = current_scene != null \

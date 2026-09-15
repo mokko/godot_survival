@@ -74,7 +74,7 @@ func _show_save_label(text: String) -> void:
 	_save_label_tween.tween_callback(save_label.hide)
 
 
-func _on_quit() -> void:
+func _on_quit_to_menu() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file("res://ui/splash.tscn")

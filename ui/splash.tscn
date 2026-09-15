@@ -58,10 +58,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Load Game"
 
-[node name="Quit" type="Button" parent="Center/VBox"]
+[node name="Exit" type="Button" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Quit"
+text = "Exit"
 
 [node name="OptionsPanel" type="PanelContainer" parent="."]
 visible = false
@@ -115,7 +115,7 @@ text = "Back"
 
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]
-[connection signal="pressed" from="Center/VBox/Quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="Center/VBox/Exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="OptionsPanel/VBox/Back" to="." method="_on_options_back_pressed"]
 [connection signal="toggled" from="OptionsPanel/VBox/Fullscreen" to="." method="_on_fullscreen_toggled"]

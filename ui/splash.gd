@@ -6,6 +6,7 @@ extends Control
 ## screen hands off to the game scene.
 
 const STORY_SCENE := "res://ui/story.tscn"
+const GAME_SCENE := "res://world/main.tscn"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Options := preload("res://ui/options.gd")
 
@@ -69,11 +70,14 @@ func _on_start_pressed() -> void:
 
 
 func _on_continue_pressed() -> void:
+	## Load Game goes straight into the world: the intro story belongs to a new
+	## run, and the player has already read it. pending_load makes the player
+	## restore the save in its _ready.
 	SAVEGAME.pending_load = true
-	get_tree().change_scene_to_file(STORY_SCENE)
+	get_tree().change_scene_to_file(GAME_SCENE)
 
 
-func _on_quit_pressed() -> void:
-	## Leave the game: quit the process from the main menu. Quitting mid-run
-	## stays the pause menu's job (it saves first if the player wants that).
+func _on_exit_pressed() -> void:
+	## Leave the game from the main menu. Leaving mid-run is the pause menu's
+	## "Quit to Menu" (which hands back here); this one closes the process.
 	get_tree().quit()
