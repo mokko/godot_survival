@@ -193,6 +193,12 @@ static func is_land(x: float, z: float) -> bool:
 	return height_at(x, z) >= WATER_LEVEL + 0.25
 
 
+static func is_water(x: float, z: float) -> bool:
+	## Counterpart to is_land(), kept deliberately as public world API even
+	## though nothing samples it yet — water-bound placement code wants it.
+	return height_at(x, z) < WATER_LEVEL - 0.1
+
+
 static func spawn_point() -> Vector3:
 	return Vector3(SPAWN_XZ.x, height_at(SPAWN_XZ.x, SPAWN_XZ.y), SPAWN_XZ.y)
 
