@@ -5,7 +5,6 @@ extends Area3D
 const SPEED := 30.0
 const GRAVITY := 4.0          # mild arc, not full physics
 const LIFETIME := 60.0
-const DAMAGE := 12.0
 
 var _velocity := Vector3.ZERO
 var _stuck := false
@@ -38,15 +37,16 @@ func _physics_process(delta: float) -> void:
 
 const Destroyable := preload("res://items/destroyable.gd")
 const Weapon := preload("res://items/weapon.gd")
+const ARROW_ITEM := "bow"   # per-arrow damage comes from the weapon table
 
-const ARROW_DAMAGE := 15.0
 
 func _on_body_entered(body: Node) -> void:
 	if _stuck or body.is_in_group("player"):
 		return
 	_stuck = true
+	var dmg: float = Weapon.damage_of(ARROW_ITEM)
 	if body is Destroyable:
-		body.damage(ARROW_DAMAGE)
+		body.damage(dmg)
 	elif body.has_method("damage"):
-		body.damage(ARROW_DAMAGE)   # composed destroyables (Area3D-based flora)
+		body.damage(dmg)   # composed destroyables (Area3D-based flora)
 	set_deferred("monitoring", false)

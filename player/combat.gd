@@ -7,10 +7,11 @@ extends Node3D
 const SlashScene := preload("res://player/slash.gd")
 const ArrowScene := preload("res://items/arrow_projectile.tscn")
 const ARMOR := preload("res://items/armor.gd")
+const WEAPON := preload("res://items/weapon.gd")
 
 const SLASH_RANGE := 2.2
 const SLASH_HALF_ANGLE := 0.7
-const SLASH_DAMAGE := 25.0
+const SLASH_ITEM := "sword"   # damage comes from the weapon table
 const BOW_RANGE := 60.0
 
 var player: CharacterBody3D = null   ## resolved from the scene tree in _ready
@@ -68,7 +69,7 @@ func _slash_damage() -> void:
 			continue
 		hit_list.append(node)
 	for node in hit_list:
-		node.damage(SLASH_DAMAGE)
+		node.damage(WEAPON.damage_of(SLASH_ITEM))
 
 
 ## --------------------------------------------------------------------- bow

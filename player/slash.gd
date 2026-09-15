@@ -3,9 +3,8 @@ extends Node3D
 ## swing animation on the sword (and a trail arc mesh), damages destroyables
 ## in a cone in front of the drone at the moment of mid-swing.
 
-const SWORD_DAMAGE := 25.0
-const RANGE := 2.2
-const HALF_ANGLE := 0.7   # radians, half of the ~80° swing cone
+# Damage, range and cone angle live in player/combat.gd. This script only
+# plays the swing animation and fires the damage callback it is handed.
 
 var _swinging := false
 var _t := 0.0
