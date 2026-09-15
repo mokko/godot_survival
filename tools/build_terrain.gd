@@ -1,10 +1,9 @@
 extends SceneTree
-## Terrain builder — bakes scenes/terrain.tscn and scenes/water.tscn from the
+## Terrain builder — bakes world/terrain.tscn and world/water.tscn from the
 ## island.gd height field (WORLD_SPEC.md worker: Terrain).
 ## Run: cd project && snap run godot-4 --headless --script res://tools/build_terrain.gd
 
 const STEP := 2.5
-const MARGIN := 15.0
 const X_MIN := -210.0
 const X_MAX := 410.0
 const Z_MIN := -150.0

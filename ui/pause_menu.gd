@@ -4,13 +4,8 @@ extends Control
 ## again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
 
-signal quit_to_menu   # kept for compatibility; quit now changes scene directly
-
 const SAVEGAME := preload("res://world/savegame.gd")
 
-@onready var resume_btn: Button = $Center/Padding/Panel/VBox/Resume
-@onready var save_btn: Button = $Center/Padding/Panel/VBox/Save
-@onready var quit_btn: Button = $Center/Padding/Panel/VBox/Quit
 @onready var save_label: Label = $SaveLabel
 
 var _save_label_tween: Tween

@@ -171,8 +171,6 @@ const BIOMES := {
 ## World bounds for mesh generation and sampling.
 const GRID_MIN := Vector2(-210.0, -150.0)
 const GRID_MAX := Vector2(410.0, 760.0)
-const WATER_PLANE_SIZE := 1700.0
-
 # ------------------------------------------------------------------- terrain
 
 static func height_at(x: float, z: float) -> float:
@@ -193,10 +191,6 @@ static func height_at(x: float, z: float) -> float:
 
 static func is_land(x: float, z: float) -> bool:
 	return height_at(x, z) >= WATER_LEVEL + 0.25
-
-
-static func is_water(x: float, z: float) -> bool:
-	return height_at(x, z) < WATER_LEVEL - 0.1
 
 
 static func spawn_point() -> Vector3:
@@ -256,17 +250,6 @@ static func signed_distance(p: Vector2) -> float:
 	return best
 
 
-static func _seto_islet_polygons() -> Array:
-	## Tiny quads around each Seto islet center.
-	var out: Array = []
-	for c in SETO_ISLETS:
-		var r := 5.0
-		if c.x > 40.0:
-			r = 4.0
-		out.append(_islet_quad(c, r))
-	return out
-
-
 static func _islet_quad(c: Vector2, r: float) -> Array:
 	return [
 		Vector2(c.x - r, c.y - r * 0.6), Vector2(c.x + r, c.y - r * 0.5),
@@ -311,34 +294,6 @@ static func _feature_rise(p: Vector2) -> float:
 	for f in FEATURES:
 		h += f[1] * _gauss(p, f[0], f[2])
 	return h
-
-
-static func _noise(x: float, z: float, freq: float) -> float:
-	## Deterministic value noise in [0, 1] — integer hash + smooth bilinear.
-	var fx := x * freq
-	var fz := z * freq
-	var i := floori(fx)
-	var j := floori(fz)
-	var tx := fx - float(i)
-	var tz := fz - float(j)
-	var sx := tx * tx * (3.0 - 2.0 * tx)
-	var sz := tz * tz * (3.0 - 2.0 * tz)
-	var a := _hash2(i, j)
-	var b := _hash2(i + 1, j)
-	var c := _hash2(i, j + 1)
-	var d := _hash2(i + 1, j + 1)
-	return a + (b - a) * sx + (c - a) * sz + (a - b - c + d) * sx * sz
-
-
-static func _hash2(i: int, j: int) -> float:
-	var h := (i * 374761393 + j * 668265263) & 0xFFFFFFFF
-	h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
-	h = (h ^ (h >> 16)) % 10000
-	return h / 10000.0
-
-
-static func _smoothstep01(t: float) -> float:
-	return t * t * (3.0 - 2.0 * t)
 
 
 static func _smoothstep2(edge0: float, edge1: float, x: float) -> float:

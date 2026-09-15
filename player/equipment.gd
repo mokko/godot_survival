@@ -1,12 +1,10 @@
 extends Node3D
-## Equipment visuals: builds a drone body (core + rotor arms) and shows/
+## Equipment visuals: builds a drone body (treads, core, dome head) and shows/
 ## hides weapon + armor props as the player equips things. Attached to the
 ## player; props are plain meshes parented at fixed offsets — no animation.
 
 const ItemDB := preload("res://items/item_db.gd")
 
-var _rotors: Array = []
-var _spin := 0.0
 var _props := {}         # item id -> Node3D
 var _flourish := 0.0     # counts down while the equip flourish plays
 var _eye: MeshInstance3D = null
@@ -318,8 +316,3 @@ func get_sword_pivot() -> Node3D:
 
 func get_trail() -> MeshInstance3D:
 	return _trail
-
-
-func refresh_visuals(equipped_item_id: String) -> void:
-	## Public wrapper: re-show props for the given equipped item id.
-	show_for_equipped(equipped_item_id)

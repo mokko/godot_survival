@@ -120,7 +120,6 @@ func _ready() -> void:
 var _input_locked := false
 
 signal pause_requested
-signal equipped_item_changed(item_id: String)
 
 
 func add_item(item_id: String) -> bool:
@@ -214,8 +213,6 @@ func _toggle_grab() -> void:
 		_snd_grab.play()
 
 ## ----------------------------------------------------------------- katana slash
-
-const SlashScene := preload("res://player/slash.gd")
 
 func do_slash() -> void:
 	combat.try_slash()

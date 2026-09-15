@@ -8,8 +8,6 @@ const STORY_SCENE := "res://ui/story.tscn"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Options := preload("res://ui/options.gd")
 
-@onready var continue_btn: Button = $Center/VBox/Continue
-
 @onready var options_panel: PanelContainer = $OptionsPanel
 @onready var show_fps_btn: CheckButton = $OptionsPanel/VBox/ShowFPS
 @onready var res_option: OptionButton = $OptionsPanel/VBox/ResOption

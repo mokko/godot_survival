@@ -12,12 +12,10 @@ const WEAPON := preload("res://items/weapon.gd")
 const SLASH_RANGE := 2.2
 const SLASH_HALF_ANGLE := 0.7
 const SLASH_ITEM := "sword"   # damage comes from the weapon table
-const BOW_RANGE := 60.0
 
 var player: CharacterBody3D = null   ## resolved from the scene tree in _ready
 
 var _slash: Node3D = null
-var _bow_drawn := false
 var armor_id := ""            ## equipped armor item id, "" = none
 var armor_durability := 0.0
 
