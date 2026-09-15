@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://bp1ayer000000" path="res://player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="3_terrain"]
-[ext_resource type="PackedScene" uid="uid://ktpyengs8xr1" path="res://world/water.tscn" id="4_water"]
+[ext_resource type="PackedScene" uid="uid://cot1p0y2bydwt" path="res://world/water.tscn" id="4_water"]
 [ext_resource type="PackedScene" path="res://flora/ghostsilk.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" path="res://flora/plants_placed.tscn" id="6_plants"]
 [ext_resource type="PackedScene" path="res://fauna/animals_placed.tscn" id="7_animals"]

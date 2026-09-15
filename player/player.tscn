@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bp1ayer000000"]
 
-[ext_resource type="Script" uid="uid://ckqqqfm5rt87e" path="res://player/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://thymewuggqem" path="res://player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://player/equipment.gd" id="4_equip"]
 [ext_resource type="Script" path="res://player/combat.gd" id="5_combat"]
 [ext_resource type="AudioStream" uid="uid://cvrvj16vgpxk7" path="res://sounds/orb_pickup.wav" id="2_sound"]
