@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://fauna/grazer.gd" id="1_script"]
 
@@ -23,8 +23,16 @@ height = 0.26
 albedo_color = Color(0.3, 0.28, 0.22, 1)
 roughness = 0.9
 
-[node name="Grazer" type="Node3D"]
+[sub_resource type="CapsuleShape3D" id="Shape_solid"]
+radius = 0.28
+height = 1.0
+
+[node name="Grazer" type="AnimatableBody3D"]
 script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("Shape_solid")
 
 [node name="Body" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
