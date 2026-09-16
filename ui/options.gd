@@ -5,8 +5,11 @@ extends RefCounted
 const PATH := "user://options.json"
 
 ## Supported window resolutions (width, height). "res" option stores an
-## index into this list; default is HD 1920x1080.
+## index into this list; default is HD 1920x1080. Ordered smallest first, so a
+## slow machine can pick a small window down the list — 960x600 is roughly a
+## third of the pixels of 1080p.
 const RESOLUTIONS := [
+	[960, 600],
 	[1280, 720],
 	[1920, 1080],
 ]
@@ -15,7 +18,7 @@ const RESOLUTIONS := [
 const DEFAULTS := {
 	"show_fps": true,
 	"ssao": true,   # screen-space ambient occlusion in the world scene
-	"res": 1,   # index into RESOLUTIONS — 1920x1080
+	"res": 2,   # index into RESOLUTIONS — 1920x1080
 	"fullscreen": true,
 }
 

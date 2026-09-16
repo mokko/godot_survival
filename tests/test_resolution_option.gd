@@ -1,7 +1,8 @@
 extends SceneTree
-## Headless check: the "res" option defaults to HD (index 1 = 1920x1080),
-## persists via Options, and the splash options panel exposes a picker with
-## one entry per supported resolution.
+## Headless check: the "res" option defaults to HD (index 2 = 1920x1080, the
+## list is ordered smallest first with 960x600 available for slow machines),
+## persists via Options, and the splash options panel exposes a picker with one
+## entry per supported resolution.
 
 const Options := preload("res://ui/options.gd")
 
@@ -15,10 +16,12 @@ func _init() -> void:
 	dir.remove("options.json")
 	Options._cache = {}   # force re-hydrate from defaults
 
-	var default_ok: bool = int(Options.get_option("res")) == 1
-	var list_ok: bool = Options.RESOLUTIONS.size() == 2 \
-			and Options.RESOLUTIONS[1][0] == 1920 \
-			and Options.RESOLUTIONS[1][1] == 1080
+	var default_ok: bool = int(Options.get_option("res")) == 2
+	var list_ok: bool = Options.RESOLUTIONS.size() == 3 \
+			and Options.RESOLUTIONS[2][0] == 1920 \
+			and Options.RESOLUTIONS[2][1] == 1080 \
+			and Options.RESOLUTIONS[0][0] == 960 \
+			and Options.RESOLUTIONS[0][1] == 600
 
 	Options.set_option("res", 0)
 	Options._cache = {}
