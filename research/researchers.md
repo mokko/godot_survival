@@ -98,21 +98,29 @@ inherited from the philosopher Watsuji Tetsurō.
 people is the intellectual justification for a world built to commemorate
 a country: terrain as memory.
 
-## 7. Ian Condry (b. 1964) — contemporary culture, music
+## 7. Hirokazu Miyazaki (b. 1968) — hope as method
 
-American cultural anthropologist at MIT, one of the younger generation
-here. *Hip-Hop Japan: Rap and the Paths of Cultural Globalization* (2006)
-is based on fieldwork in Tokyo clubs, tracing how a global genre becomes
-locally meaningful — "genba" (the actual site) as the place where culture
-is made. He also writes on Japanese animation (*The Soul of Anime*, 2013)
-and hosts a Japanese hip-hop radio show.
+Japanese-born (Tokyo) cultural anthropologist, professor at Cornell
+University and formerly director of its East Asia Program; trained in
+Japan and at the Australian National University. He is one of the most
+influential Japanese-born anthropologists of his generation, known for
+making a philosophical problem into an ethnographic method: *The Method
+of Hope: Anthropology, Philosophy, and Fijian Knowledge* (2004) asks how
+people keep hope alive when the outcome is not in their hands, studied
+among the Suvavou people of Fiji pursuing a land claim. He has since
+worked on money and finance, on Japanese society facing disaster and
+decline, and on **Ainu land rights and heritage** in Hokkaido —
+including the politics around the Upopoy national museum. He has been a
+leading editor in the field (American Ethnologist) and is a public voice
+in Japan on why a society needs a different kind of hope.
 
-**Why he matters here:** the counterweight to the "traditional Japan"
-material. He shows Japan as contemporary and global, and — being a
-music anthropologist — he is the natural bridge to the game's audio layer
-and to the ethnomusicological angle (Ainu tonkori/upopo, Ryukyuan
-sanshin) that a commemorative world should include rather than freeze in
-the past.
+**Why he matters here:** he is the bridge between the game's premise and
+the present. A world built to commemorate a country is an act of hope —
+that something survives being remembered — and Miyazaki is the
+anthropologist who has thought hardest about what that actually means,
+including for the Ainu, whose commemoration has been contested. He is
+also a direct source for how the game should handle Upopoy-era Ainu
+politics: as a live claim, not a museum label.
 
 ---
 
@@ -122,7 +130,8 @@ the past.
   classic and current, Japanese and non-Japanese, with at least one
   archaeologist (Munro, Habu) and one geographer (Berque).
 - Women: Benedict, Ohnuki-Tierney, Hendry, Habu. Younger generation:
-  Habu (b. 1958), Condry (b. 1964).
+  Habu (b. 1958), Miyazaki (b. 1968).
+- Japanese-born: Ohnuki-Tierney, Habu, Miyazaki.
 - Deliberately omitted: early Meiji-era "Japan hands" whose framing was
   orientalist without fieldwork, and researchers whose main reputations
   rest on discredited work.
