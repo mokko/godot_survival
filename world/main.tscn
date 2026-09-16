@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://items/item_pickup.tscn" id="14_pick"]
 [ext_resource type="Script" path="res://ui/fps_counter.gd" id="15_fps"]
 [ext_resource type="Script" path="res://world/graphics_options.gd" id="16_gfx"]
+[ext_resource type="Script" path="res://world/clutter.gd" id="17_clutter"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -161,6 +162,9 @@ script = ExtResource("15_fps")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
 
 [node name="Terrain" parent="." unique_id=1213454053 instance=ExtResource("3_terrain")]
+
+[node name="Clutter" type="Node3D" parent="."]
+script = ExtResource("17_clutter")
 
 [node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.929348)
