@@ -73,11 +73,33 @@ Or run the whole suite with a pass/fail summary:
 tests/run_all.sh
 ```
 
+### Run the frame-rate benchmark before every release
+
+The headless suite cannot see rendering at all (`--headless` has no renderer), so a graphics change
+that halves the frame rate still passes every test. Run the benchmark and keep its output with the
+release:
+
+```bash
+tools/perf_test.sh | tee screenshots/$(date +%Y%m%d)/perf-$(date +%Y%m%d).txt
+```
+
+It toggles SSAO, MSAA and the ground clutter in one session and reports fps, draw calls and
+primitives per frame for each combination, exiting non-zero if the window was never presented (in
+which case the fps numbers mean nothing). It needs a real display — on the Rock 5B the session is
+Xwayland and the script detects the env itself; see `screenshots/README.md`.
+
+### Screenshots
+
+`screenshots/YYYYMMDD/` holds the first screenshots of each week, rendered from fixed poses with
+`tools/capture_views.gd`. See `screenshots/README.md` for how to re-take them.
+
 Project layout:
 
 - `player/`, `orb/` — player and collectibles
-- `world/` — main scene, island, terrain, water, movable blocks
+- `world/` — main scene, island, terrain, water, movable blocks, ground clutter
 - `flora/`, `fauna/` — plant and animal species
 - `ui/` — splash menu, story screen, pause menu, fade-in
-- `tools/` — scene builders (terrain, flora, fauna) and `make_sounds.py`
+- `tools/` — scene builders (terrain, flora, fauna), `capture_views.gd` (screenshots),
+  `perf_test.sh` (benchmark), `make_sounds.py`
 - `sounds/` — synthesized sound effects
+- `research/` — worldbuilding and reference notes (geography, premise)
