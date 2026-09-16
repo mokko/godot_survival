@@ -16,7 +16,7 @@ const GAME_SCENE := "res://world/main.tscn"
 const CHARS_PER_SEC := 28.0
 
 ## The intro, lifted from story.md § Premise. Typed out by _process; the
-## player skips it with a click or ESC (see research.md/story.md for the fuller
+## player skips it with a click or ESC (see research/old.md/story.md for the fuller
 ## narrative it should eventually grow into).
 const FULL_TEXT := """You are a mind without a body.
 

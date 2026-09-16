@@ -45,7 +45,7 @@ who would spend a lifetime building a museum for the dead, and why.
 - Is Mr Unknown still alive? Is *he* a consciousness in a machine too?
 - What destroyed/succeeded the old world — and does the museum
   memorialize it, or flee from it?
-- Ainu layer (research.md §3–4): is the museum honest about what was
+- Ainu layer (research/old.md §3–4): is the museum honest about what was
   erased, or is it theJapan-as-wished? This can become the story's
   turning point.
 
