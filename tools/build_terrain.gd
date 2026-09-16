@@ -15,6 +15,43 @@ const COL_WET := Color(0.25, 0.38, 0.28)
 const COL_ROCK := Color(0.45, 0.44, 0.42)
 const COL_CAP := Color(0.72, 0.74, 0.78)
 
+# --- ground detail maps ------------------------------------------------------
+# Two triplanar scales, both generated in code (art canon: no external assets).
+# Macro (uv1) tiles once per 1 / UV1_SCALE = 2.5 world units, the micro detail
+# layer (uv2) once per 1 / UV2_SCALE = 0.5 world units.
+const UV1_SCALE := 0.4
+const UV2_SCALE := 2.0
+## BaseMaterial3D.detail_blend_mode has no named constant on this build (only
+## the DetailUV enum is exposed as a constant), so this is the int from its
+## hint order: Mix, Add, Subtract, Multiply.
+const DETAIL_BLEND_MULTIPLY := 3
+## Averaged bump tilt the generated normal map aims for, as a tangent-space
+## slope (0.22 is about 12 degrees). The height differences are scaled to hit
+## it, so the strength needs no retuning when the octave set changes.
+const TARGET_MEAN_SLOPE := 0.22
+## Albedo range per scale. Both maps are RGBA8, so 1.0 is the ceiling and they
+## can only darken; the height field is stretched to its own min/max first,
+## because mapping the raw field onto a wide range piles most of the map up
+## against that ceiling (the first attempt left 58% of it clamped at pure white).
+const MACRO_ALBEDO := [0.72, 1.0]
+const MICRO_ALBEDO := [0.9, 1.0]
+## Both albedo maps multiply the biome vertex colours, so the ground would come
+## out ~18% darker than before they existed. This lifts the vertex colours to
+## match the brightness of the single map they replace (its mean was 0.94).
+const ALBEDO_COMPENSATION := 1.15
+const OCTAVE_AMPLITUDES := [1.0, 0.5, 0.25]
+const MACRO_OCTAVES := [8, 16, 32]
+const MACRO_SEED := 1337
+const MACRO_SIZE := 256
+const MICRO_OCTAVES := [16, 32, 64]
+const MICRO_SEED := 2024
+const MICRO_SIZE := 128
+## Shore band: the sand/grass change is blended over this much height instead of
+## being thresholded, and the boundary height wobbles by SHORE_JITTER either way
+## along a coherent ~24-unit field, so it reads as a curve and not a contour.
+const SHORE_BAND := 0.4
+const SHORE_JITTER := 0.35
+
 
 func _init() -> void:
 	var t0 := Time.get_ticks_msec()
@@ -65,17 +102,7 @@ func _build_terrain(island: GDScript) -> void:
 	var mi := MeshInstance3D.new()
 	mi.name = "TerrainMesh"
 	mi.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 1.0
-	# Procedural detail texture: vertex colors multiply with a noise-ish albedo
-	# so the ground isn't a flat blob of color up close. Triplanar, so no UVs
-	# are needed and the texture tiles in world space.
-	var tex := _make_detail_texture()
-	mat.albedo_texture = tex
-	mat.uv1_triplanar = true
-	mat.uv1_scale = Vector3(0.08, 0.08, 0.08)   # tile every ~12.5 world units
-	mi.material_override = mat
+	mi.material_override = _terrain_material()
 	terrain_root.add_child(mi)
 	mi.owner = terrain_root
 
@@ -102,68 +129,244 @@ func _v(st: SurfaceTool, x: float, h: float, z: float, island: GDScript) -> void
 	st.add_vertex(Vector3(x, h, z))
 
 
-func _make_detail_texture() -> ImageTexture:
-	## 128x128 grayscale mottle, tileable, generated with value noise so the
-	## ground has up-close texture without any external asset files.
-	var size := 128
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	# Deterministic RNG so the texture is identical on every rebuild.
+func _terrain_material() -> StandardMaterial3D:
+	## Vertex colours carry the biome; two code-generated triplanar scales carry
+	## the texture. The micro scale rides in StandardMaterial3D's detail slot,
+	## which is how close-up grain gets added here: Compatibility has no decal
+	## support, and one UV scale cannot serve both a 2.5-unit and a half-metre
+	## feature size.
+	var macro := _make_detail_maps(
+			MACRO_OCTAVES, MACRO_SEED, MACRO_SIZE, MACRO_ALBEDO)
+	var micro := _make_detail_maps(
+			MICRO_OCTAVES, MICRO_SEED, MICRO_SIZE, MICRO_ALBEDO)
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.roughness = 0.95
+	mat.albedo_texture = macro[0]
+	mat.normal_enabled = true
+	mat.normal_texture = macro[1]
+	mat.normal_scale = 0.6
+	# The generated roughness map holds the same value in R, G and B, so
+	# whichever channel the material samples gives the same answer.
+	mat.roughness_texture = macro[2]
+	mat.uv1_triplanar = true
+	mat.uv1_scale = Vector3(UV1_SCALE, UV1_SCALE, UV1_SCALE)
+	mat.detail_enabled = true
+	mat.detail_albedo = micro[0]
+	mat.detail_normal = micro[1]
+	mat.detail_blend_mode = DETAIL_BLEND_MULTIPLY
+	mat.detail_uv_layer = BaseMaterial3D.DETAIL_UV_2
+	mat.uv2_triplanar = true
+	mat.uv2_scale = Vector3(UV2_SCALE, UV2_SCALE, UV2_SCALE)
+	return mat
+
+
+func _make_detail_maps(octaves: Array, seed_value: int, size: int,
+		albedo_range: Array) -> Array:
+	## [albedo, normal, roughness] textures generated from one tileable fractal
+	## value-noise height field — no external asset files, per the art canon.
+	##
+	## Tileability: the lattice wraps (indices modulo each octave's grid size), so
+	## the field is exactly periodic over one tile and the maps tile seamlessly —
+	## the normal too, since it is differentiated with the same wrap. The previous
+	## version used oct + 1 independent random rows and columns, which left a
+	## brightness step at every tile edge: on the baked map that measured as a
+	## mean step of 4.4/255 across the boundary against 0.45/255 between
+	## neighbouring interior columns, i.e. a visible grid of seams.
+	##
+	## Mipmaps are generated so the ground settles with distance instead of
+	## shimmering.
+	var grids := _noise_grids(octaves, seed_value)
+	var speck_grids := _noise_grids(octaves, seed_value + 7)
+	var n := size
+	var heights := PackedFloat32Array()
+	var speck := PackedFloat32Array()
+	heights.resize(n * n)
+	speck.resize(n * n)
+	var lo := INF
+	var hi := -INF
+	var speck_lo := INF
+	var speck_hi := -INF
+	for py in n:
+		for px in n:
+			var u := float(px) / float(n)
+			var v := float(py) / float(n)
+			var h := _noise(grids, u, v)
+			var s := _noise(speck_grids, u, v)
+			heights[py * n + px] = h
+			speck[py * n + px] = s
+			lo = minf(lo, h)
+			hi = maxf(hi, h)
+			speck_lo = minf(speck_lo, s)
+			speck_hi = maxf(speck_hi, s)
+	# The field fills only part of 0..1 and clusters around the middle, so stretch
+	# both fields to their own range before mapping them onto anything.
+	var span := maxf(hi - lo, 0.0001)
+	var speck_span := maxf(speck_hi - speck_lo, 0.0001)
+	# Derive the bump strength from the field rather than guessing it per octave
+	# set: scale the central differences so the average tilt hits the target.
+	var mean_slope := 0.0
+	for i in n * n:
+		mean_slope += absf(_slope_x(heights, n, i))
+	mean_slope /= float(n * n)
+	var strength := TARGET_MEAN_SLOPE / maxf(mean_slope, 0.0001)
+
+	var albedo_lo: float = albedo_range[0]
+	var albedo_hi: float = albedo_range[1]
+	var albedo_img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var normal_img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var rough_img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var albedo_sum := 0.0
+	for py in n:
+		for px in n:
+			var i := py * n + px
+			var hn := (heights[i] - lo) / span
+			var sn := (speck[i] - speck_lo) / speck_span
+			# Albedo: mottling across the full range the RGBA8 map can hold, plus
+			# a warm/cool speck so the ground is not pure grey. That is ~28%
+			# contrast where the old single map had 12% (224..255).
+			var bright := albedo_lo + hn * (albedo_hi - albedo_lo)
+			albedo_sum += bright
+			var warm := sn - 0.5
+			albedo_img.set_pixel(px, py, Color(
+					clampf(bright * (1.0 + 0.10 * warm), 0.0, 1.0),
+					clampf(bright * (1.0 + 0.02 * warm), 0.0, 1.0),
+					clampf(bright * (1.0 - 0.08 * warm), 0.0, 1.0)))
+			# Tangent-space normal from the same height field.
+			var nrm := Vector3(-_slope_x(heights, n, i) * strength,
+					-_slope_y(heights, n, i) * strength, 1.0).normalized()
+			normal_img.set_pixel(px, py, Color(
+					nrm.x * 0.5 + 0.5, nrm.y * 0.5 + 0.5, nrm.z * 0.5 + 0.5))
+			# Roughness: drier crests a touch rougher than sheltered hollows,
+			# decorrelated from the height by the second field and spread wide
+			# enough to read (0.66..1.0).
+			var r := clampf(0.66 + 0.24 * hn + 0.10 * sn, 0.0, 1.0)
+			rough_img.set_pixel(px, py, Color(r, r, r))
+	albedo_img.generate_mipmaps()
+	normal_img.generate_mipmaps()
+	rough_img.generate_mipmaps()
+	print("detail maps: %d px, albedo %.2f..%.2f (mean %.3f), normal strength %.1f"
+			% [n, albedo_lo, albedo_hi, albedo_sum / float(n * n), strength])
+	return [ImageTexture.create_from_image(albedo_img),
+			ImageTexture.create_from_image(normal_img),
+			ImageTexture.create_from_image(rough_img)]
+
+
+func _noise_grids(octaves: Array, seed_value: int) -> Array:
+	## One square lattice of random values per octave. Seeded, so every rebuild
+	## bakes identical maps.
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 1337
-	# Random value grid at 3 octaves, bilinear-sampled and summed.
+	rng.seed = seed_value
 	var grids: Array = []
-	for oct in [4, 8, 16]:
-		var g: Array = []
-		for i in (oct + 1) * (oct + 1):
-			g.append(rng.randf())
-		grids.append([oct, g])
-	for py in size:
-		for px in size:
-			var v := 0.0
-			for gi in grids.size():
-				var oct: int = grids[gi][0]
-				var g: Array = grids[gi][1]
-				var fx := float(px) / size * oct
-				var fy := float(py) / size * oct
-				var x0 := int(fx)
-				var y0 := int(fy)
-				var tx := fx - x0
-				var ty := fy - y0
-				# Smooth (smoothstep) bilinear for softer blobs.
-				var sx := tx * tx * (3.0 - 2.0 * tx)
-				var sy := ty * ty * (3.0 - 2.0 * ty)
-				var a: float = g[y0 * (oct + 1) + x0]
-				var b: float = g[y0 * (oct + 1) + x0 + 1]
-				var c: float = g[(y0 + 1) * (oct + 1) + x0]
-				var d: float = g[(y0 + 1) * (oct + 1) + x0 + 1]
-				var val := lerpf(lerpf(a, b, sx), lerpf(c, d, sx), sy)
-				v += val * [1.0, 0.5, 0.25][gi]
-			# Normalize 0..1.75 to ~0.75..1.25 grayscale (subtle mottle).
-			var g8 := int(clampf(0.75 + v / 1.75 * 0.5, 0.0, 1.0) * 255.0)
-			img.set_pixel(px, py, Color8(g8, g8, g8))
-	return ImageTexture.create_from_image(img)
+	for oct in octaves:
+		var g := PackedFloat32Array()
+		g.resize(oct * oct)
+		for i in oct * oct:
+			g[i] = rng.randf()
+		grids.append(g)
+	return grids
+
+
+func _noise(grids: Array, u: float, v: float) -> float:
+	## Fractal value noise over the octave lattices, normalised to 0..1. Periodic
+	## in u and v: the lattice index wraps modulo each octave's grid size, so
+	## sampling at u + 1.0 gives the same value as at u.
+	u = fposmod(u, 1.0)
+	v = fposmod(v, 1.0)
+	var total := 0.0
+	var norm := 0.0
+	for gi in grids.size():
+		var g: PackedFloat32Array = grids[gi]
+		var oct := int(round(sqrt(float(g.size()))))
+		var amp: float = OCTAVE_AMPLITUDES[gi]
+		norm += amp
+		var fx := u * oct
+		var fy := v * oct
+		var x0 := int(floorf(fx))
+		var y0 := int(floorf(fy))
+		var tx := fx - x0
+		var ty := fy - y0
+		# Smooth (smoothstep) bilinear for softer blobs.
+		var sx := tx * tx * (3.0 - 2.0 * tx)
+		var sy := ty * ty * (3.0 - 2.0 * ty)
+		var xa := x0 % oct
+		var ya := y0 % oct
+		var xb := (x0 + 1) % oct
+		var yb := (y0 + 1) % oct
+		var a := g[ya * oct + xa]
+		var b := g[ya * oct + xb]
+		var c := g[yb * oct + xa]
+		var d := g[yb * oct + xb]
+		total += lerpf(lerpf(a, b, sx), lerpf(c, d, sx), sy) * amp
+	return total / norm
+
+
+func _slope_x(h: PackedFloat32Array, n: int, i: int) -> float:
+	## Central difference across one texel, wrapped, so tile edges stay smooth.
+	var x := i % n
+	var y := i / n
+	return h[y * n + (x + 1) % n] - h[y * n + (x + n - 1) % n]
+
+
+func _slope_y(h: PackedFloat32Array, n: int, i: int) -> float:
+	var x := i % n
+	var y := i / n
+	return h[((y + 1) % n) * n + x] - h[((y + n - 1) % n) * n + x]
 
 
 func _color_for(x: float, z: float, h: float, island: GDScript) -> Color:
-	var c: Color
-	if h < island.WATER_LEVEL + 0.6:
-		c = COL_SAND
-	else:
-		c = COL_GRASS
-		# Wetlands bog tint around the Kushiro analog.
-		var dw := Vector2(x, z).distance_to(Vector2(75.0, 5.0))
-		if dw < 28.0:
-			var t := 1.0 - clampf((dw - 16.0) / 12.0, 0.0, 1.0)
-			c = c.lerp(COL_WET, t)
-		# Highland rock, then frost cap.
-		if h > 6.5:
-			c = c.lerp(COL_ROCK, clampf((h - 6.5) / 3.0, 0.0, 1.0))
-		if h > 9.5:
-			c = c.lerp(COL_CAP, clampf((h - 9.5) / 2.0, 0.0, 1.0))
+	## Biome colour for one terrain vertex. The shore is a jittered, blended band
+	## rather than a height threshold: vertex colours are interpolated across each
+	## quad, so a soft boundary stops the 2.5-unit vertex grid showing up as a
+	## clean jagged polygon edge.
+	var shore: float = island.WATER_LEVEL + 0.6 + _jitter(x, z) * SHORE_JITTER
+	var sand := clampf((shore + SHORE_BAND * 0.5 - h) / SHORE_BAND, 0.0, 1.0)
+	var land := 1.0 - sand
+	var c := COL_GRASS.lerp(COL_SAND, sand)
+	# Wetlands bog tint around the Kushiro analog.
+	var dw := Vector2(x, z).distance_to(Vector2(75.0, 5.0))
+	if dw < 28.0:
+		var t := 1.0 - clampf((dw - 16.0) / 12.0, 0.0, 1.0)
+		c = c.lerp(COL_WET, t * land)
+	# Highland rock, then frost cap.
+	if h > 6.5:
+		c = c.lerp(COL_ROCK, clampf((h - 6.5) / 3.0, 0.0, 1.0) * land)
+	if h > 9.5:
+		c = c.lerp(COL_CAP, clampf((h - 9.5) / 2.0, 0.0, 1.0) * land)
 	# Subtle per-vertex variation from the terrain noise itself.
 	var n: float = island.height_at(x + 31.7, z - 17.3) - island.height_at(x, z)
 	c = c.lightened(clampf(n * 0.02, -0.04, 0.04))
-	return c
+	# Both albedo detail maps multiply this colour and their means sit below 1,
+	# so lift the vertex colours to keep the island as bright as it was when a
+	# single map multiplied it (that map's mean was 0.94, these two give 0.82).
+	return c * ALBEDO_COMPENSATION
+
+
+func _jitter(x: float, z: float) -> float:
+	## Coherent -1..1 pseudo-random field, smooth on a ~24 world-unit scale, used
+	## to wobble the shoreline so it reads as a curve instead of a contour line.
+	## Two hash taps per axis rather than a noise class, to keep the builder
+	## self-contained and deterministic.
+	var s := 24.0
+	var fx := x / s
+	var fz := z / s
+	var x0 := floorf(fx)
+	var z0 := floorf(fz)
+	var tx := fx - x0
+	var tz := fz - z0
+	var sx := tx * tx * (3.0 - 2.0 * tx)
+	var sz := tz * tz * (3.0 - 2.0 * tz)
+	var a := _hash01(x0, z0)
+	var b := _hash01(x0 + 1.0, z0)
+	var c := _hash01(x0, z0 + 1.0)
+	var d := _hash01(x0 + 1.0, z0 + 1.0)
+	return lerpf(lerpf(a, b, sx), lerpf(c, d, sx), sz) * 2.0 - 1.0
+
+
+func _hash01(x: float, z: float) -> float:
+	## Deterministic 0..1 hash — no RNG state, identical on every rebuild.
+	var v := sin(x * 127.1 + z * 311.7) * 43758.5453
+	return v - floorf(v)
 
 
 func _build_water() -> void:
