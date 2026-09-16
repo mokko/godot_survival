@@ -13,6 +13,7 @@ const Options := preload("res://ui/options.gd")
 @onready var options_panel: PanelContainer = $OptionsPanel
 @onready var fullscreen_btn: CheckButton = $OptionsPanel/VBox/Fullscreen
 @onready var show_fps_btn: CheckButton = $OptionsPanel/VBox/ShowFPS
+@onready var ssao_btn: CheckButton = $OptionsPanel/VBox/SSAO
 @onready var res_option: OptionButton = $OptionsPanel/VBox/ResOption
 @onready var menu_vbox: VBoxContainer = $Center/VBox
 
@@ -28,6 +29,7 @@ func _ready() -> void:
 func _on_options_pressed() -> void:
 	fullscreen_btn.button_pressed = bool(Options.get_option("fullscreen"))
 	show_fps_btn.button_pressed = Options.get_option("show_fps")
+	ssao_btn.button_pressed = bool(Options.get_option("ssao"))
 	res_option.clear()
 	for r in Options.RESOLUTIONS:
 		res_option.add_item("%d x %d" % [r[0], r[1]])
@@ -43,6 +45,10 @@ func _on_options_pressed() -> void:
 func _on_options_back_pressed() -> void:
 	Options.set_option("fullscreen", fullscreen_btn.button_pressed)
 	Options.set_option("show_fps", show_fps_btn.button_pressed)
+	# Ambient occlusion is a property of the world scene's environment, so
+	# there is nothing to apply while the menu is up — the world reads this
+	# option when it starts (world/graphics_options.gd).
+	Options.set_option("ssao", ssao_btn.button_pressed)
 	Options.set_option("res", res_option.selected)
 	options_panel.hide()
 	menu_vbox.show()

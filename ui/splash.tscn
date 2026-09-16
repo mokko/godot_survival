@@ -99,6 +99,12 @@ theme_override_font_sizes/font_size = 22
 text = "Show FPS counter"
 button_pressed = true
 
+[node name="SSAO" type="CheckButton" parent="OptionsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Ambient occlusion"
+button_pressed = true
+
 [node name="ResLabel" type="Label" parent="OptionsPanel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22

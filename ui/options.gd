@@ -14,6 +14,7 @@ const RESOLUTIONS := [
 ## option -> [key, default]
 const DEFAULTS := {
 	"show_fps": true,
+	"ssao": true,   # screen-space ambient occlusion in the world scene
 	"res": 1,   # index into RESOLUTIONS — 1920x1080
 	"fullscreen": true,
 }
