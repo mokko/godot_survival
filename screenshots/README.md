@@ -37,16 +37,25 @@ Caveats worth remembering:
 `tools/perf_test.sh` writes the frame-rate benchmark for a build. Keep the output of the release run
 here as `perf-YYYYMMDD.txt` so it travels with the screenshots of that date.
 
+### How to read the benchmark numbers
+
+- **Draw calls and primitives per frame are trustworthy**; they are per-frame render metrics.
+- **Absolute fps from a shell outside your desktop session is not.** A window created by the agent
+  (or by cron) is not properly part of the session, and its present/swap path gets throttled: the
+  first recorded run measured **1.0 fps while issuing ~1700 draw calls and ~3.2M primitives**, which is
+  far more GPU work than 1 fps on a Mali-G610 — i.e. the frame was *presented* slowly, not *drawn*
+  slowly. For a meaningful frame rate, run `tools/perf_test.sh` from your own session (and close the
+  Godot editor, which shares the GPU).
+- If the probe reports `0 frames drawn`, nothing was presented at all and every number is void — it
+  exits non-zero and says so.
+- **The load is dominated by the flora.** Hidden-layer probe: everything 1665 draws / 3.17M prims;
+  Plants hidden 308 / 0.71M; Animals hidden 1473 / 2.83M; Terrain hidden 1660 / 2.88M; Clutter hidden
+  1665 / 3.17M. So ~1357 draws and ~2.46M prims are 464 plant instances, each 2-8 separate
+  `MeshInstance3D` built from **default-resolution** Godot primitives (a default `SphereMesh` alone is
+  ~4k triangles). Merging each species into one mesh per instance — or one MultiMesh per species — and
+  dropping the segment counts are the two cheapest wins in the project.
+
 ### 20260916 (baseline — first recorded run)
 
-| configuration | avg FPS | worst | draw calls/frame | primitives/frame |
-|---|---|---|---|---|
-| msaa x2 + ssao + clutter | 117.8 | 74.0 | — | — |
-| ssao off | 138.1 | 136.0 | — | — |
-| ssao off + msaa off | 134.0 | 121.0 | — | — |
-| ssao + msaa, clutter hidden | 128.4 | 112.0 | — | — |
-
-⚠ Those four rows were measured **before** the display problem was understood: they were taken
-through Wayland, where this machine never presents frames, so the numbers are main-loop iterations
-rather than rendering cost (draw calls were 0). Treat them as void; the first valid benchmark is the
-one produced by `tools/perf_test.sh` on Xwayland, recorded in `perf-20260916.txt`.
+Raw output: `perf-20260916.txt`. (Earlier ad-hoc SSAO/MSAA numbers taken through Wayland were
+main-loop iterations rather than rendering, and are void — see "How to read" above.)

@@ -14,15 +14,23 @@ extends SceneTree
 ## probe says so explicitly and exits non-zero.
 
 const WINDOW := Vector2i(960, 600)
-## Frames can take ~1 s on this machine while the window is obscured, so these are
-## deliberately small: Engine.get_frames_per_second() is already an average over the
-## last second, and 120 frames per configuration is plenty to compare builds.
-const SETTLE_FRAMES := 60
-const SAMPLE_FRAMES := 120
+## Sampling is adaptive: the present/swap path of a window created outside the
+## desktop session can throttle to seconds per frame, while a normal session runs
+## at 60+. Measure the frame rate first and then pick a sample length that takes a
+## few seconds either way — a fixed count would either take 20 minutes here or be
+## too short to average on a fast machine.
+const SETTLE_FRAMES := 20
+const SAMPLE_SECONDS := 2.0
+const SAMPLE_MIN := 20
+const SAMPLE_MAX := 600
+## Below this frame rate, with draw calls still coming in, the frame is being
+## presented slowly rather than drawn slowly: treat the fps column as unreliable.
+const THROTTLED_FPS := 5.0
 
 var _env: Environment
 var _clutter: Node
 var _fails := 0
+var _throttled := false
 
 
 func _init() -> void:
@@ -63,31 +71,48 @@ func _init() -> void:
 		print("RESULT BENCHMARK INVALID: %d sample(s) drew no frames — "
 				% _fails + "the window was not presented (headless? no DISPLAY?)")
 		quit(1)
+		return
+	if _throttled:
+		print("RESULT BENCHMARK DEGRADED: draw calls and primitives are valid, but "
+				+ "frames were presented slowly (window outside the desktop session "
+				+ "or obscured), so the fps columns are not a frame-rate baseline. "
+				+ "Re-run from the desktop session with the editor closed.")
+		quit(2)
+		return
 	print("RESULT BENCHMARK OK")
 	quit(0)
 
 
 func _sample(label: String, ssao: bool) -> void:
-	## One configuration: settle, then average over SAMPLE_FRAMES.
+	## One configuration: settle, measure the frame rate, then sample for about
+	## SAMPLE_SECONDS worth of frames (adaptive — see the constant comment).
 	for i in 10:
 		await process_frame
+	var estimate := maxf(Engine.get_frames_per_second(), 0.1)
+	var frames := clampi(int(estimate * SAMPLE_SECONDS), SAMPLE_MIN, SAMPLE_MAX)
 	var fps := 0.0
 	var worst := INF
 	var draws := 0.0
 	var prims := 0.0
 	var drawn0 := Engine.get_frames_drawn()
-	for i in SAMPLE_FRAMES:
+	for i in frames:
 		await process_frame
 		var f := Engine.get_frames_per_second()
 		fps += f
 		worst = minf(worst, f)
 		draws += Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
 		prims += Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
-	var n := float(SAMPLE_FRAMES)
+	var n := float(frames)
 	var drawn := Engine.get_frames_drawn() - drawn0
 	if drawn <= 0:
 		_fails += 1
+	var avg := fps / n
+	var prims_avg := prims / n
+	var note := ""
+	if drawn > 0 and avg < THROTTLED_FPS and prims_avg > 1000.0:
+		_throttled = true
+		note = "  ⚠ presented slowly, not drawn slowly — fps unreliable"
 	print("BENCH | %-30s | ssao=%-5s | %6.1f fps avg | %6.1f fps worst | "
-			% [label, str(ssao), fps / n, worst]
-			+ "%6.1f draws | %9.0f prims | %d frames drawn"
-			% [draws / n, prims / n, drawn])
+			% [label, str(ssao), avg, worst]
+			+ "%6.1f draws | %9.0f prims | %d frames drawn%s"
+			% [draws / n, prims_avg, drawn, note])

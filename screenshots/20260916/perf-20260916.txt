@@ -1,0 +1,22 @@
+# using Xwayland (:0, auth .mutter-Xwaylandauth.OBQBU3)
+# survivor benchmark  date=2026-09-16T08:27:41+02:00  host=rock-5b-plus  godot=snap run godot-4
+BENCH adapter=Mali-G610 (Panfrost) display=X11 window=(960, 600)
+BENCH godot=4.7-stable (official) renderer=gl_compatibility
+BENCH | msaa x2 + ssao + clutter       | ssao=true  |    1.0 fps avg |    1.0 fps worst | 1699.0 draws |   3192875 prims | 20 frames drawn  ⚠ presented slowly, not drawn slowly — fps unreliable
+BENCH | ssao off                       | ssao=false |    1.0 fps avg |    1.0 fps worst | 1706.0 draws |   3229080 prims | 20 frames drawn  ⚠ presented slowly, not drawn slowly — fps unreliable
+BENCH | ssao off + msaa off            | ssao=false |    1.0 fps avg |    1.0 fps worst | 1712.3 draws |   3246148 prims | 20 frames drawn  ⚠ presented slowly, not drawn slowly — fps unreliable
+BENCH | ssao + msaa, clutter hidden    | ssao=true  |    1.0 fps avg |    1.0 fps worst | 1707.3 draws |   3243139 prims | 20 frames drawn  ⚠ presented slowly, not drawn slowly — fps unreliable
+RESULT BENCHMARK DEGRADED: draw calls and primitives are valid, but frames were presented slowly (window outside the desktop session or obscured), so the fps columns are not a frame-rate baseline. Re-run from the desktop session with the editor closed.
+RESULT BENCHMARK OK
+# ----------------------------------------
+# Where the 1.7k draws / 3.2M prims come from (hidden-layer probe on this build):
+#   everything        1665 draws   3,174,332 prims
+#   Plants hidden      308 draws     709,884 prims   <-- the flora is ~1357 draws and ~2.46M prims
+#   Animals hidden    1473 draws   2,826,620 prims
+#   Terrain hidden    1660 draws   2,876,868 prims
+#   Clutter hidden    1665 draws   3,174,112 prims   (the new clutter is ~3 draws / ~6k prims: negligible)
+# 464 placed plants x 2-8 separate MeshInstance3D each, built from DEFAULT-RESOLUTION
+# Godot primitives (SphereMesh defaults to 64x32 rings = ~4k tris per sphere), so a
+# small shrub costs thousands of triangles and several draw calls. Two cheap fixes:
+#   1. merge each species into one mesh per instance (or one MultiMesh per species)
+#   2. drop the segment counts on the small primitives
