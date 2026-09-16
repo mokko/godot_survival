@@ -85,20 +85,27 @@ a small community sustains itself in a forested archipelago — her work is
 the sober reference, and she is one of the younger generations still
 producing it.
 
-## 6. Augustin BERQUE (b. 1942) — the geographer of landscape
+## 6. Yuji MURAYAMA (b. 1961) — the geographer of how Japan is mapped
 
-French geographer, Orientalist and philosopher, born in Rabat; one of the
-leading European Japanologists, awarded the Fukuoka Prize (2009). He lived
-and taught in Japan and theorised the **relationship between a society and
-its landscape**: *Le sauvage et l'artifice: les Japonais devant la nature*
-(1986) argues that Japanese landscape is neither untouched nature nor pure
-artifice, but a cultivated "third" — the *fûdo* (milieu) tradition he
-inherited from the philosopher Watsuji Tetsurō.
+Japanese geographer (human geography and GIScience), professor emeritus at
+the University of Tsukuba, member of the Science Council of Japan and
+director of the university's spatial-information science division. He works
+on **land-use change, urbanisation and geospatial analysis of Japan** —
+how Japanese cities and regions have been mapped, measured and remade over
+the modern period — with a very large body of cited work and a standing
+role in Japanese GIScience. He is a generation younger than the classic
+Japanologists in this file.
 
-**Why he matters here:** he is the geographer for a game whose whole map
-*is* a Japan-shaped landscape. His idea that landscape is co-produced by
-people is the intellectual justification for a world built to commemorate
-a country: terrain as memory.
+**Why he matters here:** the whole premise of survivalm is a map — Japan
+redrawn at 1:1000 by hand in `world/island.gd`. MURAYAMA is the
+practitioner of exactly that discipline in the real country: how land is
+classified, measured and turned into a picture. He is the reference for
+doing it deliberately rather than decoratively. (An alternative in the same
+seat, if you want the older, more famous name: **Tadao UMESAO**
+(1920–2010), anthropologist-geographer and founder of Japan's National
+Museum of Ethnology, whose "ecological history of civilisation" read Japan
+as a chain of landscapes — a livelier fit for the commemorative-world
+idea, but two generations further back.)
 
 ## 7. Hirokazu MIYAZAKI (b. 1968) — hope as method
 
@@ -188,10 +195,10 @@ attention applies.
 
 - Selection criteria: real, well-documented researchers on Japan, mixing
   classic and current, Japanese and non-Japanese, with at least one
-  archaeologist (MUNRO, HABU) and one geographer (BERQUE).
+  archaeologist (MUNRO, HABU) and one geographer (MURAYAMA).
 - Women: BENEDICT, OHNUKI-TIERNEY, HENDRY, HABU, UENO. Younger generation:
   HABU (b. 1958), MIYAZAKI (b. 1968).
-- Japanese-born: OHNUKI-TIERNEY, HABU, MIYAZAKI, UENO, MIYADAI.
+- Japanese-born: OHNUKI-TIERNEY, HABU, MIYAZAKI, UENO, MIYADAI, MURAYAMA.
 - Controversial figures: UENO, MIYADAI (both included on purpose — a
   commemorative world should carry its tensions, not just its treasures).
 - Spelling note: the instrument is **shamisen** (三味線), not "shamizen";
