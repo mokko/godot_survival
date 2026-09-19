@@ -73,6 +73,19 @@ Or run the whole suite with a pass/fail summary:
 tests/run_all.sh
 ```
 
+### Sail between the islands
+
+Every island except the last has a boat moored off its **south coast**
+(Ezo → Honshu → Shikoku → Kyushu, and Kyushu is the destination so it has none). Stand beside a
+boat and press **E** to board, **W/S** to sail, **A/D** to steer, **E** again to go ashore — refused
+in open water, because the sea floor past the shallows has no collision and stepping off would be a
+fall-death. Moored boats carry a lit lantern so they can be found from the water after dark. The
+route order lives in `tools/build_boats.gd`; re-bake placements with:
+
+```bash
+snap run godot-4 --headless --script res://tools/build_boats.gd
+```
+
 ### Run the frame-rate benchmark before every release
 
 The headless suite cannot see rendering at all (`--headless` has no renderer), so a graphics change

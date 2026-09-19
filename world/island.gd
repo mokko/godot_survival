@@ -199,6 +199,27 @@ static func is_water(x: float, z: float) -> bool:
 	return height_at(x, z) < WATER_LEVEL - 0.1
 
 
+static func nearest_land_point(p: Vector2, max_radius: float = 9.0) -> Vector3:
+	## Nearest dry land to p, searched in rings out to max_radius, else
+	## Vector3.INF. Belongs here with the rest of the placement math because two
+	## callers need it: boats when someone steps off, and load_state() when a save
+	## was written mid-voyage. The terrain mesh has no collision more than ~1.5
+	## below the sea surface, so "standing over water" is a fall-death.
+	if is_land(p.x, p.y):
+		return Vector3(p.x, height_at(p.x, p.y) + 0.4, p.y)
+	const STEP := 1.5
+	const BEARINGS := 24
+	var rings := int(ceil(max_radius / STEP))
+	for ring in range(1, rings + 1):
+		var radius := float(ring) * STEP
+		for i in BEARINGS:
+			var angle := TAU * float(i) / BEARINGS
+			var q := p + Vector2(cos(angle), sin(angle)) * radius
+			if is_land(q.x, q.y):
+				return Vector3(q.x, height_at(q.x, q.y) + 0.4, q.y)
+	return Vector3.INF
+
+
 static func spawn_point() -> Vector3:
 	return Vector3(SPAWN_XZ.x, height_at(SPAWN_XZ.x, SPAWN_XZ.y), SPAWN_XZ.y)
 

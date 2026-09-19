@@ -15,10 +15,11 @@ const CONTACT_RANGE := 1.2
 const DAMAGE := 5.0
 const HIT_COOLDOWN := 1.0
 const BODY_Y := 0.5
+const PATROL_SPAN := 9.0   ## metres between the two patrol legs
 
 enum State { PATROL, CHASE, RETURN }
 
-var territory_center := Vector2.ZERO  ## set by the spawner
+var territory_center := Vector2.ZERO  ## set by the spawner, else adopted
 var patrol_a := Vector3.ZERO
 var patrol_b := Vector3.ZERO
 
@@ -32,7 +33,56 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.seed = 20260906 + str(name).hash()
+	if not is_configured():
+		# Hand-placed in the editor, or baked by an older spawner that never set
+		# a territory: adopt wherever we are standing. Without this every
+		# stalker in the shipped world treated world origin as home and simply
+		# walked there, so the one enemy in the game never actually hunted.
+		var here := Vector2(global_position.x, global_position.z)
+		configure(here, global_position, _patrol_point(here))
 	_target = patrol_b
+
+
+func is_configured() -> bool:
+	return territory_center != Vector2.ZERO or patrol_a != Vector3.ZERO \
+			or patrol_b != Vector3.ZERO
+
+
+func configure(center: Vector2, a: Vector3, b: Vector3) -> void:
+	## Claim a territory and two patrol legs. Called by the spawner (before or
+	## after _ready) and by _ready's fallback.
+	territory_center = center
+	patrol_a = a
+	patrol_b = b
+	_target = b
+	_state = State.PATROL
+	_patrol_t = 0.0
+	_chase_left = 0.0
+
+
+func state_name() -> String:
+	## Readable state for tests and debug output.
+	match _state:
+		State.CHASE:
+			return "CHASE"
+		State.RETURN:
+			return "RETURN"
+		_:
+			return "PATROL"
+
+
+func _patrol_point(center: Vector2) -> Vector3:
+	## A second patrol leg PATROL_SPAN out, searched in deterministic directions
+	## so a stalker never patrols into the sea.
+	var r := RandomNumberGenerator.new()
+	r.seed = 20260907 + str(name).hash()
+	var base := r.randf() * TAU
+	for i in 8:
+		var ang: float = base + i * TAU / 8.0
+		var p := center + Vector2(cos(ang), sin(ang)) * PATROL_SPAN
+		if Island.is_land(p.x, p.y):
+			return Vector3(p.x, Island.height_at(p.x, p.y) + BODY_Y, p.y)
+	return Vector3(center.x, Island.height_at(center.x, center.y) + BODY_Y, center.y)
 
 
 func _physics_process(delta: float) -> void:

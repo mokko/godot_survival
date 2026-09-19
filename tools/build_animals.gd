@@ -62,9 +62,32 @@ func _place(scene: PackedScene, pos: Vector3, species: String) -> void:
 	var inst: Node3D = scene.instantiate()
 	inst.position = pos
 	inst.rotation.y = _rng.randf() * TAU
+	if species == "stalker":
+		# Each stalker gets its own territory plus a second patrol leg on land.
+		# Without this they all kept territory_center = Vector2.ZERO and marched
+		# to world origin instead of hunting where they were placed.
+		var here := Vector2(pos.x, pos.z)
+		inst.territory_center = here
+		inst.patrol_a = pos
+		inst.patrol_b = _patrol_point(here)
 	_root.add_child(inst)
 	inst.owner = _root
 	_counts[species] = _counts.get(species, 0) + 1
+
+
+func _patrol_point(center: Vector2) -> Vector3:
+	## A land point ~9 m from the territory centre, tried in 8 fixed directions.
+	var island = load("res://world/island.gd")
+	for i in 8:
+		var ang := _rng.randf() * TAU + i * TAU / 8.0
+		var p := center + Vector2(cos(ang), sin(ang)) * 9.0
+		if island.is_land(p.x, p.y):
+			return Vector3(p.x, island.height_at(p.x, p.y) + 0.5, p.y)
+	return center_pos_fallback(center, island)
+
+
+func center_pos_fallback(center: Vector2, island) -> Vector3:
+	return Vector3(center.x, island.height_at(center.x, center.y) + 0.5, center.y)
 
 
 ## Thin wrapper over island.gd's random_land_point with a retry.

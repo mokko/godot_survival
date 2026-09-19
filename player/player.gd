@@ -69,7 +69,17 @@ func load_state(data: Dictionary) -> void:
 	sunbulbs_collected = int(data.get("sunbulbs", data.get("orbs", 0)))
 	var pos: Array = data.get("pos", [])
 	if pos.size() == 3:
-		global_position = Vector3(pos[0], pos[1], pos[2])
+		var restored := Vector3(pos[0], pos[1], pos[2])
+		if not Ezo.is_land(restored.x, restored.z):
+			# Saved while sailing. Land within 40 units (coastal water) means we can
+			# put the player safely ashore near where they were; out in open sea
+			# there is nothing to snap to, so fall back to the start point — the
+			# saved position is lost, but loading must never drop the player into
+			# the water, where the sea floor has no collision.
+			var shore: Vector3 = Ezo.nearest_land_point(
+					Vector2(restored.x, restored.z), 40.0)
+			restored = shore if shore != Vector3.INF else Ezo.spawn_point()
+		global_position = restored
 		velocity = Vector3.ZERO
 	# Put the sun back where it was: loading an evening save at noon broke the
 	# day/night illusion (and with it the glow plants and light budget).
@@ -110,6 +120,9 @@ func load_state(data: Dictionary) -> void:
 @onready var pause_menu: Control = get_node_or_null("../HUD/PauseMenu")
 
 var _input_locked := false
+## The boat the player is riding, if any (world/boat.gd sets this through
+## board_boat()). While set, the boat owns our position and velocity.
+var _boat: Node3D = null
 
 signal pause_requested
 
@@ -324,6 +337,11 @@ func _physics_process(delta: float) -> void:
 	if global_position.y < -8.0:
 		_fall_death()
 
+	if _boat != null:
+		# Riding a boat: it pins us to its deck every frame (world/boat.gd), so no
+		# walking, gravity or jumping here — the boat owns our position.
+		return
+
 	# Apply gravity when airborne.
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -363,6 +381,25 @@ func _physics_process(delta: float) -> void:
 			_snd_step.play()
 	else:
 		_step_accum = STEP_INTERVAL   # ready to step immediately on move
+
+
+func board_boat(boat: Node3D) -> void:
+	## Called by world/boat.gd when the player presses E beside a moored boat.
+	_boat = boat
+	velocity = Vector3.ZERO
+	if _held_block != null:
+		# Do not carry a grabbed block aboard: it would fight the seat-lock.
+		_held_block.release()
+		_held_block = null
+
+
+func leave_boat() -> void:
+	_boat = null
+	velocity = Vector3.ZERO
+
+
+func in_boat() -> bool:
+	return _boat != null
 
 
 func damage(amount: float) -> void:

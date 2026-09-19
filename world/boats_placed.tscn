@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://world/boat.tscn" id="1_vq7np"]
+[ext_resource type="Script" path="res://world/boat.gd" id="2_pxuf0"]
+
+[node name="Boats" type="Node3D" unique_id=1393090130]
+
+[node name="Boat_Ezo" type="StaticBody3D" parent="." unique_id=787948348 instance=ExtResource("1_vq7np")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 33, 0, 113.99999)
+script = ExtResource("2_pxuf0")
+island = "Ezo"
+destination = "Honshu"
+destination_xz = Vector2(175.5, 611.2999)
+
+[node name="Boat_Honshu" type="StaticBody3D" parent="." unique_id=948611844 instance=ExtResource("1_vq7np")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 175.5, 0, 611.2999)
+script = ExtResource("2_pxuf0")
+island = "Honshu"
+destination = "Shikoku"
+destination_xz = Vector2(10, 720.7999)
+
+[node name="Boat_Shikoku" type="StaticBody3D" parent="." unique_id=1408257530 instance=ExtResource("1_vq7np")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 720.7999)
+script = ExtResource("2_pxuf0")
+island = "Shikoku"
+destination = "Kyushu"
+destination_xz = Vector2(-105, 715.4999)

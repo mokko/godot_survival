@@ -25,6 +25,8 @@ const FOV := 70.0
 const SETTLE_FRAMES := 30
 ## eye = metres above the terrain; pitch is degrees, negative looks down.
 ## Biome keys are sampled with the fixed seed; "centre" poses on the caldera.
+## A view inherits the previous view's time of day unless it sets "time", so any
+## view needing daylight has to say so.
 const VIEWS := [
 	{"name": "01_ground_closeup", "x": -112.0, "z": 82.0, "eye": 1.7,
 		"yaw": 25.0, "pitch": -38.0},
@@ -38,9 +40,14 @@ const VIEWS := [
 		"pitch": -5.0},
 	{"name": "06_night_coast", "biome": "coast", "eye": 1.7, "downhill": true,
 		"pitch": -6.0, "time": 0.92},
+	{"name": "07_boat_ezo", "x": 38.0, "z": 120.0, "eye": 2.8, "yaw": -135.0,
+		"pitch": -14.0, "time": 0.3},
 ]
 
 var _out_dir := DEFAULT_DIR
+## Optional second argument: only shoot views whose name starts with this, so
+## iterating on one asset does not re-render the whole set.
+var _only := ""
 var _day_cycle: Node
 var _player: Node3D
 var _clutter: Node
@@ -53,6 +60,8 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		_out_dir = args[0]
+	if args.size() > 1:
+		_only = args[1]
 	DirAccess.make_dir_recursive_absolute(_out_dir)
 	print("shots: writing to %s (display=%s adapter=%s)" % [_out_dir,
 			DisplayServer.get_name(), RenderingServer.get_video_adapter_name()])
@@ -78,6 +87,8 @@ func _init() -> void:
 
 	seed(SEED)   # Ezo.random_land_point() is unseeded RNG: fix it for repeatability
 	for view in VIEWS:
+		if _only != "" and not String(view["name"]).begins_with(_only):
+			continue
 		await _shoot(cam, view)
 	cam.queue_free()
 	main.queue_free()

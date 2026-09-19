@@ -21,6 +21,23 @@ static func spawn_puff(parent: Node, pos: Vector3) -> void:
 
 func _enter_tree() -> void:
 	add_to_group("damageable")
+	_unfreeze_body()
+
+
+func _unfreeze_body() -> void:
+	## AnimatableBody3D defaults to sync_to_physics = true, which hands the
+	## transform to the physics server: the direct global_position writes every
+	## fauna script does in _physics_process are then silently discarded, so all
+	## six species stood frozen where they spawned (the stalker could never
+	## reach the player, the drifter never drifted). Turning the flag off keeps
+	## the body solid — it still blocks and pushes the player — while letting
+	## the scripts own their own position.
+	##
+	## The property is set through set() because this base class is a Node3D:
+	## naming sync_to_physics directly would be a static "not found" error.
+	var node := self as Node3D
+	if node is AnimatableBody3D and node.get("sync_to_physics"):
+		node.set("sync_to_physics", false)
 
 
 func damage(amount: float) -> void:
