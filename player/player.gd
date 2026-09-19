@@ -6,6 +6,8 @@ const JUMP_VELOCITY = 4.72   # 4.5 * sqrt(1.1): peak height scales with the
 const START_LIFE = 40
 const LIFE_DRAIN_PER_SEC = 1.0
 const SUNBULB_HEAL = 15.0
+const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
+const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
 const SAVEGAME := preload("res://world/savegame.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
@@ -19,6 +21,10 @@ var _drain_accum: float = 0.0
 var _game_over: bool = false
 var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
+var _invuln: float = 0.0     ## counts down; damage() is ignored while > 0
+var _hurt_layer: CanvasLayer = null
+var _hurt_rect: ColorRect = null
+var _snd_hurt: AudioStreamPlayer = null
 const InventoryScene := preload("res://ui/inventory.tscn")
 @onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
 @onready var equipment: Node3D = $Equipment
@@ -137,6 +143,8 @@ func _ready() -> void:
 	# Reuses the flopp thump: it reads as a jab landing and there is no
 	# dedicated punch sample in sounds/.
 	_snd_punch = _make_snd("res://sounds/flopp.wav", -14.0)
+	_snd_hurt = _make_snd("res://sounds/hurt.wav", -5.0)
+	_build_hurt_flash()
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = FOV_DEFAULT
@@ -150,6 +158,36 @@ func _ready() -> void:
 	# the splash screen's Load Game button.
 	if SAVEGAME.take_pending_load():
 		load_state(SAVEGAME.read())
+
+
+func _build_hurt_flash() -> void:
+	## Red vignette-ish flash on taking damage. Built in code rather than in
+	## main.tscn: the HUD scene is edited by hand in the editor, and a code-side
+	## overlay cannot be clobbered by an editor save.
+	_hurt_layer = CanvasLayer.new()
+	_hurt_layer.layer = 5   # above the HUD labels, below the fade overlay
+	add_child(_hurt_layer)
+	_hurt_rect = ColorRect.new()
+	_hurt_rect.color = Color(0.75, 0.04, 0.04, 0.0)
+	_hurt_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hurt_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hurt_layer.add_child(_hurt_rect)
+
+
+func _tick_hurt(delta: float) -> void:
+	_invuln = maxf(_invuln - delta, 0.0)
+	if _hurt_rect != null and _hurt_rect.color.a > 0.0:
+		var a := maxf(_hurt_rect.color.a - delta * HURT_FLASH_FADE, 0.0)
+		_hurt_rect.color = Color(0.75, 0.04, 0.04, a)
+
+
+func hurt_flash_alpha() -> float:
+	## HUD flash level, 0..1. Read by the HUD/tests.
+	return _hurt_rect.color.a if _hurt_rect != null else 0.0
+
+
+func is_invulnerable() -> bool:
+	return _invuln > 0.0
 
 
 func add_item(item_id: String) -> bool:
@@ -317,6 +355,7 @@ func play_grab_sound() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_tick_hurt(delta)
 	if _game_over:
 		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
@@ -403,8 +442,17 @@ func in_boat() -> bool:
 
 
 func damage(amount: float) -> void:
-	## Player damage route: armor (combat node) soaks its share first.
+	## Player damage route: armor (combat node) soaks its share first, then the
+	## hit is telegraphed back at the player — flash + sound + a short window of
+	## invulnerability so one enemy cannot chain-bite through a whole life bar.
+	if _game_over or _invuln > 0.0:
+		return
 	var through: float = combat.absorb(amount)
+	_invuln = INVULN_TIME
+	if _hurt_rect != null:
+		_hurt_rect.color = Color(0.75, 0.04, 0.04, 0.55)
+	if _snd_hurt != null:
+		_snd_hurt.play()
 	_apply_damage(through)
 
 

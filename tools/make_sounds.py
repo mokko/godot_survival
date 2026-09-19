@@ -8,7 +8,9 @@ Existing files (orb_pickup.wav, game_over.wav) are left alone. New:
   drop.wav      - short falling click (block release)
   step.wav      - very quiet footstep tick (kept subtle)
   splash.wav    - noise burst with lowpass-ish decay (falling in water)
-  splash_menu.wav - not used; placeholder for future UI sounds
+  growl.wav     - low rumble (stalker aggro)
+  hit.wav       - sharp crack (a landed hit on an enemy)
+  hurt.wav      - player taking damage
 Run:  python3 tools/make_sounds.py
 """
 import math
@@ -82,3 +84,10 @@ write_wav("splash.wav", mix(noise(0.5, 0.25, curve=2.5),
 write_wav("flopp.wav", mix(tone(0.25, 220, 70, curve=6.0), noise(0.2, 0.1, curve=3.0)))
 write_wav("slash.wav", mix(noise(0.18, 0.9, curve=3.5),
                             tone(0.18, 1400, 400, curve=4.0, harmonics=((0.4, 1.0),))))
+# Combat set: the stalker's aggro growl, a landed hit, and the player being hurt.
+write_wav("growl.wav", mix(tone(0.55, 120, 62, curve=2.5, harmonics=((1.0, 1.0), (3.0, 0.35))),
+                           noise(0.5, 0.05, curve=2.0)))
+write_wav("hit.wav", mix(noise(0.14, 0.55, curve=5.0),
+                         tone(0.14, 520, 130, curve=5.0, harmonics=((1.0, 1.0), (2.0, 0.4)))))
+write_wav("hurt.wav", mix(tone(0.32, 330, 120, curve=3.5, harmonics=((1.0, 1.0), (2.4, 0.25))),
+                          noise(0.3, 0.08, curve=3.0)))

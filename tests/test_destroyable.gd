@@ -29,12 +29,14 @@ func _init() -> void:
 		holder.add_child(node)
 		for i in 3:
 			await physics_frame
-		var pos: Vector3 = node.global_position
 		# 50 life: 1 damage leaves it alive, 49 more kills it.
 		node.damage(1.0)
 		if not is_instance_valid(node):
 			fails.append(spec[1] + "_died_too_easy")
 			continue
+		# Read the death spot *after* that first hit: animals are now shoved away
+		# from the attacker when hit, so the pre-hit position is stale.
+		var pos: Vector3 = node.global_position
 		node.damage(49.0)
 		for i in 5:
 			await process_frame

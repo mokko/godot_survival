@@ -6,6 +6,8 @@ extends Node3D
 
 const MAX_LIFE := 50.0
 const DeathPuff := preload("res://items/death_puff.tscn")
+## Prefixed: subclasses (the fauna) declare their own `Island` constant.
+const _Island := preload("res://world/island.gd")
 
 var life: float = MAX_LIFE
 
@@ -38,6 +40,21 @@ func _unfreeze_body() -> void:
 	var node := self as Node3D
 	if node is AnimatableBody3D and node.get("sync_to_physics"):
 		node.set("sync_to_physics", false)
+
+
+func knockback_from(origin: Vector3, distance: float) -> void:
+	## Shove this thing away from a hit. Subclasses own their own movement, so
+	## the shift lasts one frame and their integrator picks it up from there —
+	## enough to make a landed hit feel physical. Kept on land so a stalker is
+	## never punched into the sea.
+	var away := global_position - origin
+	away.y = 0.0
+	if away.length() < 0.01:
+		return
+	var p := global_position + away.normalized() * distance
+	if _Island.is_land(p.x, p.z):
+		p.y = _Island.height_at(p.x, p.z) + 0.5
+		global_position = p
 
 
 func damage(amount: float) -> void:

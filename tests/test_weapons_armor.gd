@@ -1,6 +1,10 @@
 extends SceneTree
 ## Headless check: weapon damage table, leather armor absorption + breakage,
 ## and the player damage route through armor.
+##
+## The player now has a short grace window after each hit (player.INVULN_TIME),
+## which is tested in tests/test_player_hurt.gd. These loops deliberately clear
+## it between iterations so they keep measuring armour, not grace.
 
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
@@ -29,6 +33,7 @@ func _init() -> void:
 	var life0: float = player.life
 	player.life = 40.0
 	life0 = 40.0
+	player._invuln = 0.0
 	player.damage(10.0)
 	if absf(player.life - (life0 - 7.0)) > 0.01:
 		fails.append("absorption_30")   # 10 * 0.3 eaten -> 7 through
@@ -37,6 +42,7 @@ func _init() -> void:
 	var hits := 0
 	while player.armor_status()["id"] != "" and hits < 100:
 		player.life = 40.0   # keep alive so damage keeps flowing
+		player._invuln = 0.0
 		player.damage(10.0)
 		hits += 1
 	if player.armor_status()["id"] != "":
@@ -44,6 +50,7 @@ func _init() -> void:
 	# After break, full damage passes.
 	player.life = 40.0
 	var life1: float = player.life
+	player._invuln = 0.0
 	player.damage(10.0)
 	if absf(player.life - (life1 - 10.0)) > 0.01:
 		fails.append("broken_absorbs")
@@ -58,6 +65,7 @@ func _init() -> void:
 		fails.append("ui_equip")
 	player.life = 40.0
 	var lifeA: float = player.life
+	player._invuln = 0.0
 	player.damage(10.0)
 	if absf(player.life - (lifeA - 7.0)) > 0.01:
 		fails.append("ui_equip_absorbs")
@@ -91,8 +99,10 @@ func _init() -> void:
 	player.equip_armor("leather_armor")
 	player.life = 40.0
 	var after_equip: int = sig_count[0]
+	player._invuln = 0.0
 	player.damage(5.0)      # chips durability only — must not signal
 	player.life = 40.0
+	player._invuln = 0.0
 	player.damage(5.0)
 	if sig_count[0] != after_equip:
 		fails.append("armor_changed_spam")
