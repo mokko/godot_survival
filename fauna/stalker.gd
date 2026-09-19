@@ -9,6 +9,7 @@ const Island := preload("res://world/island.gd")
 const PATROL_SPEED := 2.0
 const CHASE_SPEED := 7.5
 const SIGHT_RADIUS := 10.0
+const NIGHT_SIGHT_RADIUS := 14.0   ## the dark is its hunting time
 const TERRITORY_RADIUS := 30.0
 const CHASE_TIME := 8.0
 const CONTACT_RANGE := 1.2
@@ -39,8 +40,15 @@ var _rng := RandomNumberGenerator.new()
 var _body_mesh: MeshInstance3D = null
 var _snd_growl: AudioStreamPlayer = null
 var _snd_hit: AudioStreamPlayer = null
+var _snd_death: AudioStreamPlayer = null
 const GROWL := preload("res://sounds/growl.wav")
 const BITE := preload("res://sounds/hit.wav")
+const DEATH := preload("res://sounds/enemy_death.wav")
+
+## Loot: a fight has to pay for itself. Emberstone always, arrows by chance.
+const LOOT_MAIN := "emberstone"
+const LOOT_BONUS := "arrows"
+const LOOT_BONUS_CHANCE := 0.5
 
 
 func _ready() -> void:
@@ -60,6 +68,7 @@ func _ready() -> void:
 		_body_mesh.material_override = (_body_mesh.material_override as StandardMaterial3D).duplicate()
 	_snd_growl = _make_snd(GROWL)
 	_snd_hit = _make_snd(BITE)
+	_snd_death = _make_snd(DEATH)
 
 
 func _make_snd(stream: AudioStream) -> AudioStreamPlayer:
@@ -113,6 +122,19 @@ func _patrol_point(center: Vector2) -> Vector3:
 	return Vector3(center.x, Island.height_at(center.x, center.y) + BODY_Y, center.y)
 
 
+func sight_radius() -> float:
+	## Stalkers see further after sunset: the day/night cycle feeds combat.
+	return NIGHT_SIGHT_RADIUS if is_night() else SIGHT_RADIUS
+
+
+func is_night() -> bool:
+	## world/day_cycle.gd: 0 = sunrise, 0.25 = noon, 0.5 = sunset, 0.5-1 = night.
+	var cycle: Node = get_tree().get_first_node_in_group("day_cycle")
+	if cycle == null:
+		return false
+	return float(cycle.get("time_of_day")) >= 0.5
+
+
 func _physics_process(delta: float) -> void:
 	_hit_cd = maxf(_hit_cd - delta, 0.0)
 	_tick_flash(delta)
@@ -127,7 +149,7 @@ func _physics_process(delta: float) -> void:
 
 	match _state:
 		State.PATROL:
-			if player and dist < SIGHT_RADIUS and in_territory:
+			if player and dist < sight_radius() and in_territory:
 				_start_chase()
 			else:
 				_patrol_t += delta * PATROL_SPEED / 15.0
@@ -153,7 +175,7 @@ func _physics_process(delta: float) -> void:
 			if _windup <= 0.0:
 				_bite(player, dist)
 		State.RETURN:
-			if player and dist < SIGHT_RADIUS and in_territory:
+			if player and dist < sight_radius() and in_territory:
 				_start_chase()
 			elif _arrive_home():
 				_state = State.PATROL
@@ -209,9 +231,37 @@ func damage(amount: float) -> void:
 		# (and so knockback cannot carry a corpse away from its own corpse).
 		return
 	_flash = FLASH_TIME
-	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player != null:
-		knockback_from(player.global_position, 1.4)
+
+
+func _die() -> void:
+	## Death cue and loot live here, before the base class puffs us away: the
+	## drop is parented to our parent, never to us, or it would be freed with us.
+	_drop_loot()
+	if _snd_death != null:
+		_snd_death.play()
+	super._die()
+
+
+func _drop_loot() -> void:
+	var parent := get_parent()
+	if parent == null:
+		return
+	var pos := global_position + Vector3(0.0, 0.4, 0.0)
+	_drop_item(parent, pos, LOOT_MAIN)
+	if _rng.randf() < LOOT_BONUS_CHANCE:
+		_drop_item(parent, pos + Vector3(0.45, 0.0, 0.45), LOOT_BONUS)
+
+
+func _drop_item(parent: Node, pos: Vector3, item_id: String) -> void:
+	var scene := load("res://items/item_pickup.tscn") as PackedScene
+	if scene == null:
+		return
+	var pickup: Node3D = scene.instantiate()
+	pickup.set("item_id", item_id)   # set before the pickup's _ready picks a colour
+	parent.add_child(pickup)
+	# Global, not local: the parent may itself be offset (and in the test harness
+	# it is), which would otherwise double the drop off the corpse.
+	pickup.global_position = pos
 
 
 func _steer_to(target: Vector3, speed: float, delta: float) -> void:

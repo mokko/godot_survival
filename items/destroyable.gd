@@ -6,6 +6,8 @@ extends Node3D
 
 const MAX_LIFE := 50.0
 const DeathPuff := preload("res://items/death_puff.tscn")
+const KNOCKBACK_DISTANCE := 1.2   ## metres a surviving animal is shoved
+
 ## Prefixed: subclasses (the fauna) declare their own `Island` constant.
 const _Island := preload("res://world/island.gd")
 
@@ -61,6 +63,15 @@ func damage(amount: float) -> void:
 	life -= amount
 	if life <= 0.0:
 		_die()
+		return
+	# Survivors get shoved away from the player, the only source of damage in
+	# the game. Gated on AnimatableBody3D so the mobile fauna slide while the
+	# plants (Area3D/StaticBody3D) stay rooted where they grow.
+	var node := self as Node3D
+	if node is AnimatableBody3D:
+		var attacker := get_tree().get_first_node_in_group("player") as Node3D
+		if attacker != null:
+			knockback_from(attacker.global_position, KNOCKBACK_DISTANCE)
 
 
 func _die() -> void:

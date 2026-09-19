@@ -11,6 +11,7 @@ Existing files (orb_pickup.wav, game_over.wav) are left alone. New:
   growl.wav     - low rumble (stalker aggro)
   hit.wav       - sharp crack (a landed hit on an enemy)
   hurt.wav      - player taking damage
+  enemy_death.wav - an enemy dying
 Run:  python3 tools/make_sounds.py
 """
 import math
@@ -91,3 +92,5 @@ write_wav("hit.wav", mix(noise(0.14, 0.55, curve=5.0),
                          tone(0.14, 520, 130, curve=5.0, harmonics=((1.0, 1.0), (2.0, 0.4)))))
 write_wav("hurt.wav", mix(tone(0.32, 330, 120, curve=3.5, harmonics=((1.0, 1.0), (2.4, 0.25))),
                           noise(0.3, 0.08, curve=3.0)))
+write_wav("enemy_death.wav", mix(tone(0.6, 200, 45, curve=2.2, harmonics=((1.0, 1.0), (2.0, 0.3))),
+                                 noise(0.45, 0.12, curve=2.5)))

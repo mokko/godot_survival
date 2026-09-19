@@ -30,6 +30,7 @@ const NIGHT := Color(0.08, 0.1, 0.18)
 
 
 func _ready() -> void:
+	add_to_group("day_cycle")   # combat & AI read time_of_day through this
 	# Tag emissive flora/fauna so _process can scale them, remembering each
 	# mesh's authored emission strength. The night boost scales that value
 	# instead of flattening every species to the same brightness.
