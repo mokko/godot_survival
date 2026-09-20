@@ -1,0 +1,128 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://ui/pedia.gd" id="1_script"]
+[ext_resource type="Script" path="res://ui/pedia_plate.gd" id="2_plate"]
+
+[sub_resource type="StyleBoxFlat" id="Style_panel"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.08, 0.08, 0.1, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Pedia" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.62)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Padding" type="MarginContainer" parent="Center"]
+layout_mode = 2
+
+[node name="Panel" type="PanelContainer" parent="Center/Padding"]
+custom_minimum_size = Vector2(820, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Center/Padding/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Pedia"
+horizontal_alignment = 1
+
+[node name="Contents" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="List" type="ScrollContainer" parent="Center/Padding/Panel/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Center/Padding/Panel/VBox/List"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="Blurb" type="Label" parent="Center/Padding/Panel/VBox/List/Column"]
+custom_minimum_size = Vector2(740, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
+[node name="Grid" type="GridContainer" parent="Center/Padding/Panel/VBox/List/Column"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="Entry" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Head" type="HBoxContainer" parent="Center/Padding/Panel/VBox/Entry"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Column" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Entry/Head"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Plate" type="Control" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
+custom_minimum_size = Vector2(300, 220)
+layout_mode = 2
+script = ExtResource("2_plate")
+
+[node name="Name" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
+[node name="Subtitle" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
+modulate = Color(0.78, 0.84, 0.9, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="Text" type="ScrollContainer" parent="Center/Padding/Panel/VBox/Entry/Head"]
+custom_minimum_size = Vector2(400, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="Body" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Text"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
+[node name="Back" type="Button" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Back"

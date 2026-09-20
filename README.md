@@ -134,6 +134,30 @@ inventory, katana included, so a respawn is back to fists (`ESC` restarts).
 they run, which function is called for what, every constant, and which test covers
 each mechanic. Read that before changing anything here.
 
+### Pedia
+
+The pause menu has a **Pedia**: the island's handbook, opened as its own screen
+(it draws the same dim and panel as the pause menu, and the menu is hidden while
+it is up). It opens on a table of contents — **Islands, Plants, Animals,
+Equipment** — each chapter lists its things, and each thing has a page with a
+picture and its text. **Back** (or `ESC`, which the pause menu owns and routes
+here) walks one page up; at the contents page it closes the book and hands back
+to the menu. An opened Pedia always starts at the contents again.
+
+Everything written in it lives in `ui/pedia_data.gd`, so a page cannot disagree
+with another page. Two lists are enforced by `tests/test_pedia.gd`: the Equipment
+chapter covers exactly the ids in `items/item_db.gd`, and every entry in every
+chapter has real text and a plate to draw. For now every entry is listed; when the
+Pedia starts showing only what the player has met, that filter goes in one place
+(`pedia.gd:_entries_of()`).
+
+The pictures are vector art, like the inventory icons: `ui/pedia_art.gd` draws an
+island from its real outline in `world/island.gd` (Ezo gets its caldera lake and
+the arrival point drawn in), an item from the same art its inventory slot uses,
+and a plant or animal from a silhouette authored in a 0..1 square. The shared op
+vocabulary — op constructors, scaling, drawing, scanline fills — is
+`ui/vector_art.gd`, used by both the icons and the Pedia.
+
 ### Run the frame-rate benchmark before every release
 
 The headless suite cannot see rendering at all (`--headless` has no renderer), so a graphics change
@@ -159,7 +183,8 @@ Project layout:
 - `player/`, `orb/` — player and collectibles
 - `world/` — main scene, island, terrain, water, movable blocks, ground clutter
 - `flora/`, `fauna/` — plant and animal species
-- `ui/` — splash menu, story screen, pause menu, fade-in
+- `ui/` — splash menu, story screen, pause menu, pedia, fade-in, HUD meters,
+  procedural icons and plates (`item_icons.gd`, `vector_art.gd`, `pedia_art.gd`)
 - `tools/` — scene builders (terrain, flora, fauna), `capture_views.gd` (screenshots),
   `perf_test.sh` (benchmark), `make_sounds.py`
 - `sounds/` — synthesized sound effects

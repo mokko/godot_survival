@@ -1,12 +1,18 @@
 extends Control
 ## In-game pause menu. Opens on ESC while playing: darkens the screen,
-## pauses the tree, shows Continue / Save / Quit to Menu. Continue (or ESC
-## again) unpauses and re-captures the mouse. The player emits
+## pauses the tree, shows Continue / Save / Pedia / Quit to Menu. Continue (or
+## ESC again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
+##
+## The Pedia (ui/pedia.tscn) is a child of this menu and is shown in place of it.
+## This node is the only one that listens for ESC: while the book is open the key
+## walks the Pedia back a page instead of resuming the game.
 
 const SAVEGAME := preload("res://world/savegame.gd")
 
 @onready var save_label: Label = $SaveLabel
+@onready var pedia: Control = $Pedia
+@onready var menu: CenterContainer = $Center
 
 var _save_label_tween: Tween
 
@@ -15,16 +21,23 @@ func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	# Button presses are wired via [connection] entries in pause_menu.tscn.
+	pedia.closed.connect(_on_pedia_closed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Only runs while visible+paused (this node is WHEN_PAUSED): ESC continues.
 	if visible and event.is_action_pressed("ui_cancel"):
-		_on_continue()
+		if pedia.visible:
+			pedia.back()   # one page up; closing the book lands back here
+		else:
+			_on_continue()
 
 
 func open() -> void:
 	visible = true
+	# Never resume play with the book open — a fresh pause shows the menu.
+	if pedia.visible:
+		pedia.close()
 	save_label.hide()
 	_set_crosshair_visible(false)
 	_apply_padding()
@@ -78,3 +91,15 @@ func _on_quit_to_menu() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file("res://ui/splash.tscn")
+
+
+func _on_pedia() -> void:
+	## Show the book in place of the menu rather than on top of it: the Pedia
+	## draws its own dim and panel, and two stacked panels read as a bug.
+	menu.hide()
+	pedia.open()
+
+
+func _on_pedia_closed() -> void:
+	menu.show()
+	$Center/Padding/Panel/VBox/Continue.grab_focus()
