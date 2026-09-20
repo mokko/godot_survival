@@ -10,6 +10,14 @@ const GAME_SCENE := "res://world/main.tscn"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Options := preload("res://ui/options.gd")
 
+## The four menu buttons, in the order they sit under the title.
+const MENU_BUTTONS := ["Start", "Options", "Continue", "Exit"]
+## How wide the buttons are, as a fraction of the title's width. They used to
+## stretch across the whole menu column — which is exactly as wide as the title,
+## so "Nakamoto's Paradigm" made them a wall of buttons three times wider than
+## any label in them. A third of the title reads as buttons again.
+const BUTTON_WIDTH_RATIO := 1.0 / 3.0
+
 @onready var options_panel: PanelContainer = $OptionsPanel
 @onready var fullscreen_btn: CheckButton = $OptionsPanel/VBox/Fullscreen
 @onready var show_fps_btn: CheckButton = $OptionsPanel/VBox/ShowFPS
@@ -20,10 +28,41 @@ const Options := preload("res://ui/options.gd")
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_size_menu_buttons()
 	$Center/VBox/Start.grab_focus()
 	# The project boots fullscreen (window/size/mode=3); this honours a saved
 	# opt-out so a windowed player isn't fullscreened every launch.
 	Options.apply_display()
+
+
+func _size_menu_buttons() -> void:
+	## Buttons a third of the title wide, sized from the title's own text rather
+	## than from a pixel constant (a rename or another font-size tweak keeps the
+	## proportion). SIZE_SHRINK_CENTER is what stops a VBoxContainer child from
+	## filling the column: each button keeps its minimum width and is centred
+	## under the title, instead of matching the title's width.
+	var third := ceilf(title_width() * BUTTON_WIDTH_RATIO)
+	if third <= 0.0:
+		return
+	for button_name in MENU_BUTTONS:
+		var button := menu_vbox.get_node_or_null(button_name) as Button
+		if button == null:
+			continue
+		button.custom_minimum_size.x = third
+		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+
+func title_width() -> float:
+	## How wide the title's text is. The menu column is exactly this wide, so it
+	## is the number the button width is a fraction of.
+	var title := menu_vbox.get_node_or_null("Title") as Label
+	if title == null:
+		return 0.0
+	var font: Font = title.get_theme_font("font")
+	if font == null:
+		return 0.0
+	return font.get_string_size(title.text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			title.get_theme_font_size("font_size")).x
 
 
 func _on_options_pressed() -> void:

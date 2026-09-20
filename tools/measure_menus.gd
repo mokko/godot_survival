@@ -30,8 +30,17 @@ func _init() -> void:
 		await process_frame
 	var svbox: VBoxContainer = splash.get_node("Center/VBox")
 	var spanel: PanelContainer = splash.get_node("OptionsPanel")
-	print("SPLASH vbox=%s optionspanel_min=%s title_font=%d button_font=%d" % [
+	print("SPLASH vbox=%s optionspanel_min=%s title_font=%d button_font=%d title_w=%.0f" % [
 		svbox.size, spanel.custom_minimum_size,
 		svbox.get_node("Title").get_theme_font_size("font_size"),
-		svbox.get_node("Start").get_theme_font_size("font_size")])
+		svbox.get_node("Start").get_theme_font_size("font_size"),
+		splash.title_width()])
+	# Button widths, one by one: the main menu's buttons are a third of the
+	# title's width (ui/splash.gd BUTTON_WIDTH_RATIO), so this is where to check
+	# that the column did not go back to stretching them.
+	var widths: PackedStringArray = []
+	for button_name in splash.MENU_BUTTONS:
+		var button: Button = svbox.get_node(button_name)
+		widths.append("%s=%.0f@%.0f" % [button_name, button.size.x, button.position.x])
+	print("SPLASH buttons: ", ", ".join(widths))
 	quit(0)
