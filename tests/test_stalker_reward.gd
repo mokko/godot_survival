@@ -19,7 +19,7 @@ class FakePlayer extends Node3D:
 		got.append(item_id)
 		return true
 
-	func damage(_amount: float) -> void:
+	func damage(_amount: float, _source := "") -> void:
 		pass   # bitten while standing next to a stalker; not what we measure
 
 

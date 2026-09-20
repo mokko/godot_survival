@@ -8,7 +8,7 @@ class FakeTarget extends Node3D:
 	var hits := 0
 	func _enter_tree() -> void:
 		add_to_group("damageable")
-	func damage(amount: float) -> void:
+	func damage(amount: float, _source := "") -> void:
 		hits += 1
 
 

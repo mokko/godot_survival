@@ -13,7 +13,9 @@ func _enter_tree() -> void:
 	add_to_group("damageable")
 
 
-func damage(amount: float) -> void:
+func damage(amount: float, _source := "") -> void:
+	## Plants take the same contract but ignore `source`: nothing is left of a
+	## destroyed plant to examine, so only the animals care who dealt the blow.
 	life -= amount
 	if life <= 0.0:
 		Destroyable.spawn_puff(get_parent(), global_position)

@@ -99,7 +99,9 @@ func _strike(range_m: float, half_angle: float, item_id: String) -> int:
 	if hit_list.is_empty():
 		return 0   # a whiff shows nothing at the crosshair
 	for node in hit_list:
-		node.damage(WEAPON.damage_of(item_id))
+		# The item id goes with the blow: a blade leaves a specimen, an arrow or a
+		# fist does not (items/weapon.gd has_blade, fauna/fauna_base.gd _die).
+		node.damage(WEAPON.damage_of(item_id), item_id)
 	player.show_hit_marker()
 	return hit_list.size()
 

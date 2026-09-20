@@ -301,6 +301,7 @@ func _build_props() -> void:
 	_props["bow"] = _make_bow()
 	_props["dagger"] = _make_dagger()
 	_props["binoculars"] = _make_binoculars()
+	_props["magnifying_glass"] = _make_magnifier()
 	_props["leather_armor"] = _make_armor_plates()
 	for id in _props:
 		_props[id].visible = false
@@ -485,6 +486,54 @@ func _make_binoculars() -> Node3D:
 	return root
 
 
+func _make_magnifier() -> Node3D:
+	## A loupe held up in front of the lens: a dark rim, a glass disc, a short
+	## handle angled back. The tool the notebook's plants are drawn with
+	## (player/study.gd).
+	var root := Node3D.new()
+	root.position = Vector3(0.26, 0.98, -0.22)
+	root.rotation.x = -0.1
+	var rim_mat := StandardMaterial3D.new()
+	rim_mat.albedo_color = Color(0.22, 0.24, 0.28)
+	rim_mat.roughness = 0.5
+	var glass_mat := StandardMaterial3D.new()
+	glass_mat.albedo_color = Color(0.62, 0.78, 0.88, 0.55)
+	glass_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass_mat.metallic = 0.4
+	glass_mat.roughness = 0.05
+	var rim := MeshInstance3D.new()
+	var rm := CylinderMesh.new()
+	rm.top_radius = 0.1
+	rm.bottom_radius = 0.1
+	rm.height = 0.016
+	rim.mesh = rm
+	rim.rotation.x = PI * 0.5   # the lens faces forward
+	rim.material_override = rim_mat
+	root.add_child(rim)
+	var glass := MeshInstance3D.new()
+	var gm := CylinderMesh.new()
+	gm.top_radius = 0.088
+	gm.bottom_radius = 0.088
+	gm.height = 0.006
+	glass.mesh = gm
+	glass.rotation.x = PI * 0.5
+	glass.position.z = -0.008
+	glass.material_override = glass_mat
+	root.add_child(glass)
+	var handle := MeshInstance3D.new()
+	var hm := CylinderMesh.new()
+	hm.top_radius = 0.014
+	hm.bottom_radius = 0.014
+	hm.height = 0.16
+	handle.mesh = hm
+	handle.position = Vector3(0.0, -0.09, 0.07)
+	handle.rotation.x = 0.5
+	handle.material_override = rim_mat
+	root.add_child(handle)
+	add_child(root)
+	return root
+
+
 func _make_armor_plates() -> Node3D:
 	var root := Node3D.new()
 	var plate_mat := StandardMaterial3D.new()
@@ -508,9 +557,9 @@ func _make_armor_plates() -> Node3D:
 ## ---- wiring ---------------------------------------------------------------
 
 func show_for_equipped(item_id: String) -> void:
-	## Held props: visible when equipped (katana on hip, bow at side, binoculars
-	## raised at the eye).
-	for id in ["sword", "bow", "dagger", "binoculars"]:
+	## Held props: visible when equipped (katana on hip, bow at side, binoculars and
+	## the loupe raised at the eye).
+	for id in ["sword", "bow", "dagger", "binoculars", "magnifying_glass"]:
 		if _props.has(id):
 			_props[id].visible = (id == item_id)
 

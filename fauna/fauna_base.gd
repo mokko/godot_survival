@@ -14,6 +14,9 @@ extends "res://items/destroyable.gd"
 ## instead of re-implementing the fight, so a hit means the same thing to all six.
 
 const GROWL := preload("res://sounds/growl.wav")
+const PediaSpecies := preload("res://ui/pedia_species.gd")
+const Carcass := preload("res://items/carcass.gd")
+const Weapon := preload("res://items/weapon.gd")
 
 const AGGRO_LEASH := 30.0   ## metres at which the animal starts losing you
 const GIVE_UP_TIME := 5.0   ## seconds out of leash before the fight ends
@@ -21,6 +24,7 @@ const GROWL_DB := -6.0
 const CHARGE_BODY_Y := 0.5  ## what the default gait keeps between body and ground
 
 var _aggro := false
+var _last_source := ""      ## item id of the last blow taken (the specimen rule)
 var _lost_time := 0.0       ## counts up while the player is out of reach
 var _attack_cd := 0.0       ## counts down between blows
 var _snd_aggro: AudioStreamPlayer = null
@@ -78,14 +82,33 @@ func calm_down() -> void:
 	_on_calm()
 
 
-func damage(amount: float) -> void:
+func damage(amount: float, source := "") -> void:
 	## Everything that can hurt us arrives here (katana, jab, arrow), so this is
 	## where being attacked becomes a fight. The hit that kills is not a fight —
-	## a corpse does not aggro.
-	super.damage(amount)
+	## a corpse does not aggro. `source` is remembered for _die(): it decides
+	## whether there is a specimen left to examine.
+	_last_source = source
+	super.damage(amount, source)
 	if life <= 0.0 or is_queued_for_deletion():
 		return
 	provoke()
+
+
+func _die() -> void:
+	## A bladed kill leaves something to examine; an arrow or a fist does not. The
+	## notebook only records what the drone could actually get a look at, which is
+	## why the katana and the tanto are also the surveyor's tools.
+	if Weapon.has_blade(_last_source):
+		_leave_specimen()
+	super._die()
+
+
+func _leave_specimen() -> void:
+	var record := PediaSpecies.of_node(self)
+	if record.is_empty():
+		return
+	Carcass.spawn(get_parent(), global_position, record["chapter"], record["id"],
+			record["name"])
 
 
 func _aggro_tick(delta: float) -> void:

@@ -46,7 +46,7 @@ func _on_body_entered(body: Node) -> void:
 	_stuck = true
 	var dmg: float = Weapon.damage_of(ARROW_ITEM)
 	if body is Destroyable:
-		body.damage(dmg)
+		body.damage(dmg, ARROW_ITEM)
 	elif body.has_method("damage"):
-		body.damage(dmg)   # composed destroyables (Area3D-based flora)
+		body.damage(dmg, ARROW_ITEM)   # composed destroyables (Area3D-based flora)
 	set_deferred("monitoring", false)

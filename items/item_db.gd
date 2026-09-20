@@ -16,6 +16,8 @@ const ITEMS := {
 	"leather_armor": {"name": "Leather Armor", "color": Color(0.55, 0.4, 0.25)},
 	"notebook": {"name": "Pedia", "color": Color(0.45, 0.3, 0.18)},
 	"binoculars": {"name": "Binoculars", "color": Color(0.3, 0.32, 0.36)},
+	"magnifying_glass": {"name": "Magnifying Glass", "color": Color(0.6, 0.72, 0.8)},
+	"pen": {"name": "Pen", "color": Color(0.18, 0.2, 0.24)},
 }
 
 

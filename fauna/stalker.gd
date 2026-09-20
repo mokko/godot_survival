@@ -254,10 +254,10 @@ func _tick_flash(delta: float) -> void:
 	mat.emission_energy_multiplier = 4.0 * (_flash / FLASH_TIME)
 
 
-func damage(amount: float) -> void:
+func damage(amount: float, source := "") -> void:
 	## Being hit is now legible: white flash on the body plus a shove away from
 	## whoever swung, so a landed hit reads as a hit even from behind.
-	super.damage(amount)
+	super.damage(amount, source)
 	if is_queued_for_deletion() or life <= 0.0:
 		# Dead: no flash and no shove, so the death puff stays where it fell
 		# (and so knockback cannot carry a corpse away from its own corpse).

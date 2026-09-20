@@ -107,12 +107,14 @@ bite takes 5, one battery's half.
 
 ### Fight
 
-A new run begins with the **Katana** in hand and the **Pedia notebook** and
-**Binoculars** carried (`player/player.gd`'s `STARTING_ITEMS`, handed out because
-the splash's Start button marks the run as fresh), so the fight can be met on the
-first stroll rather than after a crafting chain, and the notebook can be filled
-from the first animal you meet. The notebook is a keepsake: the death wipe takes
-loot, not the drone's own notes, so a respawn brings it back — carried, not held
+A new run begins with the **Katana** in hand and the **Pedia notebook**, **Pen**,
+**Magnifying Glass** and **Binoculars** carried (`player/player.gd`'s
+`STARTING_ITEMS`, handed out because the splash's Start button marks the run as
+fresh), so the fight can be met on the first stroll rather than after a crafting
+chain, and the notebook can be filled from the first plant you walk past. The
+notebook, the pen that writes in it and the glass the drawings are made through
+are keepsakes: the death wipe takes loot, not the drone's own notes or its
+instruments, so a respawn brings the three of them back — carried, not held
 (`KEEPSAKE_ITEMS`). **Left click** swings
 it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing, drawn as a
 crescent trail that sweeps through the arc — and when the cone actually catches
@@ -155,21 +157,35 @@ It opens on the line *Your research notes.* and three layers:
 holds what has been drawn; the Pedia reads it and nothing else). Each chapter
 fills its own way:
 
-- **Plants and animals** go in by being *studied*. The drone also starts with
-  **Binoculars**: equip them (number key), left click with the crosshair on a
-  species, and hold it in view for **eight seconds** — `player/study.gd`, with a
-  meter under the crosshair and a binocular view over the screen. Slip off the
-  subject for more than a moment, or let it leave, and the drawing starts again
-  from nothing. The glass reaches 45 m, which is what makes a deer that flees at
-  twice your walking speed studyable at all.
+- **Plants** are drawn where they grow with the **Magnifying Glass**, by close
+  observation: equip it (number key), left click with the crosshair on the plant,
+  and hold it in view for **eight seconds** — `player/study.gd`, with a meter under
+  the crosshair and a loupe view over the screen. Slip off the subject for more
+  than a moment and the drawing starts again from nothing. The glass works close:
+  **6 m**.
+- **Animals** have two routes to the same page, because an explorer has more than
+  one way of looking:
+  - **watch one through the Binoculars** for eight seconds — the observation route,
+    and they are what makes an animal that flees at twice your walking speed
+    drawable at all. The binoculars reach **45 m**;
+  - **kill one with a blade** (the katana or the tanto — `items/weapon.gd`
+    `has_blade`) and it leaves a **specimen** (`items/carcass.gd`, 90 s, lit so it
+    can be found after dark); hold that in the **Magnifying Glass** for eight
+    seconds and the **autopsy** records it. An animal killed with an arrow, or
+    beaten down with fists, leaves nothing to open, and is lost to the survey.
+  - Each instrument has its own subject and says so when it is the wrong one: the
+    glass refuses a living animal ("Watch it through the binoculars — or open it
+    with a blade"), the binoculars refuse close work ("Close work — use the
+    magnifying glass").
 - **Equipment** notes itself the moment the drone carries it.
 - **Islands** write themselves down when the drone is on one or moored off its
   coast (60 m), so sailing the boat route fills that chapter.
 
-Fresh run: empty. Death: the notes stay (`KEEPSAKE_ITEMS`) — they are the drone's
-own record. Save/load: they ride in the savegame's `notes` list. A species with no
-data page of its own (mirrorlily's small ground cover) is not studyable, and a
-chapter with nothing drawn in it says how to fill it.
+Fresh run: empty. Death: the notes stay, along with the notebook, the pen and the
+glass (`KEEPSAKE_ITEMS`) — they are the drone's own record and its instruments.
+Save/load: they ride in the savegame's `notes` list. A species with no data page of
+its own (mirrorlily's small ground cover) is not studyable, and a chapter with
+nothing drawn in it says how to fill it.
 
 The first two layers are menus built from `ui/pedia_data.gd` (the words) and the
 third adds the plate from `ui/pedia_art.gd` (the picture). **Back** (or `ESC`,
@@ -179,8 +195,11 @@ at the chapters again.
 
 Two lists are enforced by `tests/test_pedia.gd`: the Equipment chapter covers
 exactly the ids in `items/item_db.gd`, and every subchapter in every chapter has
-text and a plate to draw. `tests/test_study.gd` walks the filling: the empty
-start, the eight-second hold, losing a subject, and the notes surviving a save.
+text and a plate to draw. `tests/test_study.gd` walks the filling: the empty start,
+the plant drawn after the eight-second hold, an animal observed through the
+binoculars at 12 m (out of the glass's reach), the autopsy of the specimen a blade
+kill leaves, the specimen an arrow kill does *not* leave, both tools refusing the
+other's subject, and the notes surviving a save.
 
 The pictures are vector art, like the inventory icons: `ui/pedia_art.gd` draws an
 island from its real outline in `world/island.gd` (Ezo gets its caldera lake and

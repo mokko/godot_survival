@@ -90,6 +90,30 @@ about).
 | Dusk Stalker | patrol–chase | patrol 2, chase 7.5 (1.5× player walk) | chases within 10 units, hunts harder when hit |
 | Rippleback | surface–loop | swim 2 | ignores you, fights when hit (in the water only) |
 
+## Two ways into the notebook
+
+Species are not listed just because you met them: an animal has to be *looked at
+properly*, and the drone has two ways of doing that, both reaching the same page.
+
+**Observe it.** Equip the Binoculars, left click with the crosshair on the animal
+while it is alive, and hold it in view for eight seconds. The glass reaches 45 m,
+which is what makes an animal that flees at twice your walking speed drawable at
+all — you find it, you stop, you watch. This is the route for anything you would
+rather not walk up to, and it is the only one that works on a healthy animal.
+
+**Open it.** A blade — the katana or the tanto; `items/weapon.gd` `has_blade()`
+answers for them — leaves a **specimen** where the animal fell
+(`items/carcass.gd`): a low body in the species' own colour, with a faint light on
+it so it can be found after dark, lasting 90 seconds. Hold that in the
+**Magnifying Glass** for eight seconds and the **autopsy** records the species.
+An arrow is a point rather than an edge and fists are fists, so an animal shot or
+beaten down leaves nothing to open and is lost to the survey.
+
+Each instrument knows its own subject and says so when it is the wrong one: the
+glass will not watch a living animal ("Watch it through the binoculars — or open it
+with a blade"), and the binoculars will not do close work, on a plant or on a body
+("Close work — use the magnifying glass").
+
 ## Ecology at a glance
 
 - Sunbulbs → Grazers → Dusk Stalker (and you).

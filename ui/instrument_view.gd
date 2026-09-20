@@ -1,7 +1,8 @@
 extends Control
-## The binocular view: what the drone sees when the binoculars are out. Everything
-## outside two circles of vision is dimmed, each circle has a bright rim, and a
-## small reticle marks the exact aim point.
+## The instrument view: what the drone sees when a tool is held up. Two circles of
+## vision for the binoculars, one for the magnifying glass' loupe (set `tubes`);
+## everything outside them is dimmed, each circle has a bright rim, and a small
+## reticle marks the exact aim point.
 ##
 ## The mask is drawn with vertical strips rather than a texture: a circle-shaped
 ## hole in an overlay cannot be done with four rects, and a 4 px strip is invisible
@@ -18,13 +19,19 @@ const STRIP := 4.0       ## px width of the mask strips
 const VIEW_RADIUS := 0.34  ## of the viewport height
 
 
+var tubes := 2             ## 2 = binoculars, 1 = the magnifying glass' loupe
+var radius_fraction := VIEW_RADIUS
+
+
 func _draw() -> void:
-	var radius: float = minf(size.x, size.y) * VIEW_RADIUS
+	var radius: float = minf(size.x, size.y) * radius_fraction
 	var gap := radius * TUBE_GAP
-	var centres := [
-		Vector2(size.x * 0.5 - gap, size.y * 0.5),
-		Vector2(size.x * 0.5 + gap, size.y * 0.5),
-	]
+	var centres: Array = [Vector2(size.x * 0.5, size.y * 0.5)]
+	if tubes >= 2:
+		centres = [
+			Vector2(size.x * 0.5 - gap, size.y * 0.5),
+			Vector2(size.x * 0.5 + gap, size.y * 0.5),
+		]
 	_draw_mask(centres, radius)
 	for centre in centres:
 		draw_arc(centre, radius, 0.0, TAU, 64, RIM_GLOW, 6.0, true)

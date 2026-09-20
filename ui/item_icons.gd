@@ -27,7 +27,7 @@ func set_item(id: String) -> void:
 const ICON_IDS := [
 	"flint", "stick", "vine", "kana_charm", "shell", "emberstone",
 	"sword", "shield", "dagger", "bow", "arrows", "leather_armor", "notebook",
-	"binoculars",
+	"binoculars", "magnifying_glass", "pen",
 ]
 
 # Shared palette bits (item colours come from ItemDB; these are the accents).
@@ -243,6 +243,33 @@ static func _unit_ops(icon_id: String) -> Array:
 				_ring(_p(0.72, 0.5), 0.19, Color(0.14, 0.15, 0.18), 0.045),
 				_arc(_p(0.28, 0.5), 0.13, PI * 1.05, PI * 1.75, Color(0.78, 0.88, 0.95), 0.03),
 				_arc(_p(0.72, 0.5), 0.13, PI * 1.05, PI * 1.75, Color(0.78, 0.88, 0.95), 0.03),
+			]
+		"magnifying_glass":
+			return [
+				# A loupe seen from the side: dark rim, glass filling it, a
+				# highlight, and a short handle.
+				_line(_p(0.42, 0.62), _p(0.16, 0.92), Color(0.32, 0.24, 0.16), 0.09),
+				_circle(_p(0.6, 0.38), 0.3, Color(0.62, 0.74, 0.82)),
+				_ring(_p(0.6, 0.38), 0.3, Color(0.2, 0.22, 0.26), 0.055),
+				_ring(_p(0.6, 0.38), 0.34, Color(0.34, 0.36, 0.4), 0.02),
+				_arc(_p(0.6, 0.38), 0.21, PI * 1.05, PI * 1.75,
+						Color(0.92, 0.98, 1.0), 0.035),
+			]
+		"pen":
+			return [
+				# A fountain pen on the diagonal: barrel, silver nib, clip. The barrel
+				# has to be lighter than the slot it sits in (0.16,0.18,0.21) or the
+				# whole pen vanishes into the background.
+				_poly([_p(0.72, 0.1), _p(0.82, 0.2), _p(0.36, 0.82), _p(0.28, 0.74)],
+						Color(0.38, 0.41, 0.48)),
+				_poly([_p(0.72, 0.1), _p(0.82, 0.2), _p(0.76, 0.28), _p(0.68, 0.18)],
+						Color(0.2, 0.22, 0.26)),
+				_poly([_p(0.28, 0.74), _p(0.36, 0.82), _p(0.2, 0.96), _p(0.16, 0.88)],
+						Color(0.82, 0.84, 0.88)),
+				_poly([_p(0.2, 0.96), _p(0.16, 0.88), _p(0.1, 0.98)],
+						Color(0.12, 0.13, 0.16)),
+				_line(_p(0.68, 0.16), _p(0.6, 0.32), Color(0.78, 0.81, 0.86), 0.035),
+				_line(_p(0.46, 0.4), _p(0.56, 0.5), Color(0.62, 0.66, 0.72), 0.02),
 			]
 		_:
 			# Unknown id: a neutral shard rather than blank, so a missing icon

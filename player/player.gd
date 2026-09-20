@@ -15,14 +15,19 @@ const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
 const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
 ## What a NEW run begins with, handed out in _ready (splash Start → story →
 ## here). The katana is there so the fight can be met on the first stroll
-## instead of after a crafting chain; the Pedia notebook is there because the
-## notes are the drone's own — the handbook in the pause menu is its contents.
+## instead of after a crafting chain; the Pedia notebook, the pen and the
+## magnifying glass are the survey — the notes are the drone's own work, so the
+## tools that make them are carried from the first minute. The binoculars are the
+## spotting tool: they name what is out there, they write nothing down.
 ## Add to the list, or empty it once the intro hands out gear of its own.
-const STARTING_ITEMS := ["sword", "notebook", "binoculars"]
-## Items the drone never loses, death included: its own record of the island.
-## Handed back on respawn, because there is no other way to get them and a
-## handbook you can drop forever is a handbook with a hole in it.
-const KEEPSAKE_ITEMS := ["notebook"]
+const STARTING_ITEMS := ["sword", "notebook", "pen", "magnifying_glass", "binoculars"]
+## Items the drone never loses, death included: its own record of the island and
+## the tools that fill it (the notebook, the pen that writes in it, the glass the
+## drawings are made through). Handed back on respawn, because there is no other
+## way to get them and a handbook you can drop forever is a handbook with a hole
+## in it. The katana and the binoculars are ordinary gear and are lost with the
+## rest of the loot.
+const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
 const SAVEGAME := preload("res://world/savegame.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
 const PediaArt := preload("res://ui/pedia_art.gd")
@@ -332,9 +337,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if get_equipped_item() == "sword":
 				do_slash()
-			elif get_equipped_item() == "binoculars":
-				# Binoculars out: a click looks at what the crosshair is on. The
-				# drone does not punch or grab while it is holding them up.
+			elif study.instrument() != "":
+				# Binoculars or magnifying glass out: a click looks at what the
+				# crosshair is on — spot it, or start drawing it. The drone does
+				# not punch or grab while a tool is held up.
 				do_study()
 			elif not _toggle_grab():
 				# Nothing to grab under the crosshair and no weapon equipped:

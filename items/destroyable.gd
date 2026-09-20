@@ -59,7 +59,10 @@ func knockback_from(origin: Vector3, distance: float) -> void:
 		global_position = p
 
 
-func damage(amount: float) -> void:
+func damage(amount: float, source := "") -> void:
+	## `source` is the item id that dealt the blow ("" for bare hands), because
+	## what hit something matters: a blade leaves a specimen worth examining
+	## (fauna/fauna_base.gd), an arrow does not.
 	life -= amount
 	if life <= 0.0:
 		_die()

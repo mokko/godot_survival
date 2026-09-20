@@ -20,8 +20,8 @@ func _init() -> void:
 	var inv = main.get_node("HUD/Inventory")
 	for i in 60:
 		await physics_frame
-	var starts_with_notes: bool = inv.has_item("notebook")
-	var starts_with_glass: bool = inv.has_item("binoculars")
+	var starts_with_kit: bool = inv.has_item("notebook") and inv.has_item("pen") \
+			and inv.has_item("magnifying_glass") and inv.has_item("binoculars")
 	var starts_with_katana: bool = player.get_equipped_item() == "sword"
 	# Move away and kill.
 	player.global_position = Vector3(0, 12, 0)
@@ -41,12 +41,16 @@ func _init() -> void:
 		await physics_frame
 	var pos := player.global_position
 	var near_spawn: bool = Vector2(pos.x, pos.z).distance_to(Vector2(-112.0, 82.0)) < 3.0
+	# The survey survives (notebook, pen, glass); ordinary gear does not.
 	var keeps_notes: bool = inv.has_item("notebook")
+	var keeps_kit: bool = inv.has_item("pen") and inv.has_item("magnifying_glass")
+	var loot_gone: bool = not inv.has_item("binoculars")
 	var back_to_fists: bool = player.get_equipped_item() == ""
-	print("RESULT stayed_dead=%s label_shown=%s after_esc pos=%s floor=%s at_spawn=%s notes=%s glass=%s katana=%s wiped=%s keeps_notes=%s fists=%s" % [
+	print("RESULT stayed_dead=%s label_shown=%s after_esc pos=%s floor=%s at_spawn=%s kit=%s katana=%s wiped=%s keeps_notes=%s keeps_kit=%s loot_gone=%s fists=%s" % [
 		still_dead, label_visible, pos, player.is_on_floor(), near_spawn,
-		starts_with_notes, starts_with_glass, starts_with_katana, notes_wiped,
-		keeps_notes, back_to_fists])
+		starts_with_kit, starts_with_katana, notes_wiped,
+		keeps_notes, keeps_kit, loot_gone, back_to_fists])
 	quit(0 if (still_dead and label_visible and near_spawn and player.is_on_floor()
-			and starts_with_notes and starts_with_glass and starts_with_katana
-			and notes_wiped and keeps_notes and back_to_fists) else 1)
+			and starts_with_kit and starts_with_katana
+			and notes_wiped and keeps_notes and keeps_kit and loot_gone
+			and back_to_fists) else 1)

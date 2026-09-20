@@ -18,7 +18,7 @@ class FakePlayer extends Node3D:
 	func _enter_tree() -> void:
 		add_to_group("player")
 
-	func damage(amount: float) -> void:
+	func damage(amount: float, _source := "") -> void:
 		hits += 1
 		damage_taken += amount
 
