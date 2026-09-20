@@ -2,14 +2,21 @@ extends RefCounted
 ## Everything the Pedia says. One place for the words, so a page can never
 ## disagree with another page and the layout code stays free of prose.
 ##
-## Chapter ids and entry ids are load-bearing:
-##  - `equipment` entry ids are exactly `items/item_db.gd`'s keys (the test
-##    enforces it), so an item can never exist without a Pedia page;
+## The book has three layers, and this file is the bottom two:
+##  1. CHAPTERS — the table of contents (Islands, Plants, Animals, Equipment);
+##  2. SUBCHAPTERS — the things inside a chapter, one per subject;
+##  3. the data page a subchapter opens: its plate, its name and its text.
+## A subchapter record *is* its data page's content; that is why there is no
+## separate list of pages here.
+##
+## Chapter ids and subchapter ids are load-bearing:
+##  - `equipment` ids are exactly `items/item_db.gd`'s keys (the test enforces
+##    it), so an item can never exist without a data page;
 ##  - `plants` / `animals` ids are the species file names in flora/ and fauna/;
 ##  - `islands` ids are the four outlines in `world/island.gd`.
 ##
 ## Later: this list is the natural place to filter by what the player has met —
-## `encountered` would become a per-entry flag and open() would ask the savegame.
+## `encountered` would become a per-record flag and open() would ask the savegame.
 
 const CHAPTERS := [
 	{
@@ -34,7 +41,7 @@ const CHAPTERS := [
 	},
 ]
 
-const ENTRIES := {
+const SUBCHAPTERS := {
 	"islands": [
 		{
 			"id": "ezo",
@@ -246,6 +253,12 @@ const ENTRIES := {
 			"subtitle": "loot · always dropped by a Dusk Stalker",
 			"text": "A rough orange stone, warm to the touch. It is the guaranteed drop from every Dusk Stalker, which makes it the only thing in the game you can farm deliberately from something dangerous — a fight that pays for itself.\n\nA crafting material for now. In a world where the glowing plants are named after gods visiting, a stone that holds heat after it is picked up is exactly the kind of object that should not be lying around.",
 		},
+	{
+			"id": "notebook",
+			"name": "Pedia",
+			"subtitle": "the drone's own notebook · brown leather, carried from the start",
+			"text": "A brown leather notebook, and the object this book is: the drone's research notes, carried from the first minute of a run. Everything you read in the Pedia is written in it — the four islands, the twelve plants, the six animals, and what the drone can carry.\n\nThe notes survive you. Dying wipes what you were carrying, but not the notebook: it is the drone's own record of the island rather than loot, so a respawn brings it back, carried rather than held. The pages fill as the survey does — for now everything recorded is listed, and later the notes may show only what you have actually met.\n\nNo real-world anchor needed: a field notebook is the oldest research instrument there is. Naturalists in Japan kept them by the thousand — Kumagusu Minakata (1867-1941), who walked the Kumano forests and filled his with fungi, slime moulds and folklore, is the patron saint of the form: a book that is evidence, not decoration.",
+		},
 	],
 }
 
@@ -265,19 +278,19 @@ static func chapter_title(id: String) -> String:
 	return str(chapter(id).get("title", ""))
 
 
-static func entries(chapter_id: String) -> Array:
-	return ENTRIES.get(chapter_id, [])
+static func subchapters(chapter_id: String) -> Array:
+	return SUBCHAPTERS.get(chapter_id, [])
 
 
-static func entry(chapter_id: String, entry_id: String) -> Dictionary:
-	for e in entries(chapter_id):
-		if e["id"] == entry_id:
+static func subchapter(chapter_id: String, subchapter_id: String) -> Dictionary:
+	for e in subchapters(chapter_id):
+		if e["id"] == subchapter_id:
 			return e
 	return {}
 
 
-static func entry_ids(chapter_id: String) -> PackedStringArray:
+static func subchapter_ids(chapter_id: String) -> PackedStringArray:
 	var out := PackedStringArray()
-	for e in entries(chapter_id):
+	for e in subchapters(chapter_id):
 		out.append(str(e["id"]))
 	return out

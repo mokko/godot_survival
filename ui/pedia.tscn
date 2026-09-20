@@ -53,72 +53,72 @@ theme_override_font_sizes/font_size = 36
 text = "Pedia"
 horizontal_alignment = 1
 
-[node name="Contents" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
+[node name="Chapters" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="List" type="ScrollContainer" parent="Center/Padding/Panel/VBox"]
+[node name="Subchapters" type="ScrollContainer" parent="Center/Padding/Panel/VBox"]
 visible = false
-custom_minimum_size = Vector2(0, 360)
+custom_minimum_size = Vector2(0, 320)
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="Column" type="VBoxContainer" parent="Center/Padding/Panel/VBox/List"]
+[node name="Column" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Subchapters"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="Blurb" type="Label" parent="Center/Padding/Panel/VBox/List/Column"]
+[node name="Blurb" type="Label" parent="Center/Padding/Panel/VBox/Subchapters/Column"]
 custom_minimum_size = Vector2(740, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
-[node name="Grid" type="GridContainer" parent="Center/Padding/Panel/VBox/List/Column"]
+[node name="Grid" type="GridContainer" parent="Center/Padding/Panel/VBox/Subchapters/Column"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 10
 columns = 3
 
-[node name="Entry" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
+[node name="DataPage" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="Head" type="HBoxContainer" parent="Center/Padding/Panel/VBox/Entry"]
+[node name="Head" type="HBoxContainer" parent="Center/Padding/Panel/VBox/DataPage"]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Column" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Entry/Head"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Plate" type="Control" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
-custom_minimum_size = Vector2(300, 220)
+[node name="Plate" type="Control" parent="Center/Padding/Panel/VBox/DataPage/Head"]
+custom_minimum_size = Vector2(190, 190)
 layout_mode = 2
 script = ExtResource("2_plate")
 
-[node name="Name" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
+[node name="Headings" type="VBoxContainer" parent="Center/Padding/Panel/VBox/DataPage/Head"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Name" type="Label" parent="Center/Padding/Panel/VBox/DataPage/Head/Headings"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
 autowrap_mode = 3
 
-[node name="Subtitle" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Column"]
+[node name="Subtitle" type="Label" parent="Center/Padding/Panel/VBox/DataPage/Head/Headings"]
 modulate = Color(0.78, 0.84, 0.9, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 autowrap_mode = 3
 
-[node name="Text" type="ScrollContainer" parent="Center/Padding/Panel/VBox/Entry/Head"]
-custom_minimum_size = Vector2(400, 360)
+[node name="Text" type="ScrollContainer" parent="Center/Padding/Panel/VBox/DataPage"]
+custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
-size_flags_horizontal = 3
 horizontal_scroll_mode = 0
 
-[node name="Body" type="Label" parent="Center/Padding/Panel/VBox/Entry/Head/Text"]
-custom_minimum_size = Vector2(400, 0)
+[node name="Body" type="Label" parent="Center/Padding/Panel/VBox/DataPage/Text"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 

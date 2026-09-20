@@ -107,9 +107,12 @@ bite takes 5, one battery's half.
 
 ### Fight
 
-A new run begins with the **Katana** in hand (`player/player.gd`'s `STARTING_ITEMS`,
-handed out because the splash's Start button marks the run as fresh), so the fight can
-be met on the first stroll rather than after a crafting chain. **Left click** swings
+A new run begins with the **Katana** in hand and the **Pedia notebook** carried
+(`player/player.gd`'s `STARTING_ITEMS`, handed out because the splash's Start
+button marks the run as fresh), so the fight can be met on the first stroll
+rather than after a crafting chain. The notebook is a keepsake: the death wipe
+takes loot, not the drone's own notes, so a respawn brings it back — carried, not
+held (`KEEPSAKE_ITEMS`). **Left click** swings
 it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing, drawn as a
 crescent trail that sweeps through the arc — and when the cone actually catches
 something, four ticks around the crosshair say so (`player/combat.gd`). With no weapon
@@ -136,26 +139,33 @@ each mechanic. Read that before changing anything here.
 
 ### Pedia
 
-The pause menu has a **Pedia**: the island's handbook, opened as its own screen
-(it draws the same dim and panel as the pause menu, and the menu is hidden while
-it is up). It opens on a table of contents — **Islands, Plants, Animals,
-Equipment** — each chapter lists its things, and each thing has a page with a
-picture and its text. **Back** (or `ESC`, which the pause menu owns and routes
-here) walks one page up; at the contents page it closes the book and hands back
-to the menu. An opened Pedia always starts at the contents again.
+The drone carries a brown leather **notebook** with `Pedia` on the cover — an
+inventory item from the first minute of a run — and the pause menu opens it as a
+screen of its own (same dim and panel as the menu, which hides while it is up).
+It opens on the line *Your research notes.* and three layers:
 
-Everything written in it lives in `ui/pedia_data.gd`, so a page cannot disagree
-with another page. Two lists are enforced by `tests/test_pedia.gd`: the Equipment
-chapter covers exactly the ids in `items/item_db.gd`, and every entry in every
-chapter has real text and a plate to draw. For now every entry is listed; when the
-Pedia starts showing only what the player has met, that filter goes in one place
-(`pedia.gd:_entries_of()`).
+1. **chapters** — the table of contents: Islands, Plants, Animals, Equipment;
+2. **subchapters** — the things inside one chapter, as a menu of buttons;
+3. **data pages** — one game element: a square picture at the top left, its name
+   in a larger font, and the text describing it.
+
+The first two are menus built from `ui/pedia_data.gd` (the words) and the third
+adds the plate from `ui/pedia_art.gd` (the picture). **Back** (or `ESC`, which the
+pause menu owns and routes here) walks one layer up; at the chapters page it
+closes the book and hands back to the menu. An opened Pedia always starts at the
+chapters again.
+
+Two lists are enforced by `tests/test_pedia.gd`: the Equipment chapter covers
+exactly the ids in `items/item_db.gd`, and every subchapter in every chapter has
+text and a plate to draw. For now every subchapter is listed; when the notes start
+showing only what the player has met, that filter goes in one place
+(`pedia.gd:_subchapters_of()`).
 
 The pictures are vector art, like the inventory icons: `ui/pedia_art.gd` draws an
 island from its real outline in `world/island.gd` (Ezo gets its caldera lake and
 the arrival point drawn in), an item from the same art its inventory slot uses,
 and a plant or animal from a silhouette authored in a 0..1 square. The shared op
-vocabulary — op constructors, scaling, drawing, scanline fills — is
+vocabulary — op constructors, scaling, drawing, text, scanline fills — is
 `ui/vector_art.gd`, used by both the icons and the Pedia.
 
 ### Run the frame-rate benchmark before every release

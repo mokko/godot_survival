@@ -26,7 +26,7 @@ func set_item(id: String) -> void:
 ## shard; tests/test_item_icons.gd enforces that.
 const ICON_IDS := [
 	"flint", "stick", "vine", "kana_charm", "shell", "emberstone",
-	"sword", "shield", "dagger", "bow", "arrows", "leather_armor",
+	"sword", "shield", "dagger", "bow", "arrows", "leather_armor", "notebook",
 ]
 
 # Shared palette bits (item colours come from ItemDB; these are the accents).
@@ -73,6 +73,11 @@ static func _arc(center: Vector2, radius: float, start: float, end: float,
 
 static func _circle(center: Vector2, radius: float, color: Color) -> Dictionary:
 	return VectorArt.circle(center, radius, color)
+
+
+static func _text(pos: Vector2, string: String, color: Color,
+		size: float) -> Dictionary:
+	return VectorArt.text(pos, string, color, size)
 
 
 static func _unit_ops(icon_id: String) -> Array:
@@ -196,6 +201,22 @@ static func _unit_ops(icon_id: String) -> Array:
 						Color(0.42, 0.3, 0.18)),
 				_line(_p(0.3, 0.34), _p(0.7, 0.34), Color(0.42, 0.3, 0.18), 0.05),
 				_line(_p(0.28, 0.62), _p(0.72, 0.62), Color(0.42, 0.3, 0.18), 0.05),
+			]
+		"notebook":
+			return [
+				# The Pedia itself: a brown leather notebook, slightly skewed so it
+				# reads as a book on a table, with its name on the cover. The only
+				# art in the game that needs letters (vector_art.text()).
+				_poly([_p(0.16, 0.16), _p(0.84, 0.11), _p(0.88, 0.87),
+						_p(0.2, 0.93)], Color(0.45, 0.3, 0.18)),
+				_poly([_p(0.16, 0.16), _p(0.29, 0.145), _p(0.33, 0.92),
+						_p(0.2, 0.93)], Color(0.3, 0.2, 0.11)),
+				_poly([_p(0.78, 0.12), _p(0.84, 0.11), _p(0.88, 0.87),
+						_p(0.82, 0.88)], Color(0.87, 0.83, 0.72)),
+				_text(_p(0.36, 0.45), "Pedia", Color(0.96, 0.91, 0.79), 0.135),
+				_line(_p(0.38, 0.62), _p(0.72, 0.585), Color(0.72, 0.63, 0.48), 0.025),
+				_line(_p(0.39, 0.72), _p(0.74, 0.685), Color(0.72, 0.63, 0.48), 0.025),
+				_line(_p(0.4, 0.82), _p(0.68, 0.79), Color(0.72, 0.63, 0.48), 0.025),
 			]
 		_:
 			# Unknown id: a neutral shard rather than blank, so a missing icon

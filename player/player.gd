@@ -15,9 +15,14 @@ const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
 const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
 ## What a NEW run begins with, handed out in _ready (splash Start → story →
 ## here). The katana is there so the fight can be met on the first stroll
-## instead of after a crafting chain. Add to the list, or empty it once the
-## intro hands out gear of its own.
-const STARTING_ITEMS := ["sword"]
+## instead of after a crafting chain; the Pedia notebook is there because the
+## notes are the drone's own — the handbook in the pause menu is its contents.
+## Add to the list, or empty it once the intro hands out gear of its own.
+const STARTING_ITEMS := ["sword", "notebook"]
+## Items the drone never loses, death included: its own record of the island.
+## Handed back on respawn, because there is no other way to get them and a
+## handbook you can drop forever is a handbook with a hole in it.
+const KEEPSAKE_ITEMS := ["notebook"]
 const SAVEGAME := preload("res://world/savegame.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
@@ -602,6 +607,16 @@ func _restart() -> void:
 	# Respawn at the game's starting point on the SW cape.
 	var spawn: Vector3 = Ezo.spawn_point()
 	global_position = spawn + Vector3(0.0, 0.5, 0.0)   # small clearance so we land, not clip
+	# The keepsakes come back: the death wipe takes loot, not the drone's own
+	# record of the island. Carried, not held — a respawn is still back to fists.
+	for item_id in KEEPSAKE_ITEMS:
+		if inventory != null and not inventory.has_item(item_id):
+			add_item(item_id)
+	if inventory != null:
+		inventory.equipped_slot = -1
+		inventory.refresh()
+		if equipment != null:
+			equipment.show_for_equipped("")
 	if game_over_label:
 		game_over_label.visible = false
 	# Re-capture mouse.

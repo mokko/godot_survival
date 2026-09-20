@@ -122,4 +122,8 @@ func _points_of(op: Dictionary) -> Array:
 		"rect":
 			return [op["rect"].position,
 					op["rect"].position + op["rect"].size]
+		"text":
+			# The baseline anchor; a drawn word can run past the box, which is
+			# what op["size"] is for and why the art keeps its text off the edge.
+			return [op["pos"]]
 	return []

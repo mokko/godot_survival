@@ -183,6 +183,17 @@ func is_full() -> bool:
 	return not slots.has("")
 
 
+func has_item(item_id: String) -> bool:
+	## Is this item carried? Presence, not the slot: callers that need the index
+	## (the bow's arrow stack) still scan for it themselves.
+	if item_id == "":
+		return false
+	for i in SLOTS:
+		if slots[i] == item_id and counts[i] > 0:
+			return true
+	return false
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		var idx: int = event.keycode - KEY_1

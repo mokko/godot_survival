@@ -59,6 +59,16 @@ static func rect(rect_: Rect2, color: Color) -> Dictionary:
 	return {"kind": "rect", "rect": rect_, "color": color}
 
 
+static func text(pos: Vector2, string: String, color: Color,
+		size := 0.1) -> Dictionary:
+	## A drawn word. `pos` is the left end of the baseline in whatever space the
+	## art is authored in; `size` is the font size in units of that space (so
+	## 0.1 in a 0..1 square is a tenth of the plate's width), which keeps text
+	## scaling with the art instead of needing its own constant.
+	return {"kind": "text", "text": string, "pos": pos, "color": color,
+			"size": size}
+
+
 ## ------------------------------------------------------------------- drawing
 
 static func draw_ops(ci: CanvasItem, ops: Array) -> void:
@@ -80,6 +90,11 @@ static func draw_ops(ci: CanvasItem, ops: Array) -> void:
 						op["segments"], op["color"], op["width"], true)
 			"rect":
 				ci.draw_rect(op["rect"], op["color"])
+			"text":
+				# The default theme font: the game ships no font of its own, and
+				# the Pedia's notebook cover is the one place art needs letters.
+				ci.draw_string(ThemeDB.fallback_font, op["pos"], op["text"],
+						HORIZONTAL_ALIGNMENT_LEFT, -1, op["size"], op["color"])
 
 
 ## -------------------------------------------------------------- unit -> rect
@@ -103,6 +118,8 @@ static func translate_ops(ops: Array, offset: Vector2) -> Array:
 				moved["center"] = op["center"] + offset
 			"rect":
 				moved["rect"] = Rect2(op["rect"].position + offset, op["rect"].size)
+			"text":
+				moved["pos"] = op["pos"] + offset
 		out.append(moved)
 	return out
 
@@ -140,6 +157,9 @@ static func _scale_op(op: Dictionary, size: Vector2) -> Dictionary:
 			out["rect"] = Rect2(op["rect"].position.x * size.x,
 					op["rect"].position.y * size.y,
 					op["rect"].size.x * size.x, op["rect"].size.y * size.y)
+		"text":
+			out["pos"] = Vector2(op["pos"].x * size.x, op["pos"].y * size.y)
+			out["size"] = op["size"] * size.x
 	return out
 
 
