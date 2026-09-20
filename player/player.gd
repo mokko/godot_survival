@@ -12,6 +12,7 @@ const LIFE_DRAIN_PER_SEC = 0.25
 const SUNBULB_HEAL = 15.0
 const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
 const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
+const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
 ## What a NEW run begins with, handed out in _ready (splash Start → story →
 ## here). The katana is there so the fight can be met on the first stroll
 ## instead of after a crafting chain. Add to the list, or empty it once the
@@ -34,6 +35,8 @@ var _invuln: float = 0.0     ## counts down; damage() is ignored while > 0
 var _hurt_layer: CanvasLayer = null
 var _hurt_rect: ColorRect = null
 var _snd_hurt: AudioStreamPlayer = null
+var _hit_marker: Control = null
+var _hit_marker_left := 0.0
 const InventoryScene := preload("res://ui/inventory.tscn")
 @onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
 @onready var equipment: Node3D = $Equipment
@@ -128,6 +131,7 @@ func load_state(data: Dictionary) -> void:
 @onready var energy_meter: Control = get_tree().get_first_node_in_group("energy_meter")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
 @onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
+@onready var enemy_label: Label = get_tree().get_first_node_in_group("enemy_label")
 @onready var camera: Camera3D = $Camera3D
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
 @onready var game_over_sound: AudioStreamPlayer = $GameOverSound
@@ -154,6 +158,7 @@ func _ready() -> void:
 	_snd_punch = _make_snd("res://sounds/flopp.wav", -14.0)
 	_snd_hurt = _make_snd("res://sounds/hurt.wav", -5.0)
 	_build_hurt_flash()
+	_build_hit_marker()
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.fov = FOV_DEFAULT
@@ -193,6 +198,53 @@ func _build_hurt_flash() -> void:
 	_hurt_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_hurt_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hurt_layer.add_child(_hurt_rect)
+
+
+func _build_hit_marker() -> void:
+	## Four short ticks around the crosshair, shown only when a swing actually
+	## connects with something. Before this the only feedback was the swing
+	## trail, which plays on every click — so a miss looked like a hit.
+	## Code-built for the same reason as the hurt flash: main.tscn stays the
+	## editor's to edit.
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	_hit_marker = Control.new()
+	_hit_marker.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hit_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_hit_marker)
+	for corner in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var tick := ColorRect.new()
+		tick.color = Color(1.0, 1.0, 1.0, 0.0)
+		tick.size = Vector2(2, 9)
+		tick.set_anchors_preset(Control.PRESET_CENTER)
+		tick.position = corner * 8.0 + Vector2(-1, -5)
+		tick.rotation = corner.x * corner.y * 0.0 + (0.7853981 if corner.x * corner.y < 0 else -0.7853981)
+		tick.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_hit_marker.add_child(tick)
+
+
+func show_hit_marker() -> void:
+	## Called by combat when a swing lands on something.
+	_hit_marker_left = HIT_MARKER_TIME
+
+
+func hit_marker_alpha() -> float:
+	## 0..1 opacity of the marker ticks; 0 means nothing is showing.
+	if _hit_marker == null or _hit_marker.get_child_count() == 0:
+		return 0.0
+	return (_hit_marker.get_child(0) as ColorRect).color.a
+
+
+func _tick_hit_marker(delta: float) -> void:
+	if _hit_marker == null:
+		return
+	_hit_marker_left = maxf(_hit_marker_left - delta, 0.0)
+	# Snap on at full strength, then go: a fade-in would read as a soft glow
+	# rather than as a click of confirmation.
+	var a: float = minf(_hit_marker_left / HIT_MARKER_TIME, 1.0) * 0.9
+	for tick in _hit_marker.get_children():
+		(tick as ColorRect).color = Color(1.0, 1.0, 1.0, a)
 
 
 func _tick_hurt(delta: float) -> void:
@@ -383,6 +435,7 @@ func play_grab_sound() -> void:
 
 func _physics_process(delta: float) -> void:
 	_tick_hurt(delta)
+	_tick_hit_marker(delta)
 	if _game_over:
 		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
@@ -514,6 +567,11 @@ func collect_sunbulb() -> void:
 func _trigger_game_over() -> void:
 	_game_over = true
 	velocity = Vector3.ZERO
+	# Death ends every fight: nobody keeps hunting a corpse, and the Enemy line
+	# must not outlive the run.
+	for node in get_tree().get_nodes_in_group("aggro_fauna"):
+		if is_instance_valid(node) and node.has_method("calm_down"):
+			node.calm_down()
 	# Death penalty: you lose everything you were carrying.
 	if inventory != null:
 		inventory.clear_all()
@@ -560,6 +618,7 @@ var _armor_label: Label
 ## nothing (armor_status() used to build a Dictionary 60x/s). The energy meter
 ## keeps its own guard — it repaints on the half-battery count, not on life.
 var _hud_sunbulbs := -1
+var _hud_enemy := ""
 var _hud_armor := ""
 var _hud_armor_shown := true   # the Label starts visible; force a first sync
 
@@ -590,3 +649,41 @@ func _update_hud() -> void:
 	if sunbulb_label and sunbulbs_collected != _hud_sunbulbs:
 		_hud_sunbulbs = sunbulbs_collected
 		sunbulb_label.text = "Sunbulbs: %d" % sunbulbs_collected
+	_update_enemy_hud()
+
+
+func _update_enemy_hud() -> void:
+	## The fight line, right under the sunbulb count: who is angry with us and how
+	## much life it has left. It is driven entirely by the "aggro_fauna" group
+	## (fauna/fauna_base.gd), so it appears with the first animal that turns on
+	## the player and disappears with the last one — no fight has to end it, and
+	## a killed animal takes its own line down by leaving the tree.
+	if enemy_label == null:
+		return
+	var enemy := nearest_aggro_enemy()
+	var text := ""
+	if enemy != null:
+		text = "Enemy: %s  %d/%d" % [
+				enemy.species_name(),
+				maxi(int(ceil(enemy.life)), 0),
+				int(enemy.MAX_LIFE)]
+	if text != _hud_enemy:
+		_hud_enemy = text
+		enemy_label.text = text
+		enemy_label.visible = text != ""
+
+
+func nearest_aggro_enemy() -> Node3D:
+	## The nearest animal currently fighting us. Nearest rather than first: with a
+	## herd provoked at once the line should name the one in your face.
+	var best: Node3D = null
+	var best_dist := INF
+	for node in get_tree().get_nodes_in_group("aggro_fauna"):
+		if not is_instance_valid(node):
+			continue
+		var other := node as Node3D
+		var d: float = global_position.distance_to(other.global_position)
+		if d < best_dist:
+			best_dist = d
+			best = other
+	return best

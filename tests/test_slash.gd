@@ -1,7 +1,8 @@
 extends SceneTree
-## Headless check: katana slash — swing animation plays, cone damages a
-## Destroyable in front, misses one behind/out of range, non-sword equip
-## leaves grab behavior intact.
+## Headless check: katana slash — swing animation plays, the trail is a
+## crescent (not the old 4 m disc) that sweeps, cone damages a Destroyable in
+## front, misses one behind/out of range, and a landed hit lights the crosshair
+## marker while a whiff does not.
 
 class FakeTarget extends Node3D:
 	var hits := 0
@@ -36,6 +37,25 @@ func _init() -> void:
 	var trail: MeshInstance3D = player.equipment.get_trail()
 	if trail == null or not trail.visible:
 		fails.append("no_trail")
+	# The trail must be an arc ribbon, not the full disc that used to sit in
+	# front of the drone and read as a hit indicator.
+	if trail != null:
+		if not (trail.mesh is ArrayMesh):
+			fails.append("trail_not_arc")
+		else:
+			var span: float = (trail.mesh as ArrayMesh).get_aabb().size.x
+			if span >= 3.0:
+				fails.append("trail_still_wide=%.2f" % span)
+			if span < 0.5:
+				fails.append("trail_too_small=%.2f" % span)
+	# ...and it must actually move through the swing, not hang in the air.
+	await process_frame
+	var yaw_a: float = trail.rotation.y if trail != null else 0.0
+	for i in 4:
+		await process_frame
+	var yaw_b: float = trail.rotation.y if trail != null else 0.0
+	if absf(yaw_b - yaw_a) < 0.01:
+		fails.append("trail_not_sweeping")
 
 	# 2. Cone damage: target in front gets hit, one behind does not.
 	var t_front: FakeTarget = FakeTarget.new()
@@ -61,6 +81,12 @@ func _init() -> void:
 		await process_frame
 	if t_front.hits == 0:
 		fails.append("front_not_hit")
+	# A landed hit ticks the crosshair marker; it is the "you connected" cue.
+	if player.hit_marker_alpha() <= 0.0:
+		fails.append("no_hit_marker")
+	await process_frame
+	if player.hit_marker_alpha() <= 0.0:
+		fails.append("hit_marker_vanished_immediately")
 	if t_behind.hits != 0:
 		fails.append("behind_hit")
 	if t_far.hits != 0:
@@ -70,6 +96,12 @@ func _init() -> void:
 	player.do_slash()
 	if not slash._swinging:
 		fails.append("restarted_early")
+
+	# The marker must fade out again rather than stay lit forever.
+	for i in 40:
+		await process_frame
+	if player.hit_marker_alpha() > 0.0:
+		fails.append("hit_marker_never_faded")
 
 	for n in [t_front, t_behind, t_far]:
 		n.queue_free()

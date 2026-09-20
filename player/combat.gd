@@ -96,8 +96,11 @@ func _strike(range_m: float, half_angle: float, item_id: String) -> int:
 		if dist > 0.01 and dir.angle_to(to.normalized()) > half_angle:
 			continue
 		hit_list.append(node)
+	if hit_list.is_empty():
+		return 0   # a whiff shows nothing at the crosshair
 	for node in hit_list:
 		node.damage(WEAPON.damage_of(item_id))
+	player.show_hit_marker()
 	return hit_list.size()
 
 

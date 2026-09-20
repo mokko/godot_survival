@@ -288,6 +288,12 @@ func _build_arms(white: StandardMaterial3D, blue: StandardMaterial3D,
 			pivot.add_child(claw)
 
 
+const TRAIL_RADIUS := 1.25
+const TRAIL_HALF_ANGLE := 0.96   ## radians either side of forward (~55 deg)
+const TRAIL_WIDTH := 0.32        ## ribbon width at the middle of the arc
+const TRAIL_SEGMENTS := 14
+
+
 ## ---- props ---------------------------------------------------------------
 
 func _build_props() -> void:
@@ -301,17 +307,12 @@ func _build_props() -> void:
 
 
 func _build_trail() -> void:
-	## Translucent arc shown mid-swing, centered on the drone, facing -Z.
+	## Crescent blade trail: an arc ribbon in front of the drone, swept in yaw
+	## by player/slash.gd. It replaced a full 4 m disc that sat in the air and
+	## read as a hit indicator rather than as a swing.
 	_trail = MeshInstance3D.new()
-	var arc := CylinderMesh.new()
-	arc.top_radius = 2.0
-	arc.bottom_radius = 2.0
-	arc.height = 0.05
-	arc.radial_segments = 12
-	# Half-open cylinder would be nicer; a thin ring slice reads fine:
-	_trail.mesh = arc
-	_trail.position = Vector3(0, 1.0, -0.6)
-	_trail.rotation.x = PI / 2
+	_trail.mesh = _make_crescent_mesh()
+	_trail.position = Vector3(0, 1.0, 0)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.85, 0.95, 1.0, 0.0)
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -319,9 +320,46 @@ func _build_trail() -> void:
 	mat.emission = Color(0.6, 0.85, 1.0)
 	mat.emission_energy_multiplier = 0.6
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# A flat ribbon seen edge-on would vanish with backface culling.
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_trail.material_override = mat
 	add_child(_trail)
 	_trail.visible = false
+
+
+func _make_crescent_mesh() -> ArrayMesh:
+	## Arc ribbon: TRAIL_SEGMENTS quads spanning TRAIL_HALF_ANGLE either side of
+	## straight ahead, tapered so the blade is thin at both tips. Built as an
+	## ArrayMesh rather than a primitive because Godot's torus/cylinder meshes
+	## are always full rings.
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
+	for i in TRAIL_SEGMENTS + 1:
+		var t := float(i) / float(TRAIL_SEGMENTS)
+		var ang: float = lerpf(-TRAIL_HALF_ANGLE, TRAIL_HALF_ANGLE, t)
+		# Thin at the tips, widest through the middle of the sweep.
+		var w: float = TRAIL_WIDTH * (0.2 + 0.8 * sin(t * PI))
+		var dir := Vector3(sin(ang), 0.0, -cos(ang))   # 0 rad = straight ahead
+		verts.append(dir * (TRAIL_RADIUS - w * 0.5))
+		verts.append(dir * (TRAIL_RADIUS + w * 0.5))
+		norms.append(Vector3.UP)
+		norms.append(Vector3.UP)
+		uvs.append(Vector2(t, 0.0))
+		uvs.append(Vector2(t, 1.0))
+	for i in TRAIL_SEGMENTS:
+		var a := i * 2
+		indices.append_array([a, a + 1, a + 2, a + 1, a + 3, a + 2])
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = norms
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 
 func _make_katana() -> Node3D:

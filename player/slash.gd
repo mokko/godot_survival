@@ -1,7 +1,7 @@
 extends Node3D
 ## Katana slash: an arc sweep of the equipped blade prop. Plays a short
-## swing animation on the sword (and a trail arc mesh), damages destroyables
-## in a cone in front of the drone at the moment of mid-swing.
+## swing animation on the sword and sweeps the crescent trail through the same
+## arc, damaging destroyables in a cone in front of the drone at mid-swing.
 
 # Damage, range and cone angle live in player/combat.gd. This script only
 # plays the swing animation and fires the damage callback it is handed.
@@ -12,6 +12,8 @@ var _sword_pivot: Node3D = null
 var _trail: MeshInstance3D = null
 var _hit_done := false
 var _damage_callback: Callable
+
+const TRAIL_SWEEP := 0.7   ## radians the crescent travels across the swing
 
 
 func setup(sword_pivot: Node3D, trail: MeshInstance3D, damage_callback: Callable) -> void:
@@ -44,11 +46,13 @@ func _process(delta: float) -> void:
 	# Wind up (-0.9 rad) then sweep through to +0.9 rad.
 	if _sword_pivot:
 		_sword_pivot.rotation.y = -0.9 + t * 1.8
-	# Trail fades in/out over the swing.
+	# Trail: swept through the same arc as the blade and faded in/out, so it
+	# reads as motion rather than as an object dropped in front of the drone.
 	if _trail:
+		_trail.rotation.y = TRAIL_SWEEP * (t - 0.5)
 		var mat := _trail.material_override as StandardMaterial3D
 		if mat:
-			mat.albedo_color.a = 0.55 * sin(t * PI)
+			mat.albedo_color.a = 0.5 * sin(t * PI)
 	# Damage lands at mid-swing.
 	if not _hit_done and t >= 0.5:
 		_hit_done = true
@@ -60,3 +64,4 @@ func _process(delta: float) -> void:
 			_sword_pivot.rotation.y = 0.0
 		if _trail:
 			_trail.visible = false
+			_trail.rotation.y = 0.0
