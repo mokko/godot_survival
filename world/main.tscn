@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://world/graphics_options.gd" id="16_gfx"]
 [ext_resource type="Script" path="res://world/clutter.gd" id="17_clutter"]
 [ext_resource type="PackedScene" path="res://world/boats_placed.tscn" id="18_boats"]
+[ext_resource type="Script" path="res://ui/energy_meter.gd" id="19_energy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -72,12 +73,13 @@ script = ExtResource("12_day")
 
 [node name="PauseMenu" parent="HUD" instance=ExtResource("11_pause")]
 
-[node name="LifeLabel" type="Label" parent="HUD" unique_id=171353629 groups=["life_label"]]
+[node name="EnergyMeter" type="Control" parent="HUD" unique_id=171353629 groups=["energy_meter"]]
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 200.0
-offset_bottom = 40.0
-text = "Life: --"
+offset_right = 190.0
+offset_bottom = 42.0
+mouse_filter = 2
+script = ExtResource("19_energy")
 
 [node name="SunbulbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["sunbulb_label"]]
 anchors_preset = 1

@@ -89,6 +89,35 @@ placements with:
 snap run godot-4 --headless --script res://tools/build_boats.gd
 ```
 
+### Energy (the HUD batteries)
+
+The drone's charge shows in the top-left of the HUD as **four batteries**, each full,
+half or empty — the hearts of this game, and what the `Life: 42` label used to be. The
+tank is 40 (`player/player.gd`'s `START_LIFE`), so a battery is 10 and a half is 5, and
+the display rounds *up* to the next half: one point left still shows half a battery, so
+a battery only reads empty when that quarter of the tank is really gone
+(`ui/energy_meter.gd`, where the rule is a static the tests check without a renderer).
+Just being switched on costs 0.25 a second — 160 s on a full tank, or 40 s a battery —
+and **Sunbulbs** feed 15 (a battery and a half) back, never past a full tank. A stalker
+bite takes 5, one battery's half.
+
+### Fight
+
+A new run begins with the **Katana** in hand (`player/player.gd`'s `STARTING_ITEMS`,
+handed out because the splash's Start button marks the run as fresh), so the fight can
+be met on the first stroll rather than after a crafting chain. **Left click** swings
+it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing
+(`player/combat.gd`). With no weapon equipped the same click is a bare-handed **jab** —
+a shorter, narrower cone (1.8 m, ±0.6 rad, 0.4 s between jabs) dealing the weapon
+table's bare-hand 5 — and it lands: before it was animation and sound only, which read
+in game as "this animal cannot be hurt". **Right click** draws and releases an arrow
+(15 damage) if a bow and arrows are carried.
+
+The **Dusk Stalker** — the low red-black quadruped with the lit eye strip, the fox-shaped
+thing in the dusk — is the only animal that fights back: it stops, telegraphs for 0.4 s,
+then bites for 5. A kill drops Emberstone, and arrows half the time. Dying still wipes
+the inventory, katana included, so a respawn is back to fists (`ESC` restarts).
+
 ### Run the frame-rate benchmark before every release
 
 The headless suite cannot see rendering at all (`--headless` has no renderer), so a graphics change

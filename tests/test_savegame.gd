@@ -59,8 +59,9 @@ func _init() -> void:
 	for i in 90:
 		await physics_frame
 	var p2: CharacterBody3D = main.get_node("Player")
-	# life drains 1/s, so restored 33.0 shows up as just under 33 — but never
-	# as the fresh-start 40. Orbs never drain and prove the restore too.
+	# Energy drains while we sit here, so restored 33.0 shows up as just under
+	# 33 — but never as the fresh-start 40. Orbs never drain and prove the
+	# restore too.
 	# Position: compare horizontally; the save carries a +0.5 landing clearance.
 	var dxz := Vector2(p2.global_position.x, p2.global_position.z).distance_to(
 			Vector2(saved_pos.x, saved_pos.z))

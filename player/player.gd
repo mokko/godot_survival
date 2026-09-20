@@ -4,7 +4,11 @@ const SPEED = 5.0
 const JUMP_VELOCITY = 4.72   # 4.5 * sqrt(1.1): peak height scales with the
                              # square of the launch velocity, so +10% height
 const START_LIFE = 40
-const LIFE_DRAIN_PER_SEC = 1.0
+## Energy drain per second just for being switched on — the idle cost of
+## running around. 0.25/s gives a 160 s tank (the four batteries are 40 s each),
+## with sunbulbs adding 15 (1.5 batteries) back. It was 1.0/s, which emptied a
+## full tank in 40 s and made the meter read as a countdown rather than a gauge.
+const LIFE_DRAIN_PER_SEC = 0.25
 const SUNBULB_HEAL = 15.0
 const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
 const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
@@ -121,7 +125,7 @@ func load_state(data: Dictionary) -> void:
 
 ## Node and group references. These are assigned before _ready() runs, so they
 ## belong with the other members — declared after _ready() they read like a bug.
-@onready var life_label: Label = get_tree().get_first_node_in_group("life_label")
+@onready var energy_meter: Control = get_tree().get_first_node_in_group("energy_meter")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
 @onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
 @onready var camera: Camera3D = $Camera3D
@@ -383,7 +387,7 @@ func _physics_process(delta: float) -> void:
 		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
 
-	# Drain 1 life point per second.
+	# Drain energy steadily (LIFE_DRAIN_PER_SEC, a quarter point a second).
 	_drain_accum += delta
 	while _drain_accum >= 1.0:
 		life -= LIFE_DRAIN_PER_SEC
@@ -490,8 +494,11 @@ func _apply_damage(amount: float) -> void:
 
 
 func heal(amount: float) -> void:
-	## Restore life only. Collection counting happens in collect_sunbulb().
-	life += amount
+	## Restore energy only. Collection counting happens in collect_sunbulb().
+	## Capped at a full tank: the meter has exactly four batteries, and energy
+	## above the last one would have nowhere to show (a sunbulb picked up at
+	## three batteries tops the fourth up and wastes the rest).
+	life = minf(life + amount, float(START_LIFE))
 	if pickup_sound:
 		pickup_sound.play()
 	_update_hud()
@@ -550,23 +557,22 @@ func _restart() -> void:
 var _armor_label: Label
 ## Last values written to the HUD. _update_hud() runs every physics frame, so
 ## every write is guarded: a steady frame must cost nothing and allocate
-## nothing (armor_status() used to build a Dictionary 60x/s).
-var _hud_life := -1
+## nothing (armor_status() used to build a Dictionary 60x/s). The energy meter
+## keeps its own guard — it repaints on the half-battery count, not on life.
 var _hud_sunbulbs := -1
 var _hud_armor := ""
 var _hud_armor_shown := true   # the Label starts visible; force a first sync
 
 
 func _update_hud() -> void:
-	var shown_life: int = int(ceil(life))
-	if life_label and shown_life != _hud_life:
-		_hud_life = shown_life
-		life_label.text = "Life: %d" % shown_life
+	if energy_meter != null:
+		energy_meter.set_energy(life, float(START_LIFE))
 	if _armor_label == null:
 		var hud: CanvasLayer = get_node_or_null("../HUD")
 		if hud != null:
 			_armor_label = Label.new()
-			_armor_label.position = Vector2(10, 40)
+			# Under the energy meter (HUD/EnergyMeter, 12..190 x 13..42).
+			_armor_label.position = Vector2(12, 48)
 			_armor_label.add_theme_font_size_override("font_size", 14)
 			hud.add_child(_armor_label)
 	if _armor_label != null:
