@@ -230,7 +230,7 @@ Xwayland and the script detects the env itself; see `screenshots/README.md`.
 
 Project layout:
 
-- `player/`, `orb/` — player and collectibles
+- `player/` — the drone: input and energy, combat, study, equipment
 - `world/` — main scene, island, terrain, water, movable blocks, ground clutter
 - `flora/`, `fauna/` — plant and animal species
 - `ui/` — splash menu, story screen, pause menu, pedia, fade-in, HUD meters,

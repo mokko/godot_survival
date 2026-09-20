@@ -1,4 +1,4 @@
-# Graphics Improvement Tips — Survival M (Ezo)
+# Graphics Improvement Tips — Nakamoto's Paradigm (Ezo)
 
 Order = payoff per effort. Renderer: **Compatibility (GLES3)** — required for the
 Rock 5B Mali GPU; rules out SDFGI/voxel GI, SSR, high-res shadow cascades.

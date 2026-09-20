@@ -13,12 +13,23 @@ env DISPLAY=:0 XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.* \
   snap run godot-4 --audio-driver Dummy --script res://tools/capture_views.gd
 ```
 
-`tools/capture_views.gd` renders six fixed, deterministic poses (the biome ones are sampled with a
-fixed RNG seed, so two builds can be compared shot for shot) and writes them to `user://shots`,
-which on this machine is:
+`tools/capture_views.gd` renders seven fixed, deterministic poses (the biome ones are sampled with a
+fixed RNG seed, so two builds can be compared shot for shot) and writes them to `user://shots`.
+Pass a view name as a second argument to shoot just that one:
 
+```bash
+env DISPLAY=:0 XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.* \
+  snap run godot-4 --audio-driver Dummy --script res://tools/capture_views.gd -- "user://check" 07
 ```
-~/snap/godot-4/30/.local/share/godot/app_userdata/Survival M/shots/
+
+**Do not hard-code where `user://` lands.** The host path is
+`~/snap/godot-4/<instance>/.local/share/godot/app_userdata/<config/name>/`, and both parts move: a
+snap refresh bumps the instance number (30 → 34 in Sep 2026) and renaming the game changes the last
+segment (`Survival M` → `Nakamoto's Paradigm`). Each change gives a fresh directory, so shots taken
+before it are in the *old* one. Ask the engine for the current path:
+
+```bash
+snap run godot-4 --headless --script res://tests/<probe>.gd   # prints OS.get_user_data_dir()
 ```
 
 Copy them here and note what changed. The window appears briefly while capturing.
@@ -30,7 +41,8 @@ Caveats worth remembering:
 - The snap's `/tmp` is private: an output path under `/tmp` is invisible from outside the snap. Use
   the default `user://shots` (or another path under `$HOME`).
 - Poses: `01` ground close-up at the spawn (floor texture + clutter), `02` coast looking out to sea,
-  `03` inland, `04` Ezo massif, `05` caldera lake, `06` coast at night.
+  `03` inland, `04` Ezo massif, `05` caldera lake, `06` coast at night, `07` the boat at Ezo's south
+  mooring. A view inherits the previous view's time of day unless it sets `"time"`.
 
 ## Perf benchmark
 

@@ -1,4 +1,4 @@
-# Geography of the Japanese archipelago — reference for Survival M
+# Geography of the Japanese archipelago — reference for Nakamoto's Paradigm
 
 Companion to `research/old.md` (worldbuilding, Ainu layer, premise) and the world-building canon
 in `flora/plants.md` + `fauna/animals.md`. This file is about the **real geography** the game is a

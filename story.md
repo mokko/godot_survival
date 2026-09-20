@@ -1,4 +1,4 @@
-# Story — Survival M
+# Story — Nakamoto's Paradigm
 
 The working narrative bible. `ui/story.gd` draws its intro from here
 (the `FULL_TEXT` constant is the stand-in until we lift text from this
