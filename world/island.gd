@@ -19,6 +19,10 @@ const CALDERA_CENTER := Vector2(-35.0, -20.0)  # (x, z) of the Ezo caldera lake
 const LAKE_RADIUS: float = 13.0                # lake floor bowl radius
 const COAST_BAND_IN: float = 1.0               # signed-distance band = "coast"
 const COAST_BAND_OUT: float = 9.0
+## Water this deep (or deeper) floats a boat's hull. Tools/build_boats.gd moors in
+## exactly this much water and world/boat.gd refuses to sail where there is less,
+## so a moored boat can always leave its mooring and never reaches dry ground.
+const HULL_DEPTH: float = -0.35               # terrain height = water depth here
 const SPAWN_XZ := Vector2(-112.0, 82.0)        # player arrival, Ezo SW cape
 
 ## Hokkaido outline in (x, z). x+ = east, z+ = south.
@@ -197,6 +201,15 @@ static func is_water(x: float, z: float) -> bool:
 	## Counterpart to is_land(), kept deliberately as public world API even
 	## though nothing samples it yet — water-bound placement code wants it.
 	return height_at(x, z) < WATER_LEVEL - 0.1
+
+
+static func is_navigable(x: float, z: float) -> bool:
+	## Water deep enough to float a boat's hull. WATER_LEVEL is 0, so the terrain
+	## height *is* the depth (negative = below the surface). Both the boat builder
+	## (where to moor) and world/boat.gd (where a hull may sail) measure with this
+	## one constant, because a hull that can be moored somewhere must be able to
+	## leave it again.
+	return height_at(x, z) <= HULL_DEPTH
 
 
 static func nearest_land_point(p: Vector2, max_radius: float = 9.0) -> Vector3:

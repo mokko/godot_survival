@@ -14,9 +14,9 @@ const OUT := "res://world/boats_placed.tscn"
 const ROUTE := ["Ezo", "Honshu", "Shikoku", "Kyushu"]
 
 ## Step south (into the water) per mooring scan, and how deep the water has to be
-## to float the hull.
+## to float the hull — that depth rule lives in island.gd (Ezo.HULL_DEPTH), shared
+## with world/boat.gd so a moored boat can always sail away from its mooring.
 const OFFSHORE_STEP := 0.6
-const MOOR_DEPTH := -0.35
 const LAND_CHECK := 6.0       # metres north of the mooring that must be dry land
 
 var _moorings: Array = []
@@ -104,7 +104,7 @@ func _step_offshore(shore: Vector2) -> Vector3:
 	## distance of dry land.
 	var p := shore
 	for i in 40:
-		if Ezo.height_at(p.x, p.y) < MOOR_DEPTH:
+		if Ezo.is_navigable(p.x, p.y):
 			break
 		p.y += OFFSHORE_STEP
 	return Vector3(p.x, Ezo.WATER_LEVEL, p.y)

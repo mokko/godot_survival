@@ -12,6 +12,13 @@ extends StaticBody3D
 ## under the sea surface, so stepping off mid-strait would drop the player into the
 ## void and trigger the fall-death. The boat asks Ezo.is_land() before letting go.
 ##
+## Sailing is confined to navigable water (Ezo.is_navigable, i.e. HULL_DEPTH or
+## deeper). The boat is a StaticBody3D moved by hand, so the terrain collider
+## never pushes it back: with no depth test, aiming the bow at a beach and holding
+## W sailed the vessel straight *through* the island (measured 48 m inland on Ezo,
+## hull at y=0.05 under 2.77 m of hill, the pinned player 1.6 m under the surface
+## — "the boat can get under the island").
+##
 ## The whole vessel is one merged, vertex-coloured mesh — one draw call per boat,
 ## for the same reason the benchmark flags the multi-mesh flora.
 
@@ -25,6 +32,7 @@ const REVERSE_SPEED := 4.0
 const TURN_RATE := 1.1         # radians per second
 const BOARD_RADIUS := 5.0      # metres from the hull the player can press E in
 const ASHORE_RANGE := 7.0      # metres of search for land when leaving the boat
+const BOW_PROBE := 2.2         # metres ahead of the hull centre the depth is tested
 const BOB_HEIGHT := 0.06
 const BOB_PERIOD := 3.2
 const RIDE_HEIGHT := 1.15      # deck height the player is pinned to
@@ -74,7 +82,7 @@ func _physics_process(delta: float) -> void:
 	rotate_y(steer * TURN_RATE * delta)
 	var speed := SPEED if throttle > 0.0 else REVERSE_SPEED
 	var forward := -global_transform.basis.z
-	global_position += forward * throttle * speed * delta
+	_sail(forward * throttle * speed * delta)
 	# Lean into the turn and pitch with the throttle: cheap, sells motion.
 	rotation.z = move_toward(rotation.z, -steer * 0.12, delta * 0.6)
 	rotation.x = move_toward(rotation.x, throttle * 0.04, delta * 0.5)
@@ -98,6 +106,53 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not _go_ashore():
 			_say("No land close enough to step off — sail nearer a shore")
 		get_viewport().set_input_as_handled()
+
+
+# ------------------------------------------------------------------- sailing
+
+func _sail(step: Vector3) -> void:
+	## Move the hull, but only through water deep enough to float it. The boat is a
+	## StaticBody3D driven by hand, so the terrain never pushes it back — without
+	## this test the bow can be aimed at a beach and W sails the whole vessel
+	## through the island, standing the player under its hills.
+	if step.length_squared() < 0.000001:
+		return
+	if _floats_at(global_position + step):
+		global_position += step
+		return
+	# Shallow ahead: slide along the shore rather than dead-stopping, so a coast
+	# glanced at an angle does not bring the boat to a halt, and W against a beach
+	# still feels like a refusal instead of a freeze.
+	var along_x := Vector3(step.x, 0.0, 0.0)
+	if absf(step.x) > 0.000001 and _floats_at(global_position + along_x):
+		global_position += along_x
+		return
+	var along_z := Vector3(0.0, 0.0, step.z)
+	if absf(step.z) > 0.000001 and _floats_at(global_position + along_z):
+		global_position += along_z
+		return
+	# Nowhere to go: say so, so a hull held against a beach reads as a refusal
+	# rather than as a broken throttle.
+	_say("Too shallow ahead — the shore is in the way")
+
+
+func _floats_at(p: Vector3) -> bool:
+	## Is there water to float the hull *here* — at the hull centre and at the bow
+	## ahead of it? The centre is tested first because it is the cheap rejection
+	## (height_at walks the island outlines and costs ~93 us a call, so a hull held
+	## against a shore spends ~0.5 ms a frame on this, nothing beside a frame).
+	var fwd := _forward_xz()
+	if not Ezo.is_navigable(p.x, p.z):
+		return false
+	return Ezo.is_navigable(p.x + fwd.x * BOW_PROBE, p.z + fwd.z * BOW_PROBE)
+
+
+func _forward_xz() -> Vector3:
+	## The bow direction on the water plane: the hull pitches with the throttle and
+	## rolls into turns, and a tilted forward would dip the bow probe underwater or
+	## lift it over the beach.
+	var f := -global_transform.basis.z
+	return Vector3(f.x, 0.0, f.z).normalized()
 
 
 # ------------------------------------------------------------------ boarding
