@@ -18,6 +18,7 @@ extends Control
 ## player has met" belongs in one place, and that place is `_subchapters_of()`.
 
 const PediaData := preload("res://ui/pedia_data.gd")
+const Notes := preload("res://ui/pedia_notes.gd")
 
 ## Emitted when the book closes, so the pause menu can show itself again.
 signal closed
@@ -41,6 +42,8 @@ const LIST_COLUMNS := 3
 
 var chapter := ""        ## "" on the chapters page, else the chapter being shown
 var subchapter_id := ""  ## "" unless a data page is open
+
+var _empty_label: Label = null   ## the "nothing drawn yet" line, if any
 
 
 func _ready() -> void:
@@ -83,6 +86,7 @@ func show_chapters() -> void:
 	chapter = ""
 	subchapter_id = ""
 	title.text = "Pedia"
+	_refresh_chapter_counts()
 	chapters.show()
 	subchapters.hide()
 	data_page.hide()
@@ -105,13 +109,34 @@ func show_subchapters(chapter_id: String) -> void:
 	for child in grid.get_children():
 		grid.remove_child(child)
 		child.queue_free()
-	for record in _subchapters_of(chapter_id):
+	var drawn := _subchapters_of(chapter_id)
+	for record in drawn:
 		var button := Button.new()
 		button.text = str(record["name"])
 		button.add_theme_font_size_override("font_size", 20)
 		button.pressed.connect(show_data_page.bind(chapter_id, str(record["id"])))
 		grid.add_child(button)
+	_show_empty_hint(chapter_id, drawn.is_empty())
 	_focus_first()
+
+
+func _show_empty_hint(chapter_id: String, empty: bool) -> void:
+	## An empty chapter still has to say how it fills: the notebook is filled by
+	## being out in the world, and a page with nothing on it and no explanation
+	## reads as a bug.
+	if _empty_label != null and is_instance_valid(_empty_label):
+		_empty_label.get_parent().remove_child(_empty_label)
+		_empty_label.queue_free()
+	_empty_label = null
+	if not empty:
+		return
+	_empty_label = Label.new()
+	_empty_label.text = PediaData.empty_hint(chapter_id)
+	_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_empty_label.custom_minimum_size.x = 740.0
+	_empty_label.add_theme_font_size_override("font_size", 18)
+	_empty_label.modulate = Color(0.82, 0.86, 0.92, 1)
+	grid.get_parent().add_child(_empty_label)
 
 
 func show_data_page(chapter_id: String, id: String) -> void:
@@ -134,9 +159,29 @@ func show_data_page(chapter_id: String, id: String) -> void:
 
 
 func _subchapters_of(chapter_id: String) -> Array:
-	## Everything in the chapter. The one place to filter, when the notes start
-	## listing only what the player has actually met.
-	return PediaData.subchapters(chapter_id)
+	## Only what has actually been drawn into the notebook. player/study.gd and the
+	## player's discovery pass are the writers; this is the single reader, so "only
+	## what you have met" lives in exactly one place.
+	var out: Array = []
+	for record in PediaData.subchapters(chapter_id):
+		if Notes.has(chapter_id, str(record["id"])):
+			out.append(record)
+	return out
+
+
+func _refresh_chapter_counts() -> void:
+	## The chapter buttons carry their progress — "Animals (2/6)" — because a
+	## notebook you are filling needs to say how much is missing.
+	var index := 1   # child 0 is the intro line
+	for c in PediaData.chapters():
+		if index >= chapters.get_child_count():
+			break
+		var button := chapters.get_child(index) as Button
+		if button != null:
+			var id := str(c["id"])
+			button.text = "%s (%d/%d)" % [str(c["title"]),
+					_subchapters_of(id).size(), PediaData.subchapters(id).size()]
+		index += 1
 
 
 ## ------------------------------------------------------------------- plumbing

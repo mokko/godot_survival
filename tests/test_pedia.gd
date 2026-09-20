@@ -12,6 +12,7 @@ extends SceneTree
 
 const PediaData := preload("res://ui/pedia_data.gd")
 const PediaArt := preload("res://ui/pedia_art.gd")
+const Notes := preload("res://ui/pedia_notes.gd")
 const ItemDB := preload("res://items/item_db.gd")
 
 const PLATE_SIZE := Vector2(190, 190)
@@ -76,11 +77,35 @@ func _init() -> void:
 	if intro == null or intro.text != INTRO:
 		fails.append("contents_intro_is_" + (intro.text if intro != null else "none"))
 	var chapter_labels := _button_labels(pedia.chapters)
-	var expected_titles: PackedStringArray = PackedStringArray()
-	for id in CHAPTER_ORDER:
-		expected_titles.append(PediaData.chapter_title(id))
-	if chapter_labels != expected_titles:
-		fails.append("chapter_list_is_" + str(chapter_labels))
+	for i in CHAPTER_ORDER.size():
+		if i >= chapter_labels.size() \
+				or not chapter_labels[i].begins_with(PediaData.chapter_title(CHAPTER_ORDER[i])):
+			fails.append("chapter_list_is_" + str(chapter_labels))
+			break
+
+	# 2b. An empty notebook: every chapter reads (0/N), lists nothing, and says how
+	#     it fills. This is what a fresh run looks like.
+	Notes.clear()
+	pedia.show_chapters()
+	await _wait(0.05)
+	var empty_labels := _button_labels(pedia.chapters)
+	for i in CHAPTER_ORDER.size():
+		var totals: int = PediaData.subchapters(CHAPTER_ORDER[i]).size()
+		if not empty_labels[i].contains("(0/%d)" % totals):
+			fails.append("empty_count_wrong:" + empty_labels[i])
+	for chapter_id in CHAPTER_ORDER:
+		pedia.show_subchapters(chapter_id)
+		await _wait(0.05)
+		if _button_labels(pedia.grid).size() != 0:
+			fails.append("%s_lists_undrawn_things" % chapter_id)
+		if pedia._empty_label == null or pedia._empty_label.text.is_empty():
+			fails.append("%s_no_empty_hint" % chapter_id)
+
+	# 2c. Now draw everything, the way studying a species and meeting the rest
+	#     would, so the coverage checks below have something to walk.
+	for chapter_id in CHAPTER_ORDER:
+		for id in PediaData.subchapter_ids(chapter_id):
+			Notes.unlock(chapter_id, id)
 
 	# 3. Every chapter lists all of its subchapters, and every data page has a
 	#    picture, a name and text worth reading.

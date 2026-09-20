@@ -107,12 +107,13 @@ bite takes 5, one battery's half.
 
 ### Fight
 
-A new run begins with the **Katana** in hand and the **Pedia notebook** carried
-(`player/player.gd`'s `STARTING_ITEMS`, handed out because the splash's Start
-button marks the run as fresh), so the fight can be met on the first stroll
-rather than after a crafting chain. The notebook is a keepsake: the death wipe
-takes loot, not the drone's own notes, so a respawn brings it back — carried, not
-held (`KEEPSAKE_ITEMS`). **Left click** swings
+A new run begins with the **Katana** in hand and the **Pedia notebook** and
+**Binoculars** carried (`player/player.gd`'s `STARTING_ITEMS`, handed out because
+the splash's Start button marks the run as fresh), so the fight can be met on the
+first stroll rather than after a crafting chain, and the notebook can be filled
+from the first animal you meet. The notebook is a keepsake: the death wipe takes
+loot, not the drone's own notes, so a respawn brings it back — carried, not held
+(`KEEPSAKE_ITEMS`). **Left click** swings
 it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing, drawn as a
 crescent trail that sweeps through the arc — and when the cone actually catches
 something, four ticks around the crosshair say so (`player/combat.gd`). With no weapon
@@ -144,22 +145,42 @@ inventory item from the first minute of a run — and the pause menu opens it as
 screen of its own (same dim and panel as the menu, which hides while it is up).
 It opens on the line *Your research notes.* and three layers:
 
-1. **chapters** — the table of contents: Islands, Plants, Animals, Equipment;
+1. **chapters** — the table of contents: Islands, Plants, Animals, Equipment,
+   each with its progress — `Animals (2/6)`;
 2. **subchapters** — the things inside one chapter, as a menu of buttons;
 3. **data pages** — one game element: a square picture at the top left, its name
    in a larger font, and the text describing it.
 
-The first two are menus built from `ui/pedia_data.gd` (the words) and the third
-adds the plate from `ui/pedia_art.gd` (the picture). **Back** (or `ESC`, which the
-pause menu owns and routes here) walks one layer up; at the chapters page it
-closes the book and hands back to the menu. An opened Pedia always starts at the
-chapters again.
+**The notebook starts empty and fills by being out in the world** (`ui/pedia_notes.gd`
+holds what has been drawn; the Pedia reads it and nothing else). Each chapter
+fills its own way:
+
+- **Plants and animals** go in by being *studied*. The drone also starts with
+  **Binoculars**: equip them (number key), left click with the crosshair on a
+  species, and hold it in view for **eight seconds** — `player/study.gd`, with a
+  meter under the crosshair and a binocular view over the screen. Slip off the
+  subject for more than a moment, or let it leave, and the drawing starts again
+  from nothing. The glass reaches 45 m, which is what makes a deer that flees at
+  twice your walking speed studyable at all.
+- **Equipment** notes itself the moment the drone carries it.
+- **Islands** write themselves down when the drone is on one or moored off its
+  coast (60 m), so sailing the boat route fills that chapter.
+
+Fresh run: empty. Death: the notes stay (`KEEPSAKE_ITEMS`) — they are the drone's
+own record. Save/load: they ride in the savegame's `notes` list. A species with no
+data page of its own (mirrorlily's small ground cover) is not studyable, and a
+chapter with nothing drawn in it says how to fill it.
+
+The first two layers are menus built from `ui/pedia_data.gd` (the words) and the
+third adds the plate from `ui/pedia_art.gd` (the picture). **Back** (or `ESC`,
+which the pause menu owns and routes here) walks one layer up; at the chapters
+page it closes the book and hands back to the menu. An opened Pedia always starts
+at the chapters again.
 
 Two lists are enforced by `tests/test_pedia.gd`: the Equipment chapter covers
 exactly the ids in `items/item_db.gd`, and every subchapter in every chapter has
-text and a plate to draw. For now every subchapter is listed; when the notes start
-showing only what the player has met, that filter goes in one place
-(`pedia.gd:_subchapters_of()`).
+text and a plate to draw. `tests/test_study.gd` walks the filling: the empty
+start, the eight-second hold, losing a subject, and the notes surviving a save.
 
 The pictures are vector art, like the inventory icons: `ui/pedia_art.gd` draws an
 island from its real outline in `world/island.gd` (Ezo gets its caldera lake and

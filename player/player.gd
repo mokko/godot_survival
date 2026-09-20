@@ -18,12 +18,19 @@ const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
 ## instead of after a crafting chain; the Pedia notebook is there because the
 ## notes are the drone's own — the handbook in the pause menu is its contents.
 ## Add to the list, or empty it once the intro hands out gear of its own.
-const STARTING_ITEMS := ["sword", "notebook"]
+const STARTING_ITEMS := ["sword", "notebook", "binoculars"]
 ## Items the drone never loses, death included: its own record of the island.
 ## Handed back on respawn, because there is no other way to get them and a
 ## handbook you can drop forever is a handbook with a hole in it.
 const KEEPSAKE_ITEMS := ["notebook"]
 const SAVEGAME := preload("res://world/savegame.gd")
+const Notes := preload("res://ui/pedia_notes.gd")
+const PediaArt := preload("res://ui/pedia_art.gd")
+## How close the drone has to be to an island for it to be written into the
+## notebook: a mooring off its coast counts, so the boat route fills the Islands
+## chapter as you sail it.
+const ISLAND_DISCOVERY := 60.0
+const DISCOVERY_INTERVAL := 0.5   ## seconds between discovery polls
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
@@ -33,6 +40,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE
 var _drain_accum: float = 0.0
+var _discovery_timer: float = 0.0   ## counts down to the next notebook poll
 var _game_over: bool = false
 var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
@@ -46,6 +54,7 @@ const InventoryScene := preload("res://ui/inventory.tscn")
 @onready var inventory: Control = get_tree().get_first_node_in_group("inventory")
 @onready var equipment: Node3D = $Equipment
 @onready var combat: Node3D = $Combat
+@onready var study: Node3D = $Study
 
 var _snd_jump: AudioStreamPlayer
 var _snd_land: AudioStreamPlayer
@@ -78,6 +87,7 @@ func save_state() -> Dictionary:
 		"equipped": inventory.equipped_slot if inventory != null else -1,
 		"armor": combat.armor_id,
 		"armor_durability": combat.armor_durability,
+		"notes": Notes.drawn(),
 	}
 	# Time of day lives on the DayCycle node (a sibling), not on the player.
 	var cycle := get_node_or_null("../DayCycle")
@@ -119,6 +129,8 @@ func load_state(data: Dictionary) -> void:
 			inventory.equip(eq)
 		else:
 			inventory.refresh()
+	# The notebook comes back with the run: what was drawn stays drawn.
+	Notes.restore(data.get("notes", []))
 	# Armor lives on the combat node, not the inventory, so restore it even
 	# if the inventory could not be resolved this early.
 	var saved_armor := str(data.get("armor", ""))
@@ -179,7 +191,12 @@ func _ready() -> void:
 	if SAVEGAME.take_pending_load():
 		load_state(SAVEGAME.read())
 	elif SAVEGAME.take_pending_new_run():
+		# A fresh run starts with an empty notebook. It refills from what the
+		# drone is handed (equipment), where it wakes up (islands) and what it
+		# studies (plants, animals) — see _update_notes() and player/study.gd.
+		Notes.clear()
 		give_starting_items()
+	_update_notes()
 
 
 func give_starting_items() -> void:
@@ -315,6 +332,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if get_equipped_item() == "sword":
 				do_slash()
+			elif get_equipped_item() == "binoculars":
+				# Binoculars out: a click looks at what the crosshair is on. The
+				# drone does not punch or grab while it is holding them up.
+				do_study()
 			elif not _toggle_grab():
 				# Nothing to grab under the crosshair and no weapon equipped:
 				# the drone jabs instead of clicking at thin air.
@@ -381,6 +402,28 @@ func do_punch() -> void:
 
 func do_slash() -> void:
 	combat.try_slash()
+
+
+func do_study() -> void:
+	## Binoculars out: a left click starts drawing whatever the crosshair is on.
+	## The session itself lives in player/study.gd (aim, hold, and the unlock).
+	study.begin()
+
+
+## -------------------------------------------------------- the notebook's notes
+
+func _update_notes() -> void:
+	## What the notebook records without studying: what the drone is carrying
+	## (Equipment) and where it is standing (Islands). Species are the other way
+	## round — they only go in by being studied (player/study.gd).
+	if inventory != null:
+		for i in inventory.SLOTS:
+			if inventory.slots[i] != "" and inventory.counts[i] > 0:
+				Notes.unlock("equipment", inventory.slots[i])
+	var here := Vector2(global_position.x, global_position.z)
+	for island_id in ["ezo", "honshu", "shikoku", "kyushu"]:
+		if PediaArt.island_distance(island_id, here) <= ISLAND_DISCOVERY:
+			Notes.unlock("islands", island_id)
 
 
 func play_slash_sound() -> void:
@@ -454,6 +497,13 @@ func _physics_process(delta: float) -> void:
 			life = 0.0
 			_trigger_game_over()
 	_update_hud()
+
+	# Discovery poll: what the drone carries and which island it is on get written
+	# into the notebook. Half a second is plenty — this is not a reflex.
+	_discovery_timer = maxf(_discovery_timer - delta, 0.0)
+	if _discovery_timer <= 0.0:
+		_discovery_timer = DISCOVERY_INTERVAL
+		_update_notes()
 
 	# Fell off the map (into the sea / off the terrain): die immediately
 	# and respawn at the start point. Ground is never below y = -4, and the

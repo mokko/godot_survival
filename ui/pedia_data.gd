@@ -259,7 +259,24 @@ const SUBCHAPTERS := {
 			"subtitle": "the drone's own notebook · brown leather, carried from the start",
 			"text": "A brown leather notebook, and the object this book is: the drone's research notes, carried from the first minute of a run. Everything you read in the Pedia is written in it — the four islands, the twelve plants, the six animals, and what the drone can carry.\n\nThe notes survive you. Dying wipes what you were carrying, but not the notebook: it is the drone's own record of the island rather than loot, so a respawn brings it back, carried rather than held. The pages fill as the survey does — for now everything recorded is listed, and later the notes may show only what you have actually met.\n\nNo real-world anchor needed: a field notebook is the oldest research instrument there is. Naturalists in Japan kept them by the thousand — Kumagusu Minakata (1867-1941), who walked the Kumano forests and filled his with fungi, slime moulds and folklore, is the patron saint of the form: a book that is evidence, not decoration.",
 		},
+	{
+			"id": "binoculars",
+			"name": "Binoculars",
+			"subtitle": "study tool · hold a species in view for eight seconds",
+			"text": "Two barrels, lenses forward, carried from the first minute of a run — and the only way anything gets into this notebook.\n\nEquip them (number key, or click the slot), then left click with the crosshair on a plant or an animal. The drone starts drawing: hold the species inside the two circles for eight seconds and its entry appears in the chapter it belongs to. Lose it — walk away, look elsewhere, or let it slip off the crosshair for more than a moment — and the drawing starts again from nothing. It is meant to be a study, not a snapshot.\n\nDistant subjects are fine: the glass works out to forty-five metres, which is what makes an animal that flees at twice your walking speed studyable at all. Anything further is left undrawn.\n\nReal-world anchor: 双眼鏡 sōgankyō, \"two-eyed mirror\", the field glasses that turned watching animals into a discipline. Japan has one of the oldest birdwatching cultures in Asia — the Wild Bird Society of Japan was founded in 1934 — and the country's cranes, owls and seabirds are counted by volunteers every year with exactly this equipment. A notebook, a pair of binoculars and patience: the whole apparatus of natural history, unchanged.",
+		},
 	],
+}
+
+
+## What a chapter says when nothing is drawn in it yet: the notebook starts empty
+## and fills by being out in the world, so an empty chapter has to tell the player
+## how it fills (Maurice's rule: species are drawn by studying them).
+const EMPTY_HINTS := {
+	"islands": "Nothing here yet. An island writes itself down once you stand on it — or moor off its coast.",
+	"plants": "Nothing drawn yet. Equip the Binoculars, put the crosshair on a plant and hold it for eight seconds.",
+	"animals": "Nothing drawn yet. Equip the Binoculars, put the crosshair on an animal and hold it for eight seconds.",
+	"equipment": "Nothing yet. What the drone carries is noted down as soon as it is picked up.",
 }
 
 
@@ -280,6 +297,11 @@ static func chapter_title(id: String) -> String:
 
 static func subchapters(chapter_id: String) -> Array:
 	return SUBCHAPTERS.get(chapter_id, [])
+
+
+static func empty_hint(chapter_id: String) -> String:
+	## The line a chapter shows while nothing in it has been drawn yet.
+	return str(EMPTY_HINTS.get(chapter_id, "Nothing here yet."))
 
 
 static func subchapter(chapter_id: String, subchapter_id: String) -> Dictionary:

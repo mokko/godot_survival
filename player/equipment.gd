@@ -300,6 +300,7 @@ func _build_props() -> void:
 	_props["sword"] = _make_katana()
 	_props["bow"] = _make_bow()
 	_props["dagger"] = _make_dagger()
+	_props["binoculars"] = _make_binoculars()
 	_props["leather_armor"] = _make_armor_plates()
 	for id in _props:
 		_props[id].visible = false
@@ -441,6 +442,49 @@ func _make_dagger() -> Node3D:
 	return root
 
 
+func _make_binoculars() -> Node3D:
+	## Two barrels raised at the eye, lenses forward: what the drone looks through
+	## while it fills the notebook (player/study.gd). Held high so the equip
+	## flourish reads as lifting them into place.
+	var root := Node3D.new()
+	root.position = Vector3(0.26, 1.0, -0.16)
+	root.rotation.x = -0.12
+	var body_mat := StandardMaterial3D.new()
+	body_mat.albedo_color = Color(0.22, 0.24, 0.28)
+	body_mat.roughness = 0.5
+	var glass_mat := StandardMaterial3D.new()
+	glass_mat.albedo_color = Color(0.4, 0.62, 0.8)
+	glass_mat.metallic = 0.6
+	glass_mat.roughness = 0.1
+	for side in [-1, 1]:
+		var barrel := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.06, 0.06, 0.2)
+		barrel.mesh = bm
+		barrel.position = Vector3(0.05 * side, 0, 0)
+		barrel.material_override = body_mat
+		root.add_child(barrel)
+		var lens := MeshInstance3D.new()
+		var lm := CylinderMesh.new()
+		lm.top_radius = 0.035
+		lm.bottom_radius = 0.035
+		lm.height = 0.02
+		lens.mesh = lm
+		lens.rotation.x = PI * 0.5   # face forward
+		lens.position = Vector3(0.05 * side, 0, -0.11)
+		lens.material_override = glass_mat
+		root.add_child(lens)
+	var bridge := MeshInstance3D.new()
+	var gm := BoxMesh.new()
+	gm.size = Vector3(0.05, 0.03, 0.12)
+	bridge.mesh = gm
+	bridge.position = Vector3(0, 0, 0.02)
+	bridge.material_override = body_mat
+	root.add_child(bridge)
+	add_child(root)
+	return root
+
+
 func _make_armor_plates() -> Node3D:
 	var root := Node3D.new()
 	var plate_mat := StandardMaterial3D.new()
@@ -464,8 +508,9 @@ func _make_armor_plates() -> Node3D:
 ## ---- wiring ---------------------------------------------------------------
 
 func show_for_equipped(item_id: String) -> void:
-	## Weapon props: visible when equipped (katana on hip, bow at side).
-	for id in ["sword", "bow", "dagger"]:
+	## Held props: visible when equipped (katana on hip, bow at side, binoculars
+	## raised at the eye).
+	for id in ["sword", "bow", "dagger", "binoculars"]:
 		if _props.has(id):
 			_props[id].visible = (id == item_id)
 

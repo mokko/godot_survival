@@ -27,6 +27,7 @@ func set_item(id: String) -> void:
 const ICON_IDS := [
 	"flint", "stick", "vine", "kana_charm", "shell", "emberstone",
 	"sword", "shield", "dagger", "bow", "arrows", "leather_armor", "notebook",
+	"binoculars",
 ]
 
 # Shared palette bits (item colours come from ItemDB; these are the accents).
@@ -73,6 +74,15 @@ static func _arc(center: Vector2, radius: float, start: float, end: float,
 
 static func _circle(center: Vector2, radius: float, color: Color) -> Dictionary:
 	return VectorArt.circle(center, radius, color)
+
+
+static func _ring(center: Vector2, radius: float, color: Color,
+		width: float) -> Dictionary:
+	return VectorArt.ring(center, radius, color, width)
+
+
+static func _rect(rect_: Rect2, color: Color) -> Dictionary:
+	return VectorArt.rect(rect_, color)
 
 
 static func _text(pos: Vector2, string: String, color: Color,
@@ -217,6 +227,22 @@ static func _unit_ops(icon_id: String) -> Array:
 				_line(_p(0.38, 0.62), _p(0.72, 0.585), Color(0.72, 0.63, 0.48), 0.025),
 				_line(_p(0.39, 0.72), _p(0.74, 0.685), Color(0.72, 0.63, 0.48), 0.025),
 				_line(_p(0.4, 0.82), _p(0.68, 0.79), Color(0.72, 0.63, 0.48), 0.025),
+			]
+		"binoculars":
+			return [
+				# Two barrels and a bridge, seen from the front-ish: round lenses,
+				# a dark barrel behind each, and the hinge between them.
+				_poly([_p(0.1, 0.3), _p(0.42, 0.22), _p(0.46, 0.78), _p(0.14, 0.86)],
+						Color(0.24, 0.26, 0.3)),
+				_poly([_p(0.9, 0.3), _p(0.58, 0.22), _p(0.54, 0.78), _p(0.86, 0.86)],
+						Color(0.24, 0.26, 0.3)),
+				_rect(Rect2(0.42, 0.34, 0.16, 0.22), Color(0.16, 0.17, 0.2)),
+				_circle(_p(0.28, 0.5), 0.19, Color(0.42, 0.46, 0.52)),
+				_circle(_p(0.72, 0.5), 0.19, Color(0.42, 0.46, 0.52)),
+				_ring(_p(0.28, 0.5), 0.19, Color(0.14, 0.15, 0.18), 0.045),
+				_ring(_p(0.72, 0.5), 0.19, Color(0.14, 0.15, 0.18), 0.045),
+				_arc(_p(0.28, 0.5), 0.13, PI * 1.05, PI * 1.75, Color(0.78, 0.88, 0.95), 0.03),
+				_arc(_p(0.72, 0.5), 0.13, PI * 1.05, PI * 1.75, Color(0.78, 0.88, 0.95), 0.03),
 			]
 		_:
 			# Unknown id: a neutral shard rather than blank, so a missing icon

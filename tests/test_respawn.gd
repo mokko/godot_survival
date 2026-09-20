@@ -21,6 +21,7 @@ func _init() -> void:
 	for i in 60:
 		await physics_frame
 	var starts_with_notes: bool = inv.has_item("notebook")
+	var starts_with_glass: bool = inv.has_item("binoculars")
 	var starts_with_katana: bool = player.get_equipped_item() == "sword"
 	# Move away and kill.
 	player.global_position = Vector3(0, 12, 0)
@@ -42,10 +43,10 @@ func _init() -> void:
 	var near_spawn: bool = Vector2(pos.x, pos.z).distance_to(Vector2(-112.0, 82.0)) < 3.0
 	var keeps_notes: bool = inv.has_item("notebook")
 	var back_to_fists: bool = player.get_equipped_item() == ""
-	print("RESULT stayed_dead=%s label_shown=%s after_esc pos=%s floor=%s at_spawn=%s notes=%s katana=%s wiped=%s keeps_notes=%s fists=%s" % [
+	print("RESULT stayed_dead=%s label_shown=%s after_esc pos=%s floor=%s at_spawn=%s notes=%s glass=%s katana=%s wiped=%s keeps_notes=%s fists=%s" % [
 		still_dead, label_visible, pos, player.is_on_floor(), near_spawn,
-		starts_with_notes, starts_with_katana, notes_wiped, keeps_notes,
-		back_to_fists])
+		starts_with_notes, starts_with_glass, starts_with_katana, notes_wiped,
+		keeps_notes, back_to_fists])
 	quit(0 if (still_dead and label_visible and near_spawn and player.is_on_floor()
-			and starts_with_notes and starts_with_katana and notes_wiped
-			and keeps_notes and back_to_fists) else 1)
+			and starts_with_notes and starts_with_glass and starts_with_katana
+			and notes_wiped and keeps_notes and back_to_fists) else 1)
