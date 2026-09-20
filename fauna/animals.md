@@ -98,4 +98,6 @@ about).
 - Gulls nest in Windsinger trunks; gulls circling = landmark below.
 - Scuttlers trim Embermoss; Rippleback does whatever Rippleback does.
 
-*Status: draft for approval. Godot step comes after flora/plants.md + fauna/animals.md are approved.*
+*Status: all six species are in the game (`fauna/*.tscn`, placed by
+`tools/build_animals.gd`); this file stays their behavioural spec. The aggro rules
+every one of them shares are in the *Provoked* section above.*
