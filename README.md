@@ -1,7 +1,11 @@
-# Survivalm (v0.0.1-alpha)
+# Nakamoto's Paradigm (v0.0.1-alpha)
 
-Survivalm is an experiment to learn more about Godot, games, and developing
-with AI. It is the first experiment — others will follow.
+*Display name: **Nakamoto's Paradigm**. The working label is still `survivalm` —
+the folder, `project/assembly_name`, the test lock and the macOS bundle id all
+keep it, because those are identifiers rather than titles.*
+
+Nakamoto's Paradigm is an experiment to learn more about Godot, games, and
+developing with AI. It is the first experiment — others will follow.
 
 We currently develop using [Hermes](https://hermes-agent.nousresearch.com)
 and a GLM model.
@@ -106,17 +110,29 @@ bite takes 5, one battery's half.
 A new run begins with the **Katana** in hand (`player/player.gd`'s `STARTING_ITEMS`,
 handed out because the splash's Start button marks the run as fresh), so the fight can
 be met on the first stroll rather than after a crafting chain. **Left click** swings
-it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing
-(`player/combat.gd`). With no weapon equipped the same click is a bare-handed **jab** —
-a shorter, narrower cone (1.8 m, ±0.6 rad, 0.4 s between jabs) dealing the weapon
-table's bare-hand 5 — and it lands: before it was animation and sound only, which read
-in game as "this animal cannot be hurt". **Right click** draws and releases an arrow
-(15 damage) if a bow and arrows are carried.
+it: a cone 2.2 m deep and ±0.7 rad ahead of the drone, 25 damage a swing, drawn as a
+crescent trail that sweeps through the arc — and when the cone actually catches
+something, four ticks around the crosshair say so (`player/combat.gd`). With no weapon
+equipped the same click is a bare-handed **jab** — a shorter, narrower cone (1.8 m,
+±0.6 rad, 0.4 s between jabs) dealing the weapon table's bare-hand 5 — and it lands:
+before it was animation and sound only, which read in game as "this animal cannot be
+hurt". **Right click** draws and releases an arrow (15 damage) if a bow and arrows are
+carried.
 
-The **Dusk Stalker** — the low red-black quadruped with the lit eye strip, the fox-shaped
-thing in the dusk — is the only animal that fights back: it stops, telegraphs for 0.4 s,
-then bites for 5. A kill drops Emberstone, and arrows half the time. Dying still wipes
-the inventory, katana included, so a respawn is back to fists (`ESC` restarts).
+Every animal fights back once the player hurts it — all six species, not just the
+dangerous one. A hit adds the animal to the `aggro_fauna` group and it charges, using
+its own speed, reach and bite; the HUD's `Enemy:` line names the nearest one with its
+life points. The fight ends by itself when the animal dies, is left behind past the
+leash, or comes back to its senses — and an animal you never touch never notices you.
+The **Dusk Stalker** — the low red-black quadruped with the lit eye strip, the
+fox-shaped thing in the dusk — is the one exception: it hunts on sight, stops,
+telegraphs for 0.4 s, then bites for 5, and after dark it sees 14 m instead of its
+daytime 10 m. A kill drops Emberstone, and arrows half the time. Dying still wipes the
+inventory, katana included, so a respawn is back to fists (`ESC` restarts).
+
+**`player/combat.md` describes the whole system in prose** — the phases in the order
+they run, which function is called for what, every constant, and which test covers
+each mechanic. Read that before changing anything here.
 
 ### Run the frame-rate benchmark before every release
 
