@@ -2,13 +2,16 @@ extends Control
 ## Procedural inventory icons: each item is drawn as vector art into its slot
 ## (no image assets — the droid, flora and fauna are built the same way).
 ##
-## Art is authored as *ops* in a 0..1 unit square by icon_ops(), then scaled to
-## whatever rect the slot asks for. Keeping the geometry separate from the
-## drawing calls is what lets the headless test walk every item's ops instead
-## of hoping a frame rendered.
+## Art is authored as *ops* in a 0..1 unit square by _unit_ops(), then scaled to
+## whatever rect the slot asks for; the op vocabulary, the scaling and the
+## drawing live in ui/vector_art.gd, shared with the Pedia's plates. Keeping the
+## geometry separate from the drawing calls is what lets the headless test walk
+## every item's ops instead of hoping a frame rendered.
 ##
 ## Slot usage: set_item() then queue_redraw happens automatically; an
 ## empty/unset id draws nothing (the slot's frame stays visible).
+
+const VectorArt := preload("res://ui/vector_art.gd")
 
 var item_id := ""
 
@@ -35,95 +38,41 @@ const HILIGHT := Color(1.0, 1.0, 1.0, 0.55)
 
 
 func _draw() -> void:
-	_draw_ops(self, icon_ops(item_id, size))
+	VectorArt.draw_ops(self, icon_ops(item_id, size))
 
 
 static func icon_ops(icon_id: String, size: Vector2) -> Array:
 	## Unit-square art scaled to `size`. Returns [] for an unknown/empty id, so
-	## a slot can call this unconditionally.
+	## a slot can call this unconditionally. The Pedia's equipment plates call
+	## this too, which is why an item's icon cannot drift from its Pedia page.
 	if icon_id == "":
 		return []
-	var ops := _unit_ops(icon_id)
-	var scaled: Array = []
-	for op in ops:
-		scaled.append(_scale_op(op, size))
-	return scaled
-
-
-static func _draw_ops(ci: CanvasItem, ops: Array) -> void:
-	for op in ops:
-		match op["kind"]:
-			"poly":
-				ci.draw_colored_polygon(op["points"], op["color"])
-			"polyline":
-				ci.draw_polyline(op["points"], op["color"], op["width"], true)
-			"line":
-				ci.draw_line(op["from"], op["to"], op["color"], op["width"], true)
-			"circle":
-				ci.draw_circle(op["center"], op["radius"], op["color"])
-			"ring":
-				ci.draw_arc(op["center"], op["radius"], 0.0, TAU,
-						op["segments"], op["color"], op["width"], true)
-			"arc":
-				ci.draw_arc(op["center"], op["radius"], op["start"], op["end"],
-						op["segments"], op["color"], op["width"], true)
-			"rect":
-				ci.draw_rect(op["rect"], op["color"])
+	return VectorArt.scale_ops(_unit_ops(icon_id), size)
 
 
 ## ---- geometry ------------------------------------------------------------
-
-static func _scale_op(op: Dictionary, size: Vector2) -> Dictionary:
-	var out := op.duplicate()
-	match op["kind"]:
-		"poly", "polyline":
-			var pts := PackedVector2Array()
-			for p in op["points"]:
-				pts.append(Vector2(p.x * size.x, p.y * size.y))
-			out["points"] = pts
-			if op["kind"] == "polyline":
-				out["width"] = op["width"] * size.x
-		"line":
-			out["from"] = Vector2(op["from"].x * size.x, op["from"].y * size.y)
-			out["to"] = Vector2(op["to"].x * size.x, op["to"].y * size.y)
-			out["width"] = op["width"] * size.x
-		"circle", "ring", "arc":
-			out["center"] = Vector2(op["center"].x * size.x,
-					op["center"].y * size.y)
-			out["radius"] = op["radius"] * size.x
-			if op["kind"] != "circle":
-				out["width"] = op["width"] * size.x
-		"rect":
-			out["rect"] = Rect2(op["rect"].position.x * size.x,
-					op["rect"].position.y * size.y,
-					op["rect"].size.x * size.x, op["rect"].size.y * size.y)
-	return out
-
+## Thin wrappers over ui/vector_art.gd so the art below reads as coordinates.
 
 static func _p(x: float, y: float) -> Vector2:
-	return Vector2(x, y)
+	return VectorArt.p(x, y)
 
 
 static func _poly(points: Array, color: Color) -> Dictionary:
-	var pts := PackedVector2Array()
-	for p in points:
-		pts.append(p)
-	return {"kind": "poly", "points": pts, "color": color}
+	return VectorArt.poly(points, color)
 
 
 static func _line(from: Vector2, to: Vector2, color: Color,
 		width := 0.06) -> Dictionary:
-	return {"kind": "line", "from": from, "to": to, "color": color, "width": width}
+	return VectorArt.line(from, to, color, width)
 
 
 static func _arc(center: Vector2, radius: float, start: float, end: float,
 		color: Color, width := 0.05, segments := 24) -> Dictionary:
-	return {"kind": "arc", "center": center, "radius": radius, "start": start,
-			"end": end, "color": color, "width": width, "segments": segments}
+	return VectorArt.arc(center, radius, start, end, color, width, segments)
 
 
 static func _circle(center: Vector2, radius: float, color: Color) -> Dictionary:
-	return {"kind": "circle", "center": center, "radius": radius, "color": color}
+	return VectorArt.circle(center, radius, color)
 
 
 static func _unit_ops(icon_id: String) -> Array:
