@@ -12,10 +12,15 @@ const WEAPON := preload("res://items/weapon.gd")
 const SLASH_RANGE := 2.2
 const SLASH_HALF_ANGLE := 0.7
 const SLASH_ITEM := "sword"   # damage comes from the weapon table
+const PUNCH_RANGE := 1.8      ## shorter than the katana: reach is the katana's edge
+const PUNCH_HALF_ANGLE := 0.6
+const PUNCH_ITEM := ""        ## bare hands: the default branch of Weapon.damage_of (5.0)
+const PUNCH_COOLDOWN := 0.4   ## seconds between jabs, so a held click is not a drill
 
 var player: CharacterBody3D = null   ## resolved from the scene tree in _ready
 
 var _slash: Node3D = null
+var _punch_cd := 0.0          ## counts down; a jab on cooldown does not swing
 var armor_id := ""            ## equipped armor item id, "" = none
 var armor_durability := 0.0
 
@@ -28,7 +33,11 @@ func _ready() -> void:
 	assert(player != null, "combat must be a direct child of the player")
 
 
-## ------------------------------------------------------------------ katana
+func _process(delta: float) -> void:
+	_punch_cd = maxf(_punch_cd - delta, 0.0)
+
+
+## ------------------------------------------------------------------- katana
 
 func try_slash() -> void:
 	_ensure_slash()
@@ -49,8 +58,29 @@ func _ensure_slash() -> void:
 
 
 func _slash_damage() -> void:
+	_strike(SLASH_RANGE, SLASH_HALF_ANGLE, SLASH_ITEM)
+
+
+## -------------------------------------------------------------- bare hands
+
+func try_punch() -> bool:
+	## Unarmed left click. Returns true when the drone actually swings, so the
+	## caller plays the jab and the thump only when it landed in the world's
+	## time as well as in its own. The jab was visual-only at first, which read
+	## as "this animal cannot be hurt": the punch now runs the katana's cone
+	## check with the bare-hand damage from the weapon table.
+	if _punch_cd > 0.0:
+		return false
+	_punch_cd = PUNCH_COOLDOWN
+	_strike(PUNCH_RANGE, PUNCH_HALF_ANGLE, PUNCH_ITEM)
+	return true
+
+
+func _strike(range_m: float, half_angle: float, item_id: String) -> int:
 	## Cone check in front of the drone: scan the "damageable" group only,
-	## filter by distance + half-angle.
+	## filter by distance + half-angle, then hit in one pass. Returns how many
+	## things took the blow (tests read it; the swing sound does not depend on
+	## it, because a whiff still has to sound like a swing).
 	var dir: Vector3 = -player.global_transform.basis.z
 	dir.y = 0.0
 	dir = dir.normalized()
@@ -61,13 +91,14 @@ func _slash_damage() -> void:
 		var to: Vector3 = node.global_position - player.global_position
 		to.y = 0.0
 		var dist: float = to.length()
-		if dist > SLASH_RANGE:
+		if dist > range_m:
 			continue
-		if dist > 0.01 and dir.angle_to(to.normalized()) > SLASH_HALF_ANGLE:
+		if dist > 0.01 and dir.angle_to(to.normalized()) > half_angle:
 			continue
 		hit_list.append(node)
 	for node in hit_list:
-		node.damage(WEAPON.damage_of(SLASH_ITEM))
+		node.damage(WEAPON.damage_of(item_id))
+	return hit_list.size()
 
 
 ## --------------------------------------------------------------------- bow

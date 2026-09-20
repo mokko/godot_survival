@@ -72,6 +72,8 @@ func _on_res_option_item_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	SAVEGAME.pending_load = false   # fresh run: drop any stale load request
+	# Fresh run: the player hands out the starting loadout in its _ready.
+	SAVEGAME.pending_new_run = true
 	get_tree().change_scene_to_file(STORY_SCENE)
 
 
@@ -80,6 +82,8 @@ func _on_continue_pressed() -> void:
 	## run, and the player has already read it. pending_load makes the player
 	## restore the save in its _ready.
 	SAVEGAME.pending_load = true
+	# A loaded run keeps what it was carrying: no starting loadout.
+	SAVEGAME.pending_new_run = false
 	get_tree().change_scene_to_file(GAME_SCENE)
 
 

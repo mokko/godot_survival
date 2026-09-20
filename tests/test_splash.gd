@@ -26,6 +26,8 @@ func _init() -> void:
 	# change_scene_to_file replaces current_scene; verify it's the Story.
 	var scene = current_scene
 	var ok_story: bool = scene != null and scene.name == "Story"
-	print("RESULT title=%s start=%s quit=%s story_scene=%s"
-			% [ok_title, start != null, quit_ok, ok_story])
-	quit(0 if (ok_title and start != null and quit_ok and ok_story) else 1)
+	# Start is a fresh run: it must ask the player for the starting loadout.
+	var ok_new_run: bool = SaveGame.pending_new_run and not SaveGame.pending_load
+	print("RESULT title=%s start=%s quit=%s story_scene=%s new_run=%s"
+			% [ok_title, start != null, quit_ok, ok_story, ok_new_run])
+	quit(0 if (ok_title and start != null and quit_ok and ok_story and ok_new_run) else 1)

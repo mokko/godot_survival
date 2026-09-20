@@ -11,6 +11,11 @@ const SAVE_PATH := "user://savegame.json"
 ## cleared) by the player in _ready.
 static var pending_load := false
 
+## Set by the splash screen's Start button (a fresh run) and consumed by the
+## player in _ready, which hands out the starting loadout. Load Game leaves it
+## false: a restored run keeps whatever it was carrying.
+static var pending_new_run := false
+
 
 static func exists() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
@@ -42,6 +47,14 @@ static func read() -> Dictionary:
 static func take_pending_load() -> bool:
 	var take := pending_load
 	pending_load = false
+	return take
+
+
+## True once per fresh run: returns and clears pending_new_run. The player
+## reads this to hand out the starting loadout, exactly like pending_load.
+static func take_pending_new_run() -> bool:
+	var take := pending_new_run
+	pending_new_run = false
 	return take
 
 

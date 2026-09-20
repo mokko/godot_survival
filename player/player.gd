@@ -8,6 +8,11 @@ const LIFE_DRAIN_PER_SEC = 1.0
 const SUNBULB_HEAL = 15.0
 const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
 const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
+## What a NEW run begins with, handed out in _ready (splash Start → story →
+## here). The katana is there so the fight can be met on the first stroll
+## instead of after a crafting chain. Add to the list, or empty it once the
+## intro hands out gear of its own.
+const STARTING_ITEMS := ["sword"]
 const SAVEGAME := preload("res://world/savegame.gd")
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
@@ -154,10 +159,22 @@ func _ready() -> void:
 		inventory.armor_changed.connect(_on_armor_changed)
 		inventory.item_equipped.connect(_on_item_equipped)
 	combat.armor_changed.connect(_on_combat_armor_changed)
-	# Load Game flow: restore a saved game exactly once, when launched from
-	# the splash screen's Load Game button.
+	# Load Game / Start Game hand-off: Load Game restores a saved game exactly
+	# once, when launched from the splash screen's Load Game button; Start Game
+	# hands out the starting loadout instead.
 	if SAVEGAME.take_pending_load():
 		load_state(SAVEGAME.read())
+	elif SAVEGAME.take_pending_new_run():
+		give_starting_items()
+
+
+func give_starting_items() -> void:
+	## The loadout a new run begins with (STARTING_ITEMS). add_item() auto-equips
+	## the first slot, which is what raises the katana into the drone's hand —
+	## the equip signal is already connected above, so the prop and the flourish
+	## follow on their own.
+	for item_id in STARTING_ITEMS:
+		add_item(item_id)
 
 
 func _build_hurt_flash() -> void:
@@ -287,8 +304,14 @@ func _toggle_grab() -> bool:
 
 
 func do_punch() -> void:
-	## Unarmed left click: the drone throws a jab. Visual and audible only —
-	## nothing here deals damage yet, the arms just sell the input.
+	## Unarmed left click: the drone throws a jab, and the jab lands — combat
+	## runs the katana's cone check with the bare-hand damage from the weapon
+	## table (the default branch of Weapon.damage_of, 5.0). It was visual and
+	## audible only, which read in game as "this animal cannot be hurt".
+	## A jab on cooldown neither swings nor thumps, so a held click cannot
+	## out-damage the katana.
+	if not combat.try_punch():
+		return
 	if equipment != null:
 		equipment.play_punch()
 	_snd_punch.play()
