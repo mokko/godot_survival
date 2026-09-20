@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Survival M"
+config/name="Nakamoto's Paradigm"
 config/version="0.0.1-alpha"
 run/main_scene="res://ui/splash.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")

@@ -8,7 +8,10 @@ func _init() -> void:
 	for i in 5:
 		await process_frame
 	var start: Button = splash.get_node("Center/VBox/Start")
-	var ok_title: bool = splash.get_node("Center/VBox/Title").text == "Survival"
+	## The menu must show the project's own name: comparing against
+	## ProjectSettings means a rename cannot leave one of the two behind.
+	var ok_title: bool = splash.get_node("Center/VBox/Title").text \
+			== str(ProjectSettings.get_setting("application/config/name"))
 	# Exit must exist and be wired; we don't press it (that would quit the
 	# test process before it can report).
 	var quit_btn: Button = splash.get_node_or_null("Center/VBox/Exit")
