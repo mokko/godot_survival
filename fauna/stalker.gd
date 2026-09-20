@@ -1,8 +1,10 @@
-extends "res://items/destroyable.gd"
+extends "res://fauna/fauna_base.gd"
 ## Dusk Stalker — patrol-chase NPC (fauna/animals.md #5). The island's only real
 ## danger. Patrols 2 points inside a territory; chases the player when they
 ## are within sight radius AND inside the territory; contact does damage
 ## with a grace cooldown; gives up outside territory or after CHASE_TIME.
+## Provoked (see fauna/fauna_base.gd): being hit makes it personal — it drops the
+## territory and the sight rules and hunts until the fight's own leash ends it.
 
 const Island := preload("res://world/island.gd")
 
@@ -13,7 +15,6 @@ const NIGHT_SIGHT_RADIUS := 14.0   ## the dark is its hunting time
 const TERRITORY_RADIUS := 30.0
 const CHASE_TIME := 8.0
 const CONTACT_RANGE := 1.2
-const DAMAGE := 5.0
 const HIT_COOLDOWN := 1.0
 const BODY_Y := 0.5
 const PATROL_SPAN := 9.0   ## metres between the two patrol legs
@@ -41,7 +42,6 @@ var _body_mesh: MeshInstance3D = null
 var _snd_growl: AudioStreamPlayer = null
 var _snd_hit: AudioStreamPlayer = null
 var _snd_death: AudioStreamPlayer = null
-const GROWL := preload("res://sounds/growl.wav")
 const BITE := preload("res://sounds/hit.wav")
 const DEATH := preload("res://sounds/enemy_death.wav")
 
@@ -108,6 +108,27 @@ func state_name() -> String:
 			return "PATROL"
 
 
+func species_name() -> String:
+	return "Dusk Stalker"
+
+
+func aggro_damage() -> float:
+	## What a landed bite costs. The base's hook, not a second number: the HUD,
+	## the fight and this wind-up all read the same value.
+	return 5.0
+
+
+func _on_aggro() -> void:
+	## A hit flips it straight into the hunt, wherever it was and whoever is
+	## watching: _start_chase() also plays the growl that says so.
+	_start_chase()
+
+
+func _on_calm() -> void:
+	## Fight over: walk home and resume the patrol.
+	_state = State.RETURN
+
+
 func _patrol_point(center: Vector2) -> Vector3:
 	## A second patrol leg PATROL_SPAN out, searched in deterministic directions
 	## so a stalker never patrols into the sea.
@@ -138,18 +159,25 @@ func is_night() -> bool:
 func _physics_process(delta: float) -> void:
 	_hit_cd = maxf(_hit_cd - delta, 0.0)
 	_tick_flash(delta)
+	# Leash bookkeeping for the provoked fight; the state machine below does the
+	# actual hunting, so this one is deliberately not "return if aggro".
+	_aggro_tick(delta)
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	var dist := INF
 	if player:
 		dist = Vector2(global_position.x, global_position.z).distance_to(
 				Vector2(player.global_position.x, player.global_position.z))
-	var in_territory := territory_center.distance_to(
-			Vector2(player.global_position.x, player.global_position.z)) \
-			<= TERRITORY_RADIUS if player else false
+	## A provoked stalker ignores its territory and the dark-lit sight radius: it
+	## was hurt, and it will follow that hurt anywhere until fauna_base gives up.
+	var provoked := is_aggro()
+	var in_territory := provoked or (territory_center.distance_to(
+			Vector2(player.global_position.x, player.global_position.z))
+			<= TERRITORY_RADIUS if player else false)
+	var in_sight := provoked or dist < sight_radius()
 
 	match _state:
 		State.PATROL:
-			if player and dist < sight_radius() and in_territory:
+			if player and in_sight and in_territory:
 				_start_chase()
 			else:
 				_patrol_t += delta * PATROL_SPEED / 15.0
@@ -160,6 +188,10 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			_chase_left -= delta
 			if player and in_territory and _chase_left > 0.0:
+				if provoked:
+					# No chase timeout while the fight is on: the leash in
+					# fauna_base.gd (AGGRO_LEASH / GIVE_UP_TIME) is what ends it.
+					_chase_left = CHASE_TIME
 				_steer_to(player.global_position, CHASE_SPEED, delta)
 				# No instant damage: stop, telegraph, then bite. The player can
 				# read the wind-up and walk out of reach.
@@ -175,7 +207,7 @@ func _physics_process(delta: float) -> void:
 			if _windup <= 0.0:
 				_bite(player, dist)
 		State.RETURN:
-			if player and dist < sight_radius() and in_territory:
+			if player and in_sight and in_territory:
 				_start_chase()
 			elif _arrive_home():
 				_state = State.PATROL
@@ -196,7 +228,7 @@ func _begin_windup() -> void:
 func _bite(player: Node3D, dist: float) -> void:
 	## The telegraph has elapsed: land the bite if the player is still close.
 	if player != null and dist <= ATTACK_RANGE + HIT_SLACK:
-		player.damage(DAMAGE)
+		player.damage(aggro_damage())
 		if _snd_hit != null:
 			_snd_hit.play()
 	_hit_cd = HIT_COOLDOWN

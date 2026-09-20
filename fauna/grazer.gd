@@ -1,7 +1,8 @@
-extends "res://items/destroyable.gd"
+extends "res://fauna/fauna_base.gd"
 ## Velvetback Grazer — wander-flee NPC (fauna/animals.md #1).
 ## IDLE 2-6 s -> walk to a nearby point 3-8 units away -> repeat.
 ## Player within 6 units: flee directly away at 2x walk speed for 4 s.
+## Provoked: it stops running and rams — see fauna/fauna_base.gd.
 
 const Island := preload("res://world/island.gd")
 
@@ -20,12 +21,28 @@ var _flee_left := 0.0
 var _rng := RandomNumberGenerator.new()
 
 
+func species_name() -> String:
+	return "Velvetback Grazer"
+
+
+func aggro_speed() -> float:
+	return 5.0   ## angrier than it flees (4): the herd fights what it cannot outrun
+
+func aggro_damage() -> float:
+	return 4.0
+
+func aggro_cooldown() -> float:
+	return 1.5
+
+
 func _ready() -> void:
 	_rng.seed = 20260906 + str(name).hash()
 	_timer = _rng.randf_range(1.0, 5.0)
 
 
 func _physics_process(delta: float) -> void:
+	if aggro_frame(delta):
+		return   # the fight owns the frame; no wandering while it lasts
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	var dist := INF
 	if player:

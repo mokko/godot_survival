@@ -1,7 +1,8 @@
-extends "res://items/destroyable.gd"
+extends "res://fauna/fauna_base.gd"
 ## Pebble Scuttler — hop-scuttle NPC, body always facing the player
 ## (fauna/animals.md #2). Picks a random point 2-5 units away, scuttles sideways
 ## to it with a little hop, pauses, repeats. Flees within 3 units.
+## Provoked: it scuttles straight at you, hops and all — see fauna/fauna_base.gd.
 
 const Island := preload("res://world/island.gd")
 
@@ -15,6 +16,29 @@ var _moving := false
 var _pause := 1.0
 var _hop_t := 0.0
 var _rng := RandomNumberGenerator.new()
+
+
+func species_name() -> String:
+	return "Pebble Scuttler"
+
+
+func aggro_damage() -> float:
+	return 3.0   ## a claw pinch: annoying, not dangerous
+
+func aggro_cooldown() -> float:
+	return 1.0
+
+func aggro_reach() -> float:
+	return 1.4
+
+
+func _aggro_move(delta: float, player: Node3D, _dist: float) -> void:
+	## Still a crab: the charge keeps the sideways hop, and the yaw is already
+	## locked onto the player by the facing code in _physics_process.
+	var to := player.global_position - global_position
+	to.y = 0.0
+	if to.length() > 0.05:
+		_step(to.normalized(), FLEE_SPEED, delta)
 
 
 func _ready() -> void:
@@ -31,6 +55,9 @@ func _physics_process(delta: float) -> void:
 		var face := Vector3(fp.x, global_position.y, fp.z)
 		if global_position.distance_squared_to(face) > 0.0001:
 			look_at(face, Vector3.UP)
+
+	if aggro_frame(delta):
+		return   # the fight owns the frame; no idle scuttling while it lasts
 
 	var dist := INF
 	if player:
