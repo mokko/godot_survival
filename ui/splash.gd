@@ -31,6 +31,12 @@ func _ready() -> void:
 	# A save left behind by an earlier install — an older snap revision, or the game
 	# under its previous name — is adopted before anything reads it. Load Game is
 	# always shown, so this is the one moment that can notice one is there.
+	# A single savefile from before slots existed becomes slot 1 first, then a
+	# save left behind by an earlier install is adopted. Slot 1 either way, and
+	# both are copies: the files they came from are never touched.
+	var migrated: String = SAVEGAME.migrate_legacy_file()
+	if migrated != "":
+		print("SaveGame: took the save at %s into slot 1" % migrated)
 	var adopted: String = SAVEGAME.adopt_legacy_save()
 	if adopted != "":
 		print("SaveGame: adopted the save left at %s" % adopted)
@@ -127,6 +133,9 @@ func _on_continue_pressed() -> void:
 	## run, and the player has already read it. pending_load makes the player
 	## restore the save in its _ready.
 	SAVEGAME.pending_load = true
+	# Which slot: the one this player played last, so a fresher autosave does not
+	# hijack Continue. 0 means nothing to continue and the player falls back.
+	SAVEGAME.pending_slot = SAVEGAME.continue_slot()
 	# A loaded run keeps what it was carrying: no starting loadout.
 	SAVEGAME.pending_new_run = false
 	get_tree().change_scene_to_file(GAME_SCENE)

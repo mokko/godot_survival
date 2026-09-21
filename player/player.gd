@@ -46,6 +46,9 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var life: float = START_LIFE
 var _drain_accum: float = 0.0
 var _discovery_timer: float = 0.0   ## counts down to the next notebook poll
+## Counts up to the next autosave (SaveGame.AUTOSAVE_SECONDS). Only a living
+## run rotates the autosave slot: a dead one has nothing worth keeping.
+var _autosave_clock: float = 0.0
 var _game_over: bool = false
 var sunbulbs_collected: int = 0
 var _held_block: MovableBlock = null
@@ -194,7 +197,9 @@ func _ready() -> void:
 	# once, when launched from the splash screen's Load Game button; Start Game
 	# hands out the starting loadout instead.
 	if SAVEGAME.take_pending_load():
-		load_state(SAVEGAME.read())
+		# Which slot the splash asked for (0 = whatever this player played last).
+		SaveGame.current_slot = SAVEGAME.take_pending_slot()
+		load_state(SAVEGAME.read_slot(SaveGame.current_slot))
 	elif SAVEGAME.take_pending_new_run():
 		# A fresh run starts with an empty notebook. It refills from what the
 		# drone is handed (equipment), where it wakes up (islands) and what it
@@ -500,6 +505,13 @@ func _physics_process(delta: float) -> void:
 		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
 
+	# Rotate the autosave every AUTOSAVE_SECONDS (300, the fifth slot). Same file
+	# every time, so a crash can only cost the player the last five minutes.
+	_autosave_clock += delta
+	if _autosave_clock >= SaveGame.AUTOSAVE_SECONDS:
+		_autosave_clock = 0.0
+		SaveGame.autosave(self)
+
 	# Drain energy steadily (LIFE_DRAIN_PER_SEC, a quarter point a second).
 	_drain_accum += delta
 	while _drain_accum >= 1.0:
@@ -639,11 +651,11 @@ func _trigger_game_over() -> void:
 	for node in get_tree().get_nodes_in_group("aggro_fauna"):
 		if is_instance_valid(node) and node.has_method("calm_down"):
 			node.calm_down()
-	# Death penalty: you lose everything you were carrying.
+	# Death penalty: you lose everything you were carrying — in this run. The
+	# save on disk is deliberately left alone, so the last save is still there to
+	# load; the wipe applies to the run you are in, not to what you had saved.
 	if inventory != null:
 		inventory.clear_all()
-	# Drop the saved items too: a fresh run must start empty.
-	SaveGame.clear()
 	if game_over_label:
 		game_over_label.visible = true
 	if game_over_sound:

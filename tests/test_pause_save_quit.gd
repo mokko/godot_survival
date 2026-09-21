@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless check: Save in the pause menu writes user://savegame.json with
+## Headless check: Save in the pause menu writes the run's slot with
 ## position/orbs/life; Quit returns to the splash (main menu).
 
 func _init() -> void:
@@ -19,13 +19,13 @@ func _init() -> void:
 	menu._on_save()
 	for i in 3:
 		await process_frame
-	var f := FileAccess.open("user://savegame.json", FileAccess.READ)
-	var ok_save := false
-	if f != null:
-		var data = JSON.parse_string(f.get_as_text())
-		ok_save = data != null and int(data.get("sunbulbs", -1)) == 7 \
-					and absf(float(data.get("life", -1.0)) - 55.0) < 0.01 \
-					and data.get("pos", []).size() == 3
+	# The pause menu saves into the run's own slot (SaveGame.current_slot), which
+	# for a run that was never saved before is slot 1.
+	var slot: int = SaveGame.current_slot if SaveGame.current_slot > 0 else SaveGame.DEFAULT_SLOT
+	var data := SaveGame.read_slot(slot)
+	var ok_save: bool = not data.is_empty() and int(data.get("sunbulbs", -1)) == 7 \
+				and absf(float(data.get("life", -1.0)) - 55.0) < 0.01 \
+				and data.get("pos", []).size() == 3
 
 	# Quit: changes scene back to the splash and unpauses.
 	menu._on_quit_to_menu()

@@ -71,7 +71,10 @@ func _set_crosshair_visible(shown: bool) -> void:
 
 func _on_save() -> void:
 	var player: CharacterBody3D = get_tree().current_scene.get_node("Player")
-	var ok: bool = SAVEGAME.write(player)
+	# Save into the slot this run plays in; a run that has never been saved
+	# anywhere yet opens slot 1, and the Saves screen is how you choose another.
+	var slot: int = SaveGame.current_slot if SaveGame.current_slot > 0 else SaveGame.DEFAULT_SLOT
+	var ok: bool = SAVEGAME.write_slot(slot, player)
 	_show_save_label("Saved!" if ok else "Save failed")
 
 
