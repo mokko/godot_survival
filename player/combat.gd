@@ -46,7 +46,13 @@ func _process(delta: float) -> void:
 
 func try_slash() -> void:
 	_ensure_slash()
-	if _slash != null and not _slash.can_slash():
+	if _slash == null:
+		# _ensure_slash() needs player.equipment, and a drone without one has nothing
+		# to swing: no sword prop, no trail, no animation. The guard used to check
+		# _slash only for the cooldown and then call it anyway — a null call waiting
+		# for the one frame where equipment is missing.
+		return
+	if not _slash.can_slash():
 		return
 	player.play_slash_sound()
 	_slash.slash()

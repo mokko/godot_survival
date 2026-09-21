@@ -103,6 +103,17 @@ func _init() -> void:
 	if player.hit_marker_alpha() > 0.0:
 		fails.append("hit_marker_never_faded")
 
+	# 4. A slash with no equipment node is refused instead of called on nothing.
+	#    _ensure_slash() cannot build the swing without player.equipment, and this
+	#    guard is the only thing standing between that and a call on a null node.
+	var kept_equipment = player.equipment
+	player.equipment = null
+	player.combat._slash = null
+	player.combat.try_slash()
+	if player.combat._slash != null:
+		fails.append("slash_built_without_equipment")
+	player.equipment = kept_equipment
+
 	for n in [t_front, t_behind, t_far]:
 		n.queue_free()
 
