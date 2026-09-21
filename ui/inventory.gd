@@ -169,14 +169,19 @@ func equip_armor_from_inventory() -> void:
 	if stats.is_empty():
 		return                  # equipped item is not armor
 	worn_armor_id = id
+	# The durability carried here is the table's pristine value and is advisory: the
+	# player hands only the id to combat, which knows what this piece has left. That
+	# is what stops a worn piece from being repaired by pressing E twice.
 	armor_changed.emit(id, float(stats.get("durability", 100.0)))
 	_refresh()
 
 
-func wear_armor(id: String, durability: float) -> void:
-	## Programmatic wear (used on savegame load).
+func set_worn(id: String) -> void:
+	## Tell the slot styling which piece is worn. **Does not emit**: combat owns what
+	## a piece has left and announces the change itself, and this is also called from
+	## that announcement — an emitting call would recurse back into combat.
 	worn_armor_id = id
-	armor_changed.emit(id, durability)
+	_refresh()
 
 
 func is_full() -> bool:

@@ -48,7 +48,10 @@ job. Numbers are quoted so a tuning pass does not have to read the code first.
 - **Right click held / released** → `_begin_draw_bow()` / `_release_bow()` →
   `combat.begin_draw_bow()` / `combat.release_bow()`
 - **E on an armour slot** (in `ui/inventory.gd`) → `player._on_armor_changed()`
-  → `combat.load_armor_state()`, which is the single owner of a worn piece
+  → `combat.wear_from_inventory()`, which is the single owner of a worn piece. The
+  durability that arrives with that signal is the table's pristine value and is
+  ignored: only `combat._wear` knows what a piece has left, which is what stops
+  armour from repairing itself when it is taken off and put back on
 
 `combat.try_slash()` builds the swing node lazily (`_ensure_slash()`, which
 also wires the sword prop and the trail into it), plays the swing sound, and
@@ -160,7 +163,10 @@ Everything that can hurt the player arrives at **one** function,
 2. `combat.absorb(amount)` — armour eats `absorption` (leather: 30%) and
    loses durability (0.5 per point eaten: 1.5 durability per 10-damage hit,
    so the 80-point leather piece survives roughly 53 such hits). Whatever
-   passes through comes back.
+   passes through comes back. The number is written back to `_wear` (per item id)
+   as it drops, so durability is a property of the *piece*, not of the moment it
+   was put on; only a fresh pickup (`combat.reset_wear()`, from `player.add_item()`)
+   starts it whole again.
 3. Feedback, unconditionally on a hit that counted: `_invuln = INVULN_TIME`
    (0.6 s), the red screen flash to alpha 0.55, and the hurt sound.
 4. `_apply_damage(through)` → `life -= through`; at zero
@@ -227,6 +233,7 @@ clobber them.
 - `tests/test_player_hurt.gd` — grace window, flash, armour absorbing and
   degrading, death still lethal.
 - `tests/test_weapons_armor.gd` — weapon table, armour absorption and
-  breakage, the E-key path.
+  breakage, the E-key path, and that a re-worn piece keeps what it has left
+  (a fresh pickup being the only thing that makes it whole again).
 - `tests/test_destroyable.gd` — 50 life and the death puff for every species.
 - `tests/test_energy_meter.gd` — four batteries, half-charge rounding.

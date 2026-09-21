@@ -24,6 +24,10 @@ var _slash: Node3D = null
 var _punch_cd := 0.0          ## counts down; a jab on cooldown does not swing
 var armor_id := ""            ## equipped armor item id, "" = none
 var armor_durability := 0.0
+## item id -> how much of that piece is left. Armour is worn out by being hit; it is
+## not repaired by being taken off, which is what the E path used to do by handing
+## out the table's pristine durability on every wear.
+var _wear := {}
 
 
 signal armor_changed(armor_id: String, durability: float)
@@ -163,38 +167,87 @@ func _find_arrow_stack() -> int:
 
 
 ## ------------------------------------------------------------------- armor
+##
+## Wear is tracked here, **per item id**, not per inventory slot: the inventory owns
+## slots and the UI, combat owns what a piece has left. Every path that wears a piece
+## reads `_wear` rather than `ARMOR.STATS`, which is what stops armour repairing
+## itself — pressing E twice used to hand out a fresh piece every time.
+
+func durability_of(item_id: String) -> float:
+	## What is left of this piece: the table's value only until it has been worn,
+	## because being hit is what wears armour out.
+	var stats: Dictionary = ARMOR.STATS.get(item_id, {})
+	return float(_wear.get(item_id, float(stats.get("durability", 100.0))))
+
+
+func reset_wear(item_id: String) -> void:
+	## A newly picked-up piece starts whole. Wear is kept per item id, so this is the
+	## only thing that tells a fresh piece apart from the broken one already in the
+	## bag (a per-instance model would need the inventory to carry the number too).
+	if ARMOR.STATS.has(item_id):
+		_wear.erase(item_id)
+
 
 func equip_armor(item_id: String) -> bool:
 	## Programmatic equip (tests, savegame load). UI path: inventory key E.
 	if player.inventory == null:
 		return false
-	var stats: Dictionary = ARMOR.STATS.get(item_id, {})
-	if stats.is_empty():
+	if ARMOR.STATS.get(item_id, {}).is_empty():
 		return false
 	for i in player.inventory.SLOTS:
 		if player.inventory.slots[i] == item_id:
-			armor_id = item_id
-			armor_durability = float(stats.get("durability", 100.0))
-			player.inventory.wear_armor(item_id, armor_durability)
-			armor_changed.emit(item_id, armor_durability)
+			_wear_armour(item_id)
 			return true
 	return false
 
 
+func wear_from_inventory(item_id: String) -> bool:
+	## The inventory's E key. It knows which slot was pressed but not what the piece
+	## has left — that is ours — so the durability it carries is advisory and ignored.
+	## Wearing a broken piece is allowed and simply absorbs nothing; the HUD shows 0.
+	if item_id == "" or item_id == armor_id:
+		# Empty slot, or the piece already on: E means take it off.
+		if armor_id == "":
+			return false
+		take_off_armor()
+		return true
+	if ARMOR.STATS.get(item_id, {}).is_empty():
+		return false
+	_wear_armour(item_id)
+	return true
+
+
+func take_off_armor() -> void:
+	armor_id = ""
+	armor_durability = 0.0
+	armor_changed.emit("", 0.0)
+
+
+func _wear_armour(item_id: String) -> void:
+	armor_id = item_id
+	armor_durability = durability_of(item_id)
+	# set_worn(), not the inventory's own wear call: the inventory's armor_changed
+	# signal comes back here through player._on_armor_changed, so an emitting call
+	# would recurse.
+	if player.inventory != null:
+		player.inventory.set_worn(item_id)
+	armor_changed.emit(item_id, armor_durability)
+
+
 func absorb(amount: float) -> float:
-	## Armor soaks its share first, degrading. Returns damage that passes
-	## through; emits armor_changed when durability drops or armor breaks.
+	## Armour soaks its share first and wears down as it does; the wear is remembered
+	## so taking the piece off cannot undo it. Returns the damage that passes through,
+	## and emits armor_changed only on a real state change (a break) — never per hit,
+	## because the HUD reads armor_status() every frame for the number.
 	if armor_id == "" or armor_durability <= 0.0:
 		return amount
 	var stats: Dictionary = ARMOR.STATS.get(armor_id, {})
 	var absorption: float = float(stats.get("absorption", 0.0))
 	var eaten: float = clampf(amount * absorption, 0.0, amount)
 	armor_durability = maxf(armor_durability - eaten * 0.5, 0.0)
+	_wear[armor_id] = armor_durability
 	if armor_durability <= 0.0:
-		armor_id = ""   # armor broke
-		# Only signal on a real state change. Emitting per hit made the equip
-		# flourish fire on every scratch; the HUD reads durability straight
-		# from armor_status() each frame, so it still ticks down normally.
+		armor_id = ""   # it broke: what is left in the bag is a dead piece
 		armor_changed.emit(armor_id, armor_durability)
 	return amount - eaten
 
@@ -204,6 +257,10 @@ func armor_status() -> Dictionary:
 
 
 func load_armor_state(id: String, durability: float) -> void:
+	## Restoring a save. The saved durability *is* what that piece has left, so it is
+	## remembered for a later re-wear instead of being treated as a new piece.
 	armor_id = id
 	armor_durability = durability
+	if id != "":
+		_wear[id] = durability
 	armor_changed.emit(id, durability)

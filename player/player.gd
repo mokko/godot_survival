@@ -143,7 +143,7 @@ func load_state(data: Dictionary) -> void:
 		combat.load_armor_state(saved_armor,
 				float(data.get("armor_durability", 0.0)))
 		if inventory != null:
-			inventory.wear_armor(saved_armor, combat.armor_durability)
+			inventory.set_worn(saved_armor)
 			inventory.refresh()
 	_update_hud()
 
@@ -303,6 +303,10 @@ func add_item(item_id: String) -> bool:
 	var ok: bool = inventory.add_item(item_id)
 	if ok:
 		_snd_grab.play()
+		# A piece picked up is a whole one. Wear is remembered per item id, so
+		# without this a new piece would inherit the state of a broken one already
+		# in the bag.
+		combat.reset_wear(item_id)
 	return ok
 
 
@@ -444,9 +448,11 @@ func _on_item_equipped(slot: int) -> void:
 		equipment.play_flourish()
 
 
-func _on_armor_changed(armor_id: String, durability: float) -> void:
-	## UI path: inventory emits when the player presses E on an armor slot.
-	combat.load_armor_state(armor_id, durability)
+func _on_armor_changed(armor_id: String, _durability: float) -> void:
+	## UI path: inventory emits when the player presses E on an armor slot. Only the
+	## id is used — the durability it carries is the armour table's pristine value —
+	## because combat is the thing that remembers what a piece has left.
+	combat.wear_from_inventory(armor_id)
 
 
 func _on_combat_armor_changed(armor_id: String, durability: float) -> void:

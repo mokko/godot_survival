@@ -1,4 +1,4 @@
-# Nakamoto's Paradigm (v0.0.1-alpha)
+# Nakamoto's Paradigm (v0.0.2-alpha)
 
 *Display name: **Nakamoto's Paradigm**. The working label is still `survivalm` —
 the folder, `project/assembly_name`, the test lock and the macOS bundle id all

@@ -1,10 +1,19 @@
 extends SceneTree
 ## Headless check: weapon damage table, leather armor absorption + breakage,
-## and the player damage route through armor.
+## the player damage route through armor, and that armor cannot be repaired by
+## taking it off and putting it back on.
 ##
 ## The player now has a short grace window after each hit (player.INVULN_TIME),
 ## which is tested in tests/test_player_hurt.gd. These loops deliberately clear
 ## it between iterations so they keep measuring armour, not grace.
+
+func _slot_of(inv, item_id: String) -> int:
+	## Index of the first slot holding this item, -1 when it is not carried.
+	for i in inv.SLOTS:
+		if inv.slots[i] == item_id:
+			return i
+	return -1
+
 
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
@@ -55,12 +64,16 @@ func _init() -> void:
 	if absf(player.life - (life1 - 10.0)) > 0.01:
 		fails.append("broken_absorbs")
 
-	# 4. UI path: key E on an armor slot wears it (inventory emits, HUD shows).
-	inv.slots[2] = "leather_armor"
-	inv.counts[2] = 1
-	inv.equipped_slot = 2
-	inv._refresh()
-	inv.equip_armor_from_inventory()
+	# 4. UI path: key E on an armor slot wears it (inventory emits, HUD shows). A
+	#    *fresh* piece, because the one broken in case 3 is broken for good: wear is
+	#    remembered per item id, and only a new pickup starts whole.
+	player.add_item("leather_armor")
+	var slot := _slot_of(inv, "leather_armor")
+	if slot < 0:
+		fails.append("no_slot_for_fresh_armor")
+	else:
+		inv.equipped_slot = slot
+		inv.equip_armor_from_inventory()
 	if player.armor_status()["id"] != "leather_armor":
 		fails.append("ui_equip")
 	player.life = 40.0
@@ -106,6 +119,38 @@ func _init() -> void:
 	player.damage(5.0)
 	if sig_count[0] != after_equip:
 		fails.append("armor_changed_spam")
+
+	# 8. Armor does not repair itself. The E path handed out the table's pristine
+	#    durability on every wear, so taking a chipped piece off and putting it back
+	#    on restored it to new — E twice for a full set of armor.
+	inv.equip_armor_from_inventory()             # make sure nothing is worn
+	player.add_item("leather_armor")             # a fresh pickup: whole again
+	var slot8 := _slot_of(inv, "leather_armor")
+	if slot8 < 0:
+		fails.append("no_slot_for_armor_case_8")
+	else:
+		inv.equipped_slot = slot8
+		inv.equip_armor_from_inventory()
+	var whole: float = player.armor_status()["durability"]
+	if absf(whole - 80.0) > 0.01:
+		fails.append("fresh_armor_not_whole=%.1f" % whole)
+	player.life = 40.0
+	player._invuln = 0.0
+	player.damage(10.0)                          # eats 3, so chips 1.5
+	var chipped: float = player.armor_status()["durability"]
+	if chipped >= whole:
+		fails.append("armor_did_not_chip_in_case_8")
+	inv.equip_armor_from_inventory()             # off
+	inv.equip_armor_from_inventory()             # on again
+	if absf(player.armor_status()["durability"] - chipped) > 0.01:
+		fails.append("armor_repaired_itself_on_rewear")
+	# The other way a re-wear could hand out a new piece: after a savegame load,
+	# which goes through load_armor_state().
+	player.combat.load_armor_state("leather_armor", 40.0)
+	inv.equip_armor_from_inventory()             # off
+	inv.equip_armor_from_inventory()             # on again
+	if absf(player.armor_status()["durability"] - 40.0) > 0.01:
+		fails.append("loaded_armor_repaired_itself_on_rewear")
 
 	if not backup.is_empty():
 		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)

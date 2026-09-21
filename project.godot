@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Nakamoto's Paradigm"
-config/version="0.0.1-alpha"
+config/version="0.0.2-alpha"
 ## user:// follows config/name by default, so renaming the game silently abandons
 ## the player's savegame. A custom name pins the folder for **player builds** — the
 ## engine forces the default location for editor and --script runs, so the test
