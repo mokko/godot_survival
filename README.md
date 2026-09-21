@@ -1,11 +1,7 @@
 # Nakamoto's Paradigm (v0.0.2-alpha)
 
-*Display name: **Nakamoto's Paradigm**. The working label is still `survivalm` —
-the folder, `project/assembly_name`, the test lock and the macOS bundle id all
-keep it, because those are identifiers rather than titles.*
-
-Nakamoto's Paradigm is an experiment to learn more about Godot, games, and
-developing with AI. It is the first experiment — others will follow.
+Nakamoto's Paradigm (aka survivalm) is an experiment to learn more about Godot,
+games, and developing with AI. It is the first experiment — others will follow.
 
 We currently develop using [Hermes](https://hermes-agent.nousresearch.com)
 and a GLM model.
