@@ -3,8 +3,7 @@
 Nakamoto's Paradigm (aka survivalm) is an experiment to learn more about Godot,
 games, and developing with AI. It is the first experiment — others will follow.
 
-We currently develop using [Hermes](https://hermes-agent.nousresearch.com)
-and a GLM model.
+We currently develop using Hermes (agent) with GLM Flash and Deepseek Flash.
 
 FIRST ITERATION
 
