@@ -209,6 +209,23 @@ clobber them.
 - **You walk away**: leash + `GIVE_UP_TIME`, then the animal resumes its
   ambient life exactly where it left off.
 
+## What a run starts with, and what death takes
+
+A new run begins with five items already carried (`player/player.gd`'s
+`STARTING_ITEMS`): the **Katana**, the **Pedia notebook**, the **Pen**, the
+**Magnifying Glass** and the **Binoculars**. The katana is handed out because a
+run should be able to meet the fight on the first stroll rather than after a
+crafting chain, and the notebook because the first plant you walk past should
+already be drawable. `add_item()` auto-equips the first slot, which is what
+raises the katana into the drone's hand.
+
+Of those, three are **keepsakes** (`KEEPSAKE_ITEMS`: the notebook, the pen and
+the glass). The death wipe clears the inventory, and the keepsakes are handed
+back on respawn, because there is no other way to obtain them and a handbook you
+can drop forever is a handbook with a hole in it. The katana and the binoculars
+are ordinary gear: they go with the rest of the loot, so a respawn is back to
+fists plus its own notes.
+
 ## Where to change what
 
 - Damage per weapon: `items/weapon.gd` (`damage_of`).
