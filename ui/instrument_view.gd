@@ -21,6 +21,34 @@ const VIEW_RADIUS := 0.34  ## of the viewport height
 
 var tubes := 2             ## 2 = binoculars, 1 = the magnifying glass' loupe
 var radius_fraction := VIEW_RADIUS
+## How many times this view has actually queued a redraw. The mask is drawn in 4 px
+## strips — hundreds of rects on a 1920-wide window — and the caller asks every frame,
+## so a redraw has to be earned. Counted here so a test can prove it (a headless run
+## has no renderer and cannot see a draw happening).
+var redraw_requests := 0
+
+
+func _ready() -> void:
+	# A resized window changes the geometry, so that is worth one redraw. Nothing
+	# else about the view changes between tool swaps.
+	resized.connect(queue_redraw)
+
+
+func set_view(tubes_in: int, radius_in: float) -> bool:
+	## The one supported way to change what is drawn. Returns true when something was
+	## actually different — the caller (player/study.gd) asks every frame, and
+	## unconditionally queuing a redraw there rebuilt the whole mask every frame.
+	var changed := false
+	if tubes_in != tubes:
+		tubes = tubes_in
+		changed = true
+	if not is_equal_approx(radius_in, radius_fraction):
+		radius_fraction = radius_in
+		changed = true
+	if changed:
+		queue_redraw()
+		redraw_requests += 1
+	return changed
 
 
 func _draw() -> void:

@@ -374,18 +374,16 @@ func _build_hud() -> void:
 
 func _update_view() -> void:
 	## Binoculars: two tubes. Magnifying glass: one lens, closer in. Neither: none.
+	## Changing the tool redraws the mask (ui/instrument_view.gd::set_view) and
+	## holding it does not: this runs every frame, and the mask is drawn in 4 px strips.
 	if _view == null:
 		return
 	var held := instrument()
 	_view.visible = held != ""
 	if held == BINOCULAR_ITEM:
-		_view.tubes = 2
-		_view.radius_fraction = 0.34
+		_view.set_view(2, 0.34)
 	elif held == MAGNIFIER_ITEM:
-		_view.tubes = 1
-		_view.radius_fraction = 0.42
-	if _view.visible:
-		_view.queue_redraw()
+		_view.set_view(1, 0.42)
 	if _meter != null and _meter.visible and _meter.message == "" \
 			and _subject == null:
 		_meter.visible = false

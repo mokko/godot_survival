@@ -339,6 +339,25 @@ func _init() -> void:
 	elif not animals_button.text.contains("(2/%d)" % PediaData.subchapters("animals").size()):
 		fails.append("chapter_counts_wrong:" + animals_button.text)
 
+	# 12. The instrument view is redrawn when the tool changes, not every frame: the
+	#     mask is drawn in 4 px strips (hundreds of rects) and _update_view() runs
+	#     every frame, so the redraw has to be earned.
+	if not _equip(player, "magnifying_glass"):
+		fails.append("glass_not_equippable_for_the_redraw_case")
+	await _wait(0.2)
+	var swaps: int = study._view.redraw_requests
+	if swaps <= 0:
+		fails.append("view_never_redrawn")
+	await _wait(0.6)                       # holding it: ~35 frames of _update_view()
+	if study._view.redraw_requests != swaps:
+		fails.append("view_redrawn_every_frame:%d->%d" % [swaps,
+				study._view.redraw_requests])
+	if not _equip(player, "binoculars"):
+		fails.append("binoculars_not_equippable_for_the_redraw_case")
+	await _wait(0.2)
+	if study._view.redraw_requests <= swaps:
+		fails.append("changing_the_tool_did_not_redraw")
+
 	if fails.is_empty():
 		print("RESULT ALL PASS")
 		quit(0)
