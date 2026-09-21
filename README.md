@@ -103,7 +103,7 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
   magnifying glass and the binoculars.
 - **The HUD** — `ui/hud.md`: the four batteries and the rest of that surface.
 - **Boats** — `world/boats.md`: the sailing route and the hull rules.
-- **Saves** — `world/savegame.md`: where `user://` really is and what moves it.
+- **Saves** — `world/savegame.md`: the five slots, the autosave, and where `user://` really is.
 - **Species** — `flora/plants.md`, `fauna/animals.md`.
 - **Research** — `research/`: the geography, the older premise notes, the
   researchers.
