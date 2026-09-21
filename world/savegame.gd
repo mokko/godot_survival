@@ -6,6 +6,11 @@ class_name SaveGame
 ## via save_state()/load_state().
 
 const SAVE_PATH := "user://savegame.json"
+const SAVE_FILE_NAME := "savegame.json"
+
+## Keys a real save can be expected to carry. Used to tell our savegame apart from
+## some other Godot project's file of the same name while looking for a legacy one.
+const SAVE_KEYS := ["pos", "life", "inventory", "notes", "armor", "time_of_day"]
 
 ## Set by the splash screen before entering the game; consumed (and
 ## cleared) by the player in _ready.
@@ -67,3 +72,86 @@ static func clear() -> bool:
 		return false
 	f.store_string("{}")
 	return true
+
+
+## Adopt a savefile left behind by an earlier install, and return the path it came
+## from ("" when there was nothing to adopt).
+##
+## A snap refresh hands out a new XDG_DATA_HOME (`godot-4/34`, not `godot-4/30`) and a
+## rename changes the folder name; either one leaves the player's savegame in a
+## directory the engine will never look at again, and the run is silently gone. This
+## copies the newest valid one it can find into the current location — once, at
+## startup. Best effort by design: every failure is a quiet no-op, and the file it
+## finds is never moved or deleted.
+##
+## `roots` overrides where to look, which is how the test drives it hermetically.
+static func adopt_legacy_save(roots: Array = []) -> String:
+	if exists():
+		return ""      # this install already has a save; never second-guess it
+	var best := ""
+	var best_time := -1
+	for root_dir in (roots if not roots.is_empty() else legacy_roots()):
+		var path: String = str(root_dir).path_join(SAVE_FILE_NAME)
+		if path == SAVE_PATH or not FileAccess.file_exists(path):
+			continue
+		if not _looks_like_a_save(path):
+			continue
+		var when: int = FileAccess.get_modified_time(path)
+		if when > best_time:
+			best_time = when
+			best = path
+	if best == "":
+		return ""
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		push_error("SaveGame.adopt failed: %s" % error_string(FileAccess.get_open_error()))
+		return ""
+	f.store_string(FileAccess.get_file_as_string(best))
+	return best
+
+
+static func legacy_roots() -> Array:
+	## Where a save from an earlier install could be. On Linux the engine's own folder
+	## is `<...>/godot/app_userdata/<config/name>`, so the candidates are the folders
+	## beside it (an earlier title) and the same folders under every sibling revision
+	## (a snap refresh). Anywhere else this finds nothing, which is the intended
+	## outcome: the game simply starts without a save.
+	var out: Array = []
+	if OS.get_name() != "Linux":
+		return out
+	var dir := OS.get_user_data_dir().get_base_dir()
+	for depth in 6:
+		if dir.is_empty() or dir == "/" or dir == ".":
+			break
+		for sibling in _subdirs(dir):
+			out.append(sibling)
+			# A sibling can be another revision of the snap, or another XDG data
+			# root: look inside it for an app_userdata (or custom-name) directory.
+			for nested in ["app_userdata", ".local/share/godot/app_userdata"]:
+				out.append_array(_subdirs(str(sibling).path_join(nested)))
+		dir = dir.get_base_dir()
+	return out
+
+
+static func _subdirs(path: String) -> Array:
+	var out: Array = []
+	var d := DirAccess.open(path)
+	if d == null:
+		return out
+	for sub in d.get_directories():
+		out.append(path.path_join(sub))
+	return out
+
+
+static func _looks_like_a_save(path: String) -> bool:
+	## Anything named savegame.json in a sibling directory could belong to a different
+	## project, so the content has to look like ours before it is adopted.
+	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not data is Dictionary:
+		return false
+	if (data as Dictionary).is_empty():
+		return true      # a wiped save: valid, and adopting it changes nothing
+	for key in SAVE_KEYS:
+		if (data as Dictionary).has(key):
+			return true
+	return false

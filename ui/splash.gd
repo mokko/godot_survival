@@ -28,6 +28,12 @@ const BUTTON_WIDTH_RATIO := 1.0 / 3.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# A save left behind by an earlier install — an older snap revision, or the game
+	# under its previous name — is adopted before anything reads it. Load Game is
+	# always shown, so this is the one moment that can notice one is there.
+	var adopted: String = SAVEGAME.adopt_legacy_save()
+	if adopted != "":
+		print("SaveGame: adopted the save left at %s" % adopted)
 	_size_menu_buttons()
 	$Center/VBox/Start.grab_focus()
 	# The project boots fullscreen (window/size/mode=3); this honours a saved
