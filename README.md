@@ -5,6 +5,11 @@ games, and developing with AI. It is the first experiment — others will follow
 
 We currently develop using Hermes (agent) with GLM Flash and Deepseek Flash.
 
+## Story
+
+Currently we are exploring this story: you have to survive while finding
+out who you are and why you are on this planet.
+
 FIRST ITERATION
 
 The game starts out as a relatively generic 3D survival game with a sci-fi
@@ -22,6 +27,15 @@ by: Myst and Riven (an authored world whose puzzles teach its culture),
 Outer Wilds (progression through understanding), Tunic (learning a
 language by immersion), and Subnautica (survival loop + story told through
 ruins).
+
+SECOND ITERATION
+
+We added a combat system. At the moment it's still generic and doesn't feel
+good, but should have basic function. Plus exploration storyline where
+magnifying glass etc. leads to entries in encyclopedia (the Pedia). Will take some time
+to work as intended. We also thought about a crafting system where we find
+robot parts on the island that let us modify our robot. Still no mechanism to
+change the environment.
 
 ## Decisions
 
@@ -41,7 +55,7 @@ ruins).
 ## Team
 
 - **Maurice** — executive director; has the last word in any decision.
-- **Rowan** (Hermes + GLM) — makes suggestions and implements.
+- **Rowan** — makes suggestions and does testing.
 - **Wes** — may later design graphics or other elements.
 
 ## Running
@@ -52,11 +66,6 @@ via snap on this machine, run as `snap run godot-4`):
 ```bash
 godot --path .
 ```
-
-## Story
-
-Currently we are exploring this story: you have to survive while finding
-out who you are and why you are on this planet.
 
 ## Development
 
