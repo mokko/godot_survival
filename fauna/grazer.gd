@@ -87,11 +87,14 @@ func _start_flee() -> void:
 
 
 func _move(dir: Vector3, speed: float, delta: float) -> void:
-	var p := global_position + dir * speed * delta
+	## Walk it, but not through a rock: fauna_base.walk_step probes the step, because
+	## writing global_position directly is otherwise invisible to the collision world.
+	var p := global_position + walk_step(dir, speed, delta)
 	p.y = Island.height_at(p.x, p.z) + BODY_Y
 	global_position = p
-	if dir.length_squared() > 0.0001:
-		var look := global_position + dir
+	var facing := Vector3(dir.x, 0.0, dir.z)
+	if facing.length_squared() > 0.0001:
+		var look := global_position + facing.normalized()
 		if global_position.distance_squared_to(look) > 0.0001:
 			look_at(look, Vector3.UP)
 

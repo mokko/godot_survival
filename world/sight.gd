@@ -28,24 +28,46 @@ static func clear(from_node: Node3D, to_node: Node3D) -> bool:
 		return false
 	if not from_node.is_inside_tree() or not to_node.is_inside_tree():
 		return false
-	var world := from_node.get_world_3d()
-	if world == null:
+	if from_node.get_world_3d() == null:
 		return false
-	var origin := from_node.global_position + CHEST
-	var target := to_node.global_position + CENTRE
-	var query := PhysicsRayQueryParameters3D.create(origin, target)
-	query.collide_with_bodies = true
-	query.collide_with_areas = false   # flat cover does not block a blow
-	# Only a physics body has a RID to exclude, and half the fauna are plain Node3D
-	# roots with a collider child (the gull, the rippleback): calling get_rid() on
-	# one of those is a runtime error, and an error inside this function silently
-	# refused every bite those two species tried.
-	if from_node is CollisionObject3D:
-		query.exclude = [(from_node as CollisionObject3D).get_rid()]
-	var hit := world.direct_space_state.intersect_ray(query)
+	var hit := _cast(from_node, from_node.global_position + CHEST,
+			to_node.global_position + CENTRE)
 	if hit.is_empty():
 		return true
 	return _is_part_of(hit["collider"], to_node)
+
+
+static func clear_at(from_node: Node3D, origin: Vector3, target: Vector3) -> bool:
+	## Is the straight line between two *points* clear? The same rules, for callers
+	## that ask about a place rather than a thing — the fauna probe their next step
+	## with this (fauna_base.walk_step), which is what keeps them out of boulders.
+	##
+	## No world means nothing can be in the way, and a step refused here would freeze
+	## the animal; that is the opposite of clear()'s choice, deliberately.
+	if from_node == null or not from_node.is_inside_tree():
+		return false
+	if from_node.get_world_3d() == null:
+		return true
+	return _cast(from_node, origin, target).is_empty()
+
+
+static func _cast(from_node: Node3D, origin: Vector3, target: Vector3) -> Dictionary:
+	## The one ray this file casts: solid bodies only (flat ground cover is Area3D-based
+	## and deliberately lets a blow or a step through), with the actor's own body
+	## excluded.
+	var world := from_node.get_world_3d()
+	if world == null:
+		return {}
+	var query := PhysicsRayQueryParameters3D.create(origin, target)
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	# Only a physics body has a RID to exclude, and half the fauna are plain Node3D
+	# roots with a collider child (the gull, the rippleback): calling get_rid() on one
+	# of those is a runtime error, and an error in here silently refused every bite
+	# those two species tried.
+	if from_node is CollisionObject3D:
+		query.exclude = [(from_node as CollisionObject3D).get_rid()]
+	return world.direct_space_state.intersect_ray(query)
 
 
 static func _is_part_of(collider: Object, node: Node3D) -> bool:

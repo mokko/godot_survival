@@ -310,7 +310,8 @@ func _steer_to(target: Vector3, speed: float, delta: float) -> void:
 	if to.length() < 0.05:
 		return
 	var dir := to.normalized()
-	var p := global_position + dir * speed * delta
+	# Around solid things, not through them: fauna_base.walk_step probes the step.
+	var p := global_position + walk_step(dir, speed, delta)
 	# Stalkers never step into the sea.
 	if Island.height_at(p.x, p.z) < Island.WATER_LEVEL + 0.3:
 		return

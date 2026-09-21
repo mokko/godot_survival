@@ -88,6 +88,7 @@ func _physics_process(delta: float) -> void:
 
 func _step(dir: Vector3, speed: float, delta: float) -> void:
 	_hop_t += delta * 8.0
-	var p := global_position + dir * speed * delta
+	## Around a rock, not through it — fauna_base.walk_step probes the step.
+	var p := global_position + walk_step(dir, speed, delta)
 	p.y = Island.height_at(p.x, p.z) + BODY_Y + absf(sin(_hop_t)) * 0.08
 	global_position = p

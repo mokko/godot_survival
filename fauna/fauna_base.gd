@@ -180,6 +180,40 @@ func _losing_sight(player: Node3D) -> bool:
 
 ## ------------------------------------------------------------------- the gait
 
+const STEP_PROBE := Vector3(0.0, 0.55, 0.0)   ## height above ground a step is probed at
+## Directions tried when the straight step is blocked: straight first, then wider to
+## either side, out to perpendicular. Perpendicular matters — with only shallow angles
+## every candidate still pushes *into* the obstacle, so an animal pressed against a
+## wall stalled instead of walking along it. An angry animal that stopped dead would
+## never reach the player, so it slides around the obstacle instead of giving up.
+const SLIDE_ANGLES := [0.0, 0.6, -0.6, 1.2, -1.2, 1.57, -1.57]
+
+
+func walk_step(dir: Vector3, speed: float, delta: float) -> Vector3:
+	## One step of ground movement that does not pass through something solid.
+	##
+	## The species move by writing global_position (see items/destroyable.gd's
+	## sync_to_physics note), so terrain, boulders and trunks are otherwise invisible
+	## to them: a charging stalker used to walk straight through a rock. This probes
+	## the step, and goes around rather than stopping when it is blocked.
+	##
+	## The probe is a ray at STEP_PROBE above the body, which is deliberate: high
+	## enough to clear the slope an animal is walking up, so props shorter than that
+	## (a 1 m movable block) are stepped over rather than blocked. Terrain, trunks and
+	## anything boulder-height are caught, and that is what the complaint was.
+	var flat := Vector3(dir.x, 0.0, dir.z)
+	if flat.length_squared() <= 0.0001 or speed <= 0.0 or delta <= 0.0:
+		return Vector3.ZERO
+	flat = flat.normalized()
+	var distance := speed * delta
+	for angle in SLIDE_ANGLES:
+		var try_dir: Vector3 = flat.rotated(Vector3.UP, angle)
+		if Sight.clear_at(self, global_position + STEP_PROBE,
+				global_position + try_dir * distance + STEP_PROBE):
+			return try_dir * distance
+	return Vector3.ZERO
+
+
 func _aggro_move(delta: float, player: Node3D, _dist: float) -> void:
 	## Default gait: charge on foot, held on dry land (past the shallows the sea
 	## floor has no collision and stepping off is a fall-death). Winged, swimming
@@ -189,7 +223,7 @@ func _aggro_move(delta: float, player: Node3D, _dist: float) -> void:
 	if to.length() < 0.05:
 		return
 	var dir := to.normalized()
-	var p := global_position + dir * aggro_speed() * delta
+	var p := global_position + walk_step(dir, aggro_speed(), delta)
 	if _Island.height_at(p.x, p.z) < _Island.WATER_LEVEL + 0.3:
 		return
 	p.y = _Island.height_at(p.x, p.z) + CHARGE_BODY_Y
