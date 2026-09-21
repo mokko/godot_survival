@@ -12,6 +12,14 @@ config_version=5
 
 config/name="Nakamoto's Paradigm"
 config/version="0.0.1-alpha"
+## user:// follows config/name by default, so renaming the game silently abandons
+## the player's savegame. A custom name pins the folder for **player builds** — the
+## engine forces the default location for editor and --script runs, so the test
+## suite never sees this. It does NOT survive a snap refresh: the snap sets
+## XDG_DATA_HOME per revision (godot-4/34/.local/share, not common/), so a refresh
+## still starts fresh and an older savegame has to be adopted at boot to survive.
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Nakamoto"
 run/main_scene="res://ui/splash.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
