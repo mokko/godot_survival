@@ -17,6 +17,7 @@ const GROWL := preload("res://sounds/growl.wav")
 const PediaSpecies := preload("res://ui/pedia_species.gd")
 const Carcass := preload("res://items/carcass.gd")
 const Weapon := preload("res://items/weapon.gd")
+const Sight := preload("res://world/sight.gd")
 
 const AGGRO_LEASH := 30.0   ## metres at which the animal starts losing you
 const GIVE_UP_TIME := 5.0   ## seconds out of leash before the fight ends
@@ -155,6 +156,10 @@ func _try_hit(player: Node3D, dist: float) -> bool:
 	## energy bar. Species with a real telegraph step aside from it entirely (the
 	## stalker keeps its wind-up); for the rest, closing the distance IS the tell.
 	if _attack_cd > 0.0 or dist > aggro_reach():
+		return false
+	# Reach is measured on the ground plane, so a rock or a trunk between us and
+	# the player has to be checked for on its own: a bite does not go through one.
+	if not Sight.clear(self, player):
 		return false
 	_attack_cd = aggro_cooldown()
 	player.damage(aggro_damage())

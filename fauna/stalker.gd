@@ -7,6 +7,10 @@ extends "res://fauna/fauna_base.gd"
 ## territory and the sight rules and hunts until the fight's own leash ends it.
 
 const Island := preload("res://world/island.gd")
+## Sight comes from the parent (fauna_base.gd / class_name Fauna): declaring it
+## again here is a parse error — "the member already exists in parent class Fauna"
+## — and a script that fails to parse leaves the stalker as a bare
+## AnimatableBody3D with no provoke(), no state machine and no bite.
 
 const PATROL_SPEED := 2.0
 const CHASE_SPEED := 7.5
@@ -205,7 +209,7 @@ func _physics_process(delta: float) -> void:
 			if player:
 				_steer_to(player.global_position, PATROL_SPEED, delta)
 			if _windup <= 0.0:
-				_bite(player, dist)
+				_bite(player)
 		State.RETURN:
 			if player and in_sight and in_territory:
 				_start_chase()
@@ -225,9 +229,13 @@ func _begin_windup() -> void:
 	_windup = WINDUP_TIME
 
 
-func _bite(player: Node3D, dist: float) -> void:
-	## The telegraph has elapsed: land the bite if the player is still close.
-	if player != null and dist <= ATTACK_RANGE + HIT_SLACK:
+func _bite(player: Node3D) -> void:
+	## The telegraph has elapsed: land the bite if the player is still close *and*
+	## still in the open. The distance is re-measured here rather than trusting the
+	## one sampled before the wind-up, so stepping back during the telegraph — or
+	## putting a rock between you — really does save you.
+	if player != null and Sight.clear(self, player) \
+			and flat_distance(player) <= ATTACK_RANGE + HIT_SLACK:
 		player.damage(aggro_damage())
 		if _snd_hit != null:
 			_snd_hit.play()

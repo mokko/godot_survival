@@ -8,6 +8,7 @@ const SlashScene := preload("res://player/slash.gd")
 const ArrowScene := preload("res://items/arrow_projectile.tscn")
 const ARMOR := preload("res://items/armor.gd")
 const WEAPON := preload("res://items/weapon.gd")
+const Sight := preload("res://world/sight.gd")
 
 const SLASH_RANGE := 2.2
 const SLASH_HALF_ANGLE := 0.7
@@ -94,6 +95,11 @@ func _strike(range_m: float, half_angle: float, item_id: String) -> int:
 		if dist > range_m:
 			continue
 		if dist > 0.01 and dir.angle_to(to.normalized()) > half_angle:
+			continue
+		# The cone is measured on the ground plane, so a hill, a boulder or a tree
+		# between us and the target has to be checked for separately: without this
+		# a swing cut plants through the terrain between them.
+		if not Sight.clear(player, node as Node3D):
 			continue
 		hit_list.append(node)
 	if hit_list.is_empty():

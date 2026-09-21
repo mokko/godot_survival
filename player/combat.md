@@ -78,6 +78,26 @@ crosshair.
 - Arrow: `items/arrow_projectile.gd:_on_body_entered()` → 15, with the arrow
   sticking where it lands
 
+### The cone has eyes: line of sight
+
+Reach is measured on the ground plane, so the cone is only half of "did that blow
+land". `_strike()` asks `world/sight.gd` (`Sight.clear`) before each target it is about
+to hurt, and an animal asks the same question in the other direction:
+`fauna_base.gd:_try_hit()` before a contact bite, and `stalker.gd:_bite()` before the
+wind-up lands — the latter also re-measuring the distance at the moment it lands
+instead of reusing the one sampled before the telegraph.
+
+Two rules, both deliberate:
+
+- **A solid body in between stops the blow** — terrain, a boulder, a trunk. Without it
+  a swing cut plants through a hill and a stalker bit through rock.
+- **Flat ground cover does not** — embermoss and mirrorlily_small are `Area3D`-based,
+  and a blow goes through them exactly as the player walks through them.
+
+`tests/test_line_of_sight.gd` covers the swing, both animal paths, the cover rule, the
+stalker's re-measurement, and places its blocker on the ray itself (a blocker fat
+enough to contain the ray's start point blocks nothing at all).
+
 ## Phase 3 — the blow lands on the target
 
 The target's own `damage()` decides what being hit means. Three cases:
