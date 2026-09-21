@@ -7,8 +7,8 @@ We currently develop using Hermes (agent) with GLM Flash and Deepseek Flash.
 
 ## Story
 
-Currently we are exploring this story: you have to survive while finding
-out who you are and why you are on this planet.
+Your consciousness is placed into a robot on a foreign planet. You are supposed
+to explore and survive and find why you have been placed there.
 
 FIRST ITERATION
 
