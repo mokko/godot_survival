@@ -61,7 +61,7 @@ text = "Continue"
 [node name="SavesButton" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Save…"
+text = "Saves…"
 
 [node name="PediaButton" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2

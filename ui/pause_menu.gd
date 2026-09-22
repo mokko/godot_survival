@@ -1,10 +1,10 @@
 extends Control
 ## In-game pause menu. Opens on ESC while playing: darkens the screen,
-## pauses the tree, shows Continue / Save… / Pedia / Quit to Menu. Continue (or
+## pauses the tree, shows Continue / Saves… / Pedia / Quit to Menu. Continue (or
 ## ESC again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
 ##
-## **Save… is the only way to save from here**, and it opens the Saves screen
+## **Saves… is the only way to save from here**, and it opens the Saves screen
 ## rather than writing on the spot: saving is a choice of which file, and a
 ## button that silently answers that question for you (it used to write into
 ## the run's own slot) is the same choice made blind. The screen answers with

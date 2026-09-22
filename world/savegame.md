@@ -40,7 +40,7 @@ One screen, two jobs, and it never changes scenes itself: it announces
   one-click resume the old Continue button used to be, now on the row it meant. A filled
   row announces its slot; an empty row is shown but cannot be pressed, because it is
   better to see that a slot is empty than to wonder where it went.
-- **Save mode** — from the pause menu's **Save…**, the only save entry there (the
+- **Save mode** — from the pause menu's **Saves…**, the only save entry there (the
   one-click write into the run's own slot is gone: saving *is* the choice of which file),
   with the run to write handed in. Each row
   also carries a **name field** and a **✕**. What is in the field is what the slot is
@@ -100,7 +100,7 @@ The pre-slot API still works: `SAVE_PATH` is slot 1, so `read()`, `write()`, `cl
 - `tests/test_saves_save_mode.gd` — the screen in save mode: naming, the two-press
   overwrite, a rename that leaves the state alone, the two-press delete, the autosave row
   that cannot be written by hand, and the ESC rule;
-- `tests/test_pause_save_quit.gd` — the pause menu's one save entry (Save…, no blind
+- `tests/test_pause_save_quit.gd` — the pause menu's one save entry (Saves…, no blind
   one-click write), a slot written through the list with the run in hand, and the menu
   coming back on close.
 - Every test that writes a save snapshots the live directory and puts it back through

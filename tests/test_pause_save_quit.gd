@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless check: the pause menu has ONE save entry (Save…, the list — no blind
+## Headless check: the pause menu has ONE save entry (Saves…, the list — no blind
 ## one-click write), saving through it writes the run's state into the file the
 ## player picked; Quit returns to the splash (main menu).
 ## Puts the machine's saves back via tests/save_guard.gd (it writes a slot).
@@ -26,9 +26,9 @@ func _init() -> void:
 	var one_entry: bool = menu.get_node_or_null("Center/Padding/Panel/VBox/Save") == null \
 			and menu.get_node_or_null("SaveLabel") == null
 	var saves_btn: Button = menu.get_node_or_null("Center/Padding/Panel/VBox/SavesButton")
-	var ok_one_entry: bool = one_entry and saves_btn != null and saves_btn.text == "Save…"
+	var ok_one_entry: bool = one_entry and saves_btn != null and saves_btn.text == "Saves…"
 
-	# Save… opens the screen in save mode, holding this run to write, and gives
+	# Saves… opens the screen in save mode, holding this run to write, and gives
 	# the menu back when it closes. ESC stays the menu's, so the screen is opened
 	# with escape_closes = false.
 	menu._on_saves()
