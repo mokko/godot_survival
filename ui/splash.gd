@@ -10,8 +10,8 @@ const GAME_SCENE := "res://world/main.tscn"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Options := preload("res://ui/options.gd")
 
-## The four menu buttons, in the order they sit under the title.
-const MENU_BUTTONS := ["Start", "Options", "Continue", "Exit"]
+## The menu buttons, in the order they sit under the title.
+const MENU_BUTTONS := ["Start", "Options", "Continue", "LoadGame", "Exit"]
 ## How wide the buttons are, as a fraction of the title's width. They used to
 ## stretch across the whole menu column — which is exactly as wide as the title,
 ## so "Nakamoto's Paradigm" made them a wall of buttons three times wider than
@@ -23,6 +23,7 @@ const BUTTON_WIDTH_RATIO := 1.0 / 3.0
 @onready var show_fps_btn: CheckButton = $OptionsPanel/VBox/ShowFPS
 @onready var ssao_btn: CheckButton = $OptionsPanel/VBox/SSAO
 @onready var res_option: OptionButton = $OptionsPanel/VBox/ResOption
+@onready var saves: Control = $Saves
 @onready var menu_vbox: VBoxContainer = $Center/VBox
 
 
@@ -40,6 +41,10 @@ func _ready() -> void:
 	var adopted: String = SAVEGAME.adopt_legacy_save()
 	if adopted != "":
 		print("SaveGame: adopted the save left at %s" % adopted)
+	# The Saves screen reports the slot the player picked; entering the world is
+	# this screen's job, exactly as it is for Start and Continue.
+	saves.slot_chosen.connect(_on_saves_slot_chosen)
+	saves.closed.connect($Center/VBox/LoadGame.grab_focus)
 	_size_menu_buttons()
 	$Center/VBox/Start.grab_focus()
 	# The project boots fullscreen (window/size/mode=3); this honours a saved
@@ -132,13 +137,32 @@ func _on_continue_pressed() -> void:
 	## Load Game goes straight into the world: the intro story belongs to a new
 	## run, and the player has already read it. pending_load makes the player
 	## restore the save in its _ready.
-	SAVEGAME.pending_load = true
 	# Which slot: the one this player played last, so a fresher autosave does not
 	# hijack Continue. 0 means nothing to continue and the player falls back.
-	SAVEGAME.pending_slot = SAVEGAME.continue_slot()
-	# A loaded run keeps what it was carrying: no starting loadout.
-	SAVEGAME.pending_new_run = false
+	_begin_load(SAVEGAME.continue_slot())
 	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _on_saves_slot_chosen(slot: int) -> void:
+	## Enter the world on that slot. The flags are set in _begin_load(); the scene
+	## change is separate so the flags can be checked without a tree to swap.
+	_begin_load(slot)
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _begin_load(slot: int) -> void:
+	## Ask the player to restore `slot`: pending_slot names the file, so it never
+	## has to guess which one a load meant. Going into the world is the caller's
+	## job — the intro story belongs to a new run, and this player has read it.
+	SAVEGAME.pending_load = true
+	SAVEGAME.pending_slot = slot
+	SAVEGAME.pending_new_run = false
+
+
+func _on_load_game_pressed() -> void:
+	## The list of slots, rather than Continue's one-click jump to the last one
+	## played. This screen closes on ESC: on the splash nobody else owns that key.
+	saves.open_for_load()
 
 
 func _on_exit_pressed() -> void:

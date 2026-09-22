@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/splash.gd" id="1_script"]
 [ext_resource type="Script" path="res://ui/splash_bg.gd" id="2_bg"]
+[ext_resource type="PackedScene" path="res://ui/saves.tscn" id="3_saves"]
 
 [sub_resource type="Gradient" id="Grad_sky"]
 colors = PackedColorArray(0.13, 0.18, 0.3, 1, 0.35, 0.5, 0.65, 1)
@@ -54,6 +55,11 @@ theme_override_font_sizes/font_size = 32
 text = "Options"
 
 [node name="Continue" type="Button" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Continue"
+
+[node name="LoadGame" type="Button" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Load Game"
@@ -119,7 +125,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Back"
 
+[node name="Saves" parent="." instance=ExtResource("3_saves")]
+
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="Center/VBox/LoadGame" to="." method="_on_load_game_pressed"]
 [connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]
 [connection signal="pressed" from="Center/VBox/Exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
