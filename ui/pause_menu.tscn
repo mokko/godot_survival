@@ -58,15 +58,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Continue"
 
-[node name="Save" type="Button" parent="Center/Padding/Panel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Save"
-
 [node name="SavesButton" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Saves…"
+text = "Save…"
 
 [node name="PediaButton" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
@@ -78,30 +73,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Quit to Menu"
 
-[node name="SaveLabel" type="Label" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -110.0
-offset_right = 100.0
-offset_bottom = -70.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 28
-text = "Saved!"
-horizontal_alignment = 1
-
 [node name="Pedia" parent="." instance=ExtResource("2_pedia")]
 
 [node name="Saves" parent="." instance=ExtResource("3_saves")]
 
 [connection signal="pressed" from="Center/Padding/Panel/VBox/Continue" to="." method="_on_continue"]
-[connection signal="pressed" from="Center/Padding/Panel/VBox/Save" to="." method="_on_save"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/SavesButton" to="." method="_on_saves"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/PediaButton" to="." method="_on_pedia"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/QuitToMenu" to="." method="_on_quit_to_menu"]

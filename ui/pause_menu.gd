@@ -1,21 +1,23 @@
 extends Control
 ## In-game pause menu. Opens on ESC while playing: darkens the screen,
-## pauses the tree, shows Continue / Save / Pedia / Quit to Menu. Continue (or
+## pauses the tree, shows Continue / Save… / Pedia / Quit to Menu. Continue (or
 ## ESC again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
+##
+## **Save… is the only way to save from here**, and it opens the Saves screen
+## rather than writing on the spot: saving is a choice of which file, and a
+## button that silently answers that question for you (it used to write into
+## the run's own slot) is the same choice made blind. The screen answers with
+## the file it wrote, and its own "Saved into Slot 2." is the feedback the menu
+## used to draw a toast for.
 ##
 ## The Pedia (ui/pedia.tscn) is a child of this menu and is shown in place of it.
 ## This node is the only one that listens for ESC: while the book is open the key
 ## walks the Pedia back a page instead of resuming the game.
 
-const SAVEGAME := preload("res://world/savegame.gd")
-
-@onready var save_label: Label = $SaveLabel
 @onready var pedia: Control = $Pedia
 @onready var saves: Control = $Saves
 @onready var menu: CenterContainer = $Center
-
-var _save_label_tween: Tween
 
 
 func _ready() -> void:
@@ -47,7 +49,6 @@ func open() -> void:
 		pedia.close()
 	if saves.visible:
 		saves.close()
-	save_label.hide()
 	_set_crosshair_visible(false)
 	_apply_padding()
 	get_tree().paused = true
@@ -76,27 +77,6 @@ func _set_crosshair_visible(shown: bool) -> void:
 	var crosshair: Node = get_tree().current_scene.get_node_or_null("HUD/Crosshair")
 	if crosshair != null:
 		crosshair.visible = shown
-
-
-func _on_save() -> void:
-	var player: CharacterBody3D = get_tree().current_scene.get_node("Player")
-	# Save into the slot this run plays in; a run that has never been saved
-	# anywhere yet opens slot 1, and the Saves screen is how you choose another.
-	var slot: int = SaveGame.current_slot if SaveGame.current_slot > 0 else SaveGame.DEFAULT_SLOT
-	var ok: bool = SAVEGAME.write_slot(slot, player)
-	_show_save_label("Saved!" if ok else "Save failed")
-
-
-func _show_save_label(text: String) -> void:
-	save_label.text = text
-	save_label.show()
-	if _save_label_tween != null:
-		_save_label_tween.kill()
-	save_label.modulate.a = 1.0
-	_save_label_tween = create_tween()
-	_save_label_tween.tween_interval(1.2)
-	_save_label_tween.tween_property(save_label, "modulate:a", 0.0, 0.6)
-	_save_label_tween.tween_callback(save_label.hide)
 
 
 func _on_quit_to_menu() -> void:
