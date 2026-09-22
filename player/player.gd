@@ -155,7 +155,6 @@ func load_state(data: Dictionary) -> void:
 ## belong with the other members — declared after _ready() they read like a bug.
 @onready var energy_meter: Control = get_tree().get_first_node_in_group("energy_meter")
 @onready var game_over_label: CanvasItem = get_tree().get_first_node_in_group("game_over_label")
-@onready var sunbulb_label: Label = get_tree().get_first_node_in_group("sunbulb_label")
 @onready var enemy_label: Label = get_tree().get_first_node_in_group("enemy_label")
 @onready var camera: Camera3D = $Camera3D
 @onready var pickup_sound: AudioStreamPlayer = $AudioStreamPlayer
@@ -706,7 +705,6 @@ var _armor_label: Label
 ## every write is guarded: a steady frame must cost nothing and allocate
 ## nothing (armor_status() used to build a Dictionary 60x/s). The energy meter
 ## keeps its own guard — it repaints on the half-battery count, not on life.
-var _hud_sunbulbs := -1
 var _hud_enemy := ""
 var _hud_armor := ""
 var _hud_armor_shown := true   # the Label starts visible; force a first sync
@@ -735,14 +733,11 @@ func _update_hud() -> void:
 		if shown != _hud_armor_shown:
 			_hud_armor_shown = shown
 			_armor_label.visible = shown
-	if sunbulb_label and sunbulbs_collected != _hud_sunbulbs:
-		_hud_sunbulbs = sunbulbs_collected
-		sunbulb_label.text = "Sunbulbs: %d" % sunbulbs_collected
 	_update_enemy_hud()
 
 
 func _update_enemy_hud() -> void:
-	## The fight line, right under the sunbulb count: who is angry with us and how
+	## The fight line, in the top-right corner: who is angry with us and how
 	## much life it has left. It is driven entirely by the "aggro_fauna" group
 	## (fauna/fauna_base.gd), so it appears with the first animal that turns on
 	## the player and disappears with the last one — no fight has to end it, and

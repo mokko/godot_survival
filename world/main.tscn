@@ -81,7 +81,8 @@ offset_bottom = 42.0
 mouse_filter = 2
 script = ExtResource("19_energy")
 
-[node name="SunbulbLabel" type="Label" parent="HUD" unique_id=60916123 groups=["sunbulb_label"]]
+[node name="EnemyLabel" type="Label" parent="HUD" unique_id=60916124 groups=["enemy_label"]]
+visible = false
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -89,18 +90,6 @@ offset_left = -190.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 40.0
-text = "Sunbulbs: 0"
-horizontal_alignment = 2
-
-[node name="EnemyLabel" type="Label" parent="HUD" unique_id=60916124 groups=["enemy_label"]]
-visible = false
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -190.0
-offset_top = 44.0
-offset_right = -10.0
-offset_bottom = 74.0
 theme_override_colors/font_color = Color(1, 0.47, 0.42, 1)
 text = "Enemy: "
 horizontal_alignment = 2

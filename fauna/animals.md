@@ -65,7 +65,7 @@ about).
   `AGGRO_LEASH` = 30 units away for `GIVE_UP_TIME` = 5 s), the player dies, or —
   for the Rippleback — the player simply climbs out of the water.
 - **HUD:** while anything is in the `aggro_fauna` group the HUD shows
-  `Enemy: <name>  <life>/50` under the sunbulb count; the nearest angry animal
+  `Enemy: <name>  <life>/50` in the top-right corner; the nearest angry animal
   wins when several are provoked at once. The line lives and dies with the group.
 
 | Animal | Charge speed | Reach | Damage | Cooldown | Gait once provoked |

@@ -53,8 +53,9 @@ func _init() -> void:
 	if not _all_full(1000.0):
 		fails.append("over_full")   # clamped, never overflowing
 
-	# 2. The HUD: the meter is there, the old life label is not, and the player
-	#    pushes its life in.
+	# 2. The HUD: the meter is there, the two labels it replaced are not (the old
+	#    `Life:` text, and the Sunbulbs counter that sat in the top-right corner),
+	#    and the player pushes its life in.
 	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
 	current_scene = main
@@ -66,6 +67,8 @@ func _init() -> void:
 		fails.append("meter_missing")
 	if get_first_node_in_group("life_label") != null:
 		fails.append("life_label_still_there")
+	if get_first_node_in_group("sunbulb_label") != null:
+		fails.append("sunbulb_counter_still_there")
 	player.life = 35.0
 	for i in 3:
 		await physics_frame

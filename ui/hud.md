@@ -21,6 +21,12 @@ The crosshair, the four white ticks that say a swing connected
 (`player.gd:show_hit_marker()`), and the red flash for taking damage
 (`_build_hurt_flash()`) — see `player/combat.md` for when each one fires.
 
+The top-right corner used to carry a **Sunbulbs** counter. It is gone: how many
+you have picked up is a number about the past, not a reading the drone needs
+while it is walking, and the count is still kept and still written into every
+save (`SaveGame`), where the Saves screen shows it per slot. The energy meter
+is the live reading — Sunbulbs are what refill it.
+
 ## Tests
 
 `tests/test_energy_meter.gd` — four batteries, half-charge rounding, without a

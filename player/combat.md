@@ -188,7 +188,7 @@ Energy also drains on its own: `LIFE_DRAIN_PER_SEC = 0.25` against
 - `hurt_flash_alpha()` / `_hurt_rect` — the red overlay on damage
   (`HURT_FLASH_FADE = 2.5` alpha/s).
 - `_update_hud()` — energy meter (`ui/energy_meter.gd:set_energy()`, four
-  batteries, half-charge resolution), sunbulb count, armour label.
+  batteries, half-charge resolution) and the armour label.
 - `_update_enemy_hud()` → `nearest_aggro_enemy()` — the `Enemy: <name>
   <life>/<max>` line, driven purely by the `aggro_fauna` group. Nearest
   rather than first, because with a provoked herd the line should name the one
