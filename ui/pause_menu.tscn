@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/pause_menu.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://ui/pedia.tscn" id="2_pedia"]
+[ext_resource type="PackedScene" path="res://ui/saves.tscn" id="3_saves"]
 
 [sub_resource type="StyleBoxFlat" id="Style_panel"]
 content_margin_left = 32.0
@@ -62,6 +63,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Save"
 
+[node name="SavesButton" type="Button" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Saves…"
+
 [node name="PediaButton" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
@@ -92,7 +98,10 @@ horizontal_alignment = 1
 
 [node name="Pedia" parent="." instance=ExtResource("2_pedia")]
 
+[node name="Saves" parent="." instance=ExtResource("3_saves")]
+
 [connection signal="pressed" from="Center/Padding/Panel/VBox/Continue" to="." method="_on_continue"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/Save" to="." method="_on_save"]
+[connection signal="pressed" from="Center/Padding/Panel/VBox/SavesButton" to="." method="_on_saves"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/PediaButton" to="." method="_on_pedia"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/QuitToMenu" to="." method="_on_quit_to_menu"]

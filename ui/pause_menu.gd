@@ -12,6 +12,7 @@ const SAVEGAME := preload("res://world/savegame.gd")
 
 @onready var save_label: Label = $SaveLabel
 @onready var pedia: Control = $Pedia
+@onready var saves: Control = $Saves
 @onready var menu: CenterContainer = $Center
 
 var _save_label_tween: Tween
@@ -22,22 +23,30 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	# Button presses are wired via [connection] entries in pause_menu.tscn.
 	pedia.closed.connect(_on_pedia_closed)
+	saves.closed.connect(_on_saves_closed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Only runs while visible+paused (this node is WHEN_PAUSED): ESC continues.
+	# Only runs while visible+paused (this node is WHEN_PAUSED). This node is the
+	# only listener for ESC, which is why the Saves screen is opened with
+	# escape_closes = false: here, ESC walks back out of whatever is open.
 	if visible and event.is_action_pressed("ui_cancel"):
 		if pedia.visible:
 			pedia.back()   # one page up; closing the book lands back here
+		elif saves.visible:
+			saves.close()  # which lands back here too
 		else:
 			_on_continue()
 
 
 func open() -> void:
 	visible = true
-	# Never resume play with the book open — a fresh pause shows the menu.
+	# Never resume play with the book or the saves list open — a fresh pause shows
+	# the menu.
 	if pedia.visible:
 		pedia.close()
+	if saves.visible:
+		saves.close()
 	save_label.hide()
 	_set_crosshair_visible(false)
 	_apply_padding()
@@ -94,6 +103,21 @@ func _on_quit_to_menu() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file("res://ui/splash.tscn")
+
+
+func _on_saves() -> void:
+	## The same treatment as the book: the Saves screen draws its own dim and
+	## panel, so the menu steps aside rather than stacking two panels. It gets the
+	## run to write, and this menu keeps ESC for itself.
+	menu.hide()
+	saves.escape_closes = false
+	saves.player = get_tree().current_scene.get_node_or_null("Player")
+	saves.open_for_save()
+
+
+func _on_saves_closed() -> void:
+	menu.show()
+	$Center/Padding/Panel/VBox/SavesButton.grab_focus()
 
 
 func _on_pedia() -> void:

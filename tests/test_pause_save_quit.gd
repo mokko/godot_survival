@@ -27,6 +27,21 @@ func _init() -> void:
 				and absf(float(data.get("life", -1.0)) - 55.0) < 0.01 \
 				and data.get("pos", []).size() == 3
 
+	# Saves… opens the screen in save mode, holding this run to write, and gives
+	# the menu back when it closes. ESC stays the menu's, so the screen is opened
+	# with escape_closes = false.
+	menu._on_saves()
+	await process_frame
+	var screen: Control = menu.get_node("Saves")
+	var ok_saves: bool = screen.visible \
+			and String(screen.title.text) == "Save Game" \
+			and screen.player == player \
+			and not bool(screen.escape_closes) \
+			and not menu.menu.visible
+	screen.close()
+	await process_frame
+	ok_saves = ok_saves and menu.menu.visible
+
 	# Quit: changes scene back to the splash and unpauses.
 	menu._on_quit_to_menu()
 	for i in 10:
@@ -34,5 +49,5 @@ func _init() -> void:
 	var ok_quit: bool = current_scene != null \
 			and current_scene.name == "Splash" and not tree.paused
 
-	print("RESULT save=%s quit=%s" % [ok_save, ok_quit])
-	quit(0 if (ok_save and ok_quit) else 1)
+	print("RESULT save=%s quit=%s saves_screen=%s" % [ok_save, ok_quit, ok_saves])
+	quit(0 if (ok_save and ok_quit and ok_saves) else 1)

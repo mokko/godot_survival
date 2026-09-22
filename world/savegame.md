@@ -28,8 +28,30 @@ recognise, which is also why a file written before slots existed still loads.
 **Dying costs the run, not the save.** The death path no longer touches a file: the last
 save stays loadable, and only a *fresh run* clears the notebook (`Notes.clear()`).
 
-The Saves screen's rename and delete are the next step; `rename_slot()` and `delete_slot()`
-are already here, and an emptied slot is a valid, empty save rather than a missing file.
+## The screen (`ui/saves.tscn`, `ui/saves.gd`)
+
+One screen, two jobs, and it never changes scenes itself: it announces
+`slot_chosen(slot)` and whoever put it up navigates — the same pattern the Pedia uses with
+`closed`.
+
+- **Load mode** — from the splash's Load Game, beside Continue's one-click jump to the
+  slot last played. A filled row announces its slot; an empty row is shown but cannot be
+  pressed, because it is better to see that a slot is empty than to wonder where it went.
+- **Save mode** — from the pause menu's Saves…, with the run to write handed in. Each row
+  also carries a **name field** and a **✕**. What is in the field is what the slot is
+  called when the row is pressed; **Enter** in that field *renames* an existing save
+  instead, which is deliberate: a rename must not quietly replace an old save with the
+  current run. The autosave row cannot be written by hand — it belongs to the clock.
+
+Two things are destructive and both take **two presses**: overwriting a filled slot and
+deleting one. The first press arms the row and says what the second will do; any other
+press, click or key disarms it. Losing a save to a stray click is worse than pressing
+twice.
+
+**ESC** is owned by whoever opens the screen. The splash has nobody else for that key, so
+the screen closes on ESC there; the pause menu owns ESC for itself and sets
+`escape_closes = false`, so ESC walks back out of the list to the menu instead of
+resuming the game.
 
 ## Where `user://` really is
 
@@ -67,5 +89,11 @@ The pre-slot API still works: `SAVE_PATH` is slot 1, so `read()`, `write()`, `cl
 - `tests/test_save_migration.gd` — the adoption rules: a real save is taken with its
   content, junk and another project's file are ignored, and an install that already has a
   save never adopts anything;
-- `tests/test_pause_save_quit.gd`, `tests/test_saves_screen.gd` — the pause menu's Save and
-  the Saves screen itself.
+- `tests/test_saves_screen.gd` — the screen in load mode: the rows match what is on disk,
+  a filled row announces its slot, an empty row cannot be pressed, and the splash loads
+  what it hears about;
+- `tests/test_saves_save_mode.gd` — the screen in save mode: naming, the two-press
+  overwrite, a rename that leaves the state alone, the two-press delete, the autosave row
+  that cannot be written by hand, and the ESC rule;
+- `tests/test_pause_save_quit.gd` — the pause menu's quick Save into the run's slot, and
+  Saves… opening the screen with the run in hand and giving the menu back on close.
