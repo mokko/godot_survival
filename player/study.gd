@@ -361,6 +361,12 @@ func _build_hud() -> void:
 	_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_view.visible = false
 	hud.add_child(_view)
+	# Then send it to the back of the HUD. The Pedia lives in the pause menu,
+	# which is the HUD's first child, so a view added last would dim the book and
+	# put two lenses over it — reading the notebook through the binoculars. This
+	# view is of the *world*; the book belongs in front of the world. Nothing to
+	# hide, no state to keep in step: it is draw order and nothing else.
+	hud.move_child(_view, 0)
 	_meter = Control.new()
 	_meter.set_script(StudyMeter)
 	_meter.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)

@@ -113,6 +113,16 @@ func _init() -> void:
 		fails.append("loupe_view_not_shown")
 	if study._view.tubes != 1:
 		fails.append("loupe_has_%d_tubes" % study._view.tubes)
+	# The view draws behind the rest of the HUD on purpose: the Pedia lives in
+	# the pause menu, and a view added last would dim the open book and put a
+	# lens over it. Draw order is the whole mechanism, so it is what we check —
+	# a headless run has no renderer to look at.
+	var hud: CanvasLayer = main.get_node("HUD")
+	if study._view.get_index() != 0:
+		fails.append("instrument_view_not_behind_the_hud")
+	var pause: Node = hud.get_node_or_null("PauseMenu")
+	if pause != null and pause.get_index() < study._view.get_index():
+		fails.append("pause_menu_draws_under_the_instrument_view")
 	if study.begin():
 		fails.append("studied_something_with_nothing_in_view")
 	if study.is_studying():
