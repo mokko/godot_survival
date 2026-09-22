@@ -1,8 +1,9 @@
 extends SceneTree
 ## Headless check for the save/load flow:
 ## 1. SaveGame.write/read roundtrip preserves life/orbs/pos.
-## 2. Splash shows Continue only when a save exists.
-## 3. Continue path: pending_load flag makes the player restore state in _ready.
+## 2. Splash shows Load Game whether or not a save exists (it always has).
+## 3. Load Game path: the Saves screen's row sets pending_load, and the player
+##    restores that slot in _ready — no intro story on the way in.
 
 const SAVEGAME := preload("res://world/savegame.gd")
 
@@ -14,7 +15,7 @@ func _init() -> void:
 	var splash = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash)
 	await process_frame
-	var hidden_ok: bool = splash.get_node("Center/VBox/Continue").visible == true
+	var hidden_ok: bool = splash.get_node("Center/VBox/LoadGame").visible == true
 	splash.free()
 
 	# -- Part B: write a save from a player instance, roundtrip it.
@@ -46,10 +47,10 @@ func _init() -> void:
 	var splash2 = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash2)
 	await process_frame
-	var visible_ok: bool = splash2.get_node("Center/VBox/Continue").visible == true
+	var visible_ok: bool = splash2.get_node("Center/VBox/LoadGame").visible == true
 	splash2.free()
 
-	# -- Part D: Continue flow — pending_load flag -> player restores state.
+	# -- Part D: load flow — pending_load flag -> player restores state.
 	SAVEGAME.pending_load = true
 	var saved_pos: Vector3 = player.global_position
 	player.free()
@@ -93,7 +94,15 @@ func _init() -> void:
 	root.add_child(splash3)
 	current_scene = splash3
 	await process_frame
-	splash3._on_continue_pressed()
+	# The real path, not a private shortcut: Load Game opens the Saves screen,
+	# then the row for the slot last played is pressed. That row is the one
+	# Continue used to open, so this is the old one-click resume in two clicks.
+	splash3._on_load_game_pressed()
+	await process_frame
+	var row: Button = splash3.saves.slot_button(SAVEGAME.continue_slot())
+	var row_ok: bool = row != null and not row.disabled
+	if row_ok:
+		row.pressed.emit()
 	var landed := ""
 	for i in 900:
 		await process_frame
@@ -105,11 +114,11 @@ func _init() -> void:
 			break
 	var skips_story: bool = landed == "Main"
 
-	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s tod_saved=%s tod_restored=%s legacy=%s skips_story=%s"
+	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s tod_saved=%s tod_restored=%s legacy=%s row=%s skips_story=%s"
 			% [hidden_ok, roundtrip_ok, visible_ok, load_ok, standalone_ok,
-			armor_ok, tod_saved, tod_restored, legacy_ok, skips_story])
+			armor_ok, tod_saved, tod_restored, legacy_ok, row_ok, skips_story])
 	# Clean up: don't leave a bogus save in the user's game dir.
 	DirAccess.open("user://").remove("savegame.json")
 	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok
 			and armor_ok and tod_saved and tod_restored and legacy_ok
-			and skips_story) else 1)
+			and row_ok and skips_story) else 1)

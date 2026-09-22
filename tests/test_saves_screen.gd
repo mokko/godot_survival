@@ -31,7 +31,9 @@ func _init() -> void:
 	SaveGame.pending_load = false
 	SaveGame.pending_slot = 0
 
-	# ---- the two entries on the splash
+	# ---- the splash's one way in: Load Game. Continue used to sit beside it
+	# and open the last slot played in one click; that row now takes focus
+	# inside the Saves screen instead, so there is one entry, not two.
 	var splash = load("res://ui/splash.tscn").instantiate()
 	root.add_child(splash)
 	current_scene = splash
@@ -39,11 +41,10 @@ func _init() -> void:
 		await process_frame
 
 	var load_btn: Button = splash.get_node_or_null("Center/VBox/LoadGame")
-	var cont_btn: Button = splash.get_node_or_null("Center/VBox/Continue")
 	if load_btn == null:
 		fails.append("no_load_game_button")
-	if cont_btn == null or cont_btn.text != "Continue":
-		fails.append("continue_button_wrong")
+	if splash.get_node_or_null("Center/VBox/Continue") != null:
+		fails.append("continue_button_still_there")
 	if load_btn != null and load_btn.text != "Load Game":
 		fails.append("load_button_wrong")
 
@@ -72,6 +73,19 @@ func _init() -> void:
 		fails.append("load_button_did_not_open_saves")
 	if String(saves.title.text) != "Load Game":
 		fails.append("wrong_title_in_load_mode")
+
+	# ---- the resume row: opening the screen for a load puts focus on the row
+	#      for the slot last played — the Continue button's old one-click target
+	#      — and says which row that is. No presses here: see the note below
+	#      about what a row press queues.
+	var resume_row: Button = saves.slot_button(SaveGame.continue_slot())
+	if resume_row == null:
+		fails.append("no_resume_row")
+	else:
+		if not resume_row.has_focus():
+			fails.append("resume_row_lacks_focus")
+		if not resume_row.text.ends_with("· last played"):
+			fails.append("resume_row_unlabelled:" + resume_row.text)
 
 	# ---- the rows say what is on disk
 	var filled: Button = saves.slot_button(2) as Button
@@ -143,17 +157,10 @@ func _init() -> void:
 	if SaveGame.pending_new_run:
 		fails.append("load_marked_as_a_new_run")
 
-	# ---- Continue is the one-click path to the slot last played
-	SaveGame.pending_load = false
-	SaveGame.pending_slot = 0
-	SaveGame.pending_new_run = true
-	splash._begin_load(SaveGame.continue_slot())
-	if not SaveGame.pending_load:
-		fails.append("continue_did_not_load")
-	if SaveGame.pending_slot != 2:
-		fails.append("continue_did_not_use_the_last_played_slot")
-	if SaveGame.pending_new_run:
-		fails.append("continue_marked_as_a_new_run")
+	# ---- the resume row's behaviour (opened, focused, announced "last played")
+	#      is checked up top, while the screen is freshly open. Pressing the row
+	#      is deliberately not repeated here: the splash is listening, so a press
+	#      queues a scene change and any await after it wakes up to freed nodes.
 
 	_report(fails, backup)
 

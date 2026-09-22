@@ -54,11 +54,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Options"
 
-[node name="Continue" type="Button" parent="Center/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Continue"
-
 [node name="LoadGame" type="Button" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -129,7 +124,6 @@ text = "Back"
 
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Center/VBox/LoadGame" to="." method="_on_load_game_pressed"]
-[connection signal="pressed" from="Center/VBox/Continue" to="." method="_on_continue_pressed"]
 [connection signal="pressed" from="Center/VBox/Exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="OptionsPanel/VBox/Back" to="." method="_on_options_back_pressed"]

@@ -1,9 +1,14 @@
 extends Control
 ## Splash/menu screen — the main scene. Shows the title, Start, Options and the
-## Load Game button. Load Game is always shown, even when no save exists:
-## loading an absent save simply starts a fresh run. It sets
-## SaveGame.pending_load so the player restores the saved state once the story
-## screen hands off to the game scene.
+## Load Game button. Load Game is always shown, even when no save exists: the
+## Saves screen simply has nothing pressable in it, and Start is the way to a
+## fresh run. Picking a slot there sets SaveGame.pending_load, so the player
+## restores the saved state once the world scene comes up.
+##
+## There used to be a Continue button here beside Load Game, opening the slot
+## last played in one click. It is gone: Load Game opens the Saves screen with
+## that same slot holding focus (see ui/saves.gd), so the one-click resume is
+## the first press of the same button instead of a second entry to explain.
 
 const STORY_SCENE := "res://ui/story.tscn"
 const GAME_SCENE := "res://world/main.tscn"
@@ -11,7 +16,7 @@ const SAVEGAME := preload("res://world/savegame.gd")
 const Options := preload("res://ui/options.gd")
 
 ## The menu buttons, in the order they sit under the title.
-const MENU_BUTTONS := ["Start", "Options", "Continue", "LoadGame", "Exit"]
+const MENU_BUTTONS := ["Start", "Options", "LoadGame", "Exit"]
 ## How wide the buttons are, as a fraction of the title's width. They used to
 ## stretch across the whole menu column — which is exactly as wide as the title,
 ## so "Nakamoto's Paradigm" made them a wall of buttons three times wider than
@@ -42,7 +47,7 @@ func _ready() -> void:
 	if adopted != "":
 		print("SaveGame: adopted the save left at %s" % adopted)
 	# The Saves screen reports the slot the player picked; entering the world is
-	# this screen's job, exactly as it is for Start and Continue.
+	# this screen's job, exactly as it is for Start.
 	saves.slot_chosen.connect(_on_saves_slot_chosen)
 	saves.closed.connect($Center/VBox/LoadGame.grab_focus)
 	_size_menu_buttons()
@@ -131,16 +136,6 @@ func _on_start_pressed() -> void:
 	# Fresh run: the player hands out the starting loadout in its _ready.
 	SAVEGAME.pending_new_run = true
 	get_tree().change_scene_to_file(STORY_SCENE)
-
-
-func _on_continue_pressed() -> void:
-	## Load Game goes straight into the world: the intro story belongs to a new
-	## run, and the player has already read it. pending_load makes the player
-	## restore the save in its _ready.
-	# Which slot: the one this player played last, so a fresher autosave does not
-	# hijack Continue. 0 means nothing to continue and the player falls back.
-	_begin_load(SAVEGAME.continue_slot())
-	get_tree().change_scene_to_file(GAME_SCENE)
 
 
 func _on_saves_slot_chosen(slot: int) -> void:

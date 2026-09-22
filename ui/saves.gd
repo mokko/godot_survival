@@ -7,6 +7,12 @@ extends Control
 ## Empty rows are shown but cannot be pressed: it is better to see that a slot is
 ## empty than to wonder why it is not there.
 ##
+## The row for the slot this player was last *playing* holds focus and says so,
+## and that is deliberate: it is the Continue button's old one-click resume,
+## moved onto the row it meant (the autosave is not allowed to hijack it — see
+## SaveGame.continue_slot). Open the screen, press Enter, and you are back where
+## you stopped.
+##
 ## **Save mode** — opened from the pause menu, where a row writes the current run
 ## into that slot. The row's name, rename and delete belong to that mode too.
 ##
@@ -80,9 +86,16 @@ func _open() -> void:
 	visible = true
 	hint.text = "" if mode == Mode.SAVE else "Which save would you like to load?"
 	_refresh()
-	var first := _first_pressable()
-	if first != null:
-		first.grab_focus()
+	# Load mode: the slot last played is the row Continue used to open, so it is
+	# the row holding focus — Load Game, Enter, and you are back in that run.
+	# Anything else (save mode, no last-played save, an emptied slot) falls back
+	# to the first pressable row.
+	var resume_slot: int = SAVEGAME.continue_slot() if mode == Mode.LOAD else 0
+	var target: Button = slot_button(resume_slot) if resume_slot != 0 else null
+	if target == null or target.disabled:
+		target = _first_pressable()
+	if target != null:
+		target.grab_focus()
 
 
 func close() -> void:
@@ -189,6 +202,10 @@ func _paint_row(slot: int) -> void:
 		button.text = "%s — empty" % label
 	else:
 		button.text = "%s — %s" % [label, str(row.get("name", ""))]
+		# Load mode: say which row is the one-click resume, so the player does
+		# not have to remember which slot they were in.
+		if mode == Mode.LOAD and slot == SAVEGAME.continue_slot():
+			button.text += " · last played"
 	if mode == Mode.SAVE and _is_armed(slot, "overwrite"):
 		button.text = "%s — press again to overwrite" % label
 	var remove: Button = widgets.get("delete")
