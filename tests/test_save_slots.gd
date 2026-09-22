@@ -8,7 +8,9 @@ extends SceneTree
 ## Part 2 drives a real run: the autosave clock rotating slot 5, and — the
 ## decision this whole change turns on — dying leaving the save on disk alone.
 ##
-## Restores the user's real saves and index afterwards.
+## Restores the user's real saves and index afterwards, via tests/save_guard.gd.
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 class FakePlayer extends Node:
 	var state := {
@@ -25,15 +27,10 @@ class FakePlayer extends Node:
 func _init() -> void:
 	var fails: Array = []
 
-	# ---- back up whatever this machine already has, so the test is repeatable
-	var backup: Dictionary = {}
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		backup[slot] = SaveGame.read_slot(slot)
-	var had_index := FileAccess.file_exists(SaveGame.INDEX_PATH)
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		SaveGame.delete_slot(slot)
-	if FileAccess.file_exists(SaveGame.INDEX_PATH):
-		DirAccess.remove_absolute(SaveGame.INDEX_PATH)
+	# ---- the machine's own saves are snapshotted and put back by the guard; the
+	# test then starts from a board with no slots at all.
+	var guard := SaveGuard.new()
+	guard.wipe()
 
 	# ---------------------------------------------------------------- part 1
 	if SaveGame.has_any_save():
@@ -165,14 +162,7 @@ func _init() -> void:
 
 	# ---- put the machine back the way it was
 	main.queue_free()
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		SaveGame.delete_slot(slot)
-		if not (backup[slot] as Dictionary).is_empty():
-			var f := FileAccess.open(SaveGame.slot_path(slot), FileAccess.WRITE)
-			if f != null:
-				f.store_string(JSON.stringify(backup[slot]))
-	if not had_index and FileAccess.file_exists(SaveGame.INDEX_PATH):
-		DirAccess.remove_absolute(SaveGame.INDEX_PATH)
+	guard.restore()
 
 	if fails.is_empty():
 		print("RESULT ALL PASS slots=5")

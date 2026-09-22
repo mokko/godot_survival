@@ -6,6 +6,10 @@ extends SceneTree
 ## The player now has a short grace window after each hit (player.INVULN_TIME),
 ## which is tested in tests/test_player_hurt.gd. These loops deliberately clear
 ## it between iterations so they keep measuring armour, not grace.
+## Puts the machine's saves back via tests/save_guard.gd (byte for byte, unlike the
+## JSON round-trip this used to do).
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 func _slot_of(inv, item_id: String) -> int:
 	## Index of the first slot holding this item, -1 when it is not carried.
@@ -24,7 +28,7 @@ func _init() -> void:
 	var player = main.get_node("Player")
 	var inv = main.get_node("HUD/Inventory")
 	var fails: PackedStringArray = []
-	var backup := SaveGame.read()
+	var guard := SaveGuard.new()
 	var ArmorClass: GDScript = load("res://items/armor.gd")
 	var WeaponClass: GDScript = load("res://items/weapon.gd")
 
@@ -152,9 +156,7 @@ func _init() -> void:
 	if absf(player.armor_status()["durability"] - 40.0) > 0.01:
 		fails.append("loaded_armor_repaired_itself_on_rewear")
 
-	if not backup.is_empty():
-		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
-		f.store_string(JSON.stringify(backup))
+	guard.restore()
 
 	if fails.is_empty():
 		print("RESULT ALL PASS")

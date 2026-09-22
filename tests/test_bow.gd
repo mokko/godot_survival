@@ -1,6 +1,9 @@
 extends SceneTree
 ## Headless check: bow+arrows shooting — arrow flies, consumes from the
 ## stack, sticks on hit, and requires both bow and arrows.
+## Puts the machine's saves back via tests/save_guard.gd (this test dies once).
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
@@ -12,7 +15,7 @@ func _init() -> void:
 	var inv = main.get_node("HUD/Inventory")
 	var fails: PackedStringArray = []
 
-	var backup := SaveGame.read()
+	var guard := SaveGuard.new()
 
 	# No bow, no arrows: nothing happens.
 	player._begin_draw_bow()
@@ -80,13 +83,11 @@ func _init() -> void:
 	if player.combat.get_meta("bow_drawn", false):
 		fails.append("no_bow_no_draw")
 
-	# Clean up test arrows + restore save.
+	# Clean up test arrows + put the saves back the way they were.
 	for a in root.find_children("*", "Area3D", true, false):
 		if a.get_script() != null and str(a.get_script().resource_path).contains("arrow_projectile"):
 			a.queue_free()
-	if not backup.is_empty():
-		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
-		f.store_string(JSON.stringify(backup))
+	guard.restore()
 
 	if fails.is_empty():
 		print("RESULT ALL PASS")

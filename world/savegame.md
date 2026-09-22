@@ -34,10 +34,15 @@ One screen, two jobs, and it never changes scenes itself: it announces
 `slot_chosen(slot)` and whoever put it up navigates — the same pattern the Pedia uses with
 `closed`.
 
-- **Load mode** — from the splash's Load Game, beside Continue's one-click jump to the
-  slot last played. A filled row announces its slot; an empty row is shown but cannot be
-  pressed, because it is better to see that a slot is empty than to wonder where it went.
-- **Save mode** — from the pause menu's Saves…, with the run to write handed in. Each row
+- **Load mode** — from the splash's Load Game, the splash's only way into a save. The row
+  for the slot last played (`continue_slot()`, so a fresher autosave cannot hijack it)
+  is the one that opens with focus and says `last played` beside its name: that is the
+  one-click resume the old Continue button used to be, now on the row it meant. A filled
+  row announces its slot; an empty row is shown but cannot be pressed, because it is
+  better to see that a slot is empty than to wonder where it went.
+- **Save mode** — from the pause menu's **Save…**, the only save entry there (the
+  one-click write into the run's own slot is gone: saving *is* the choice of which file),
+  with the run to write handed in. Each row
   also carries a **name field** and a **✕**. What is in the field is what the slot is
   called when the row is pressed; **Enter** in that field *renames* an existing save
   instead, which is deliberate: a rename must not quietly replace an old save with the
@@ -95,5 +100,11 @@ The pre-slot API still works: `SAVE_PATH` is slot 1, so `read()`, `write()`, `cl
 - `tests/test_saves_save_mode.gd` — the screen in save mode: naming, the two-press
   overwrite, a rename that leaves the state alone, the two-press delete, the autosave row
   that cannot be written by hand, and the ESC rule;
-- `tests/test_pause_save_quit.gd` — the pause menu's quick Save into the run's slot, and
-  Saves… opening the screen with the run in hand and giving the menu back on close.
+- `tests/test_pause_save_quit.gd` — the pause menu's one save entry (Save…, no blind
+  one-click write), a slot written through the list with the run in hand, and the menu
+  coming back on close.
+- Every test that writes a save snapshots the live directory and puts it back through
+  `tests/save_guard.gd`: `user://saves/` is the player's, and a test that leaves a slot
+  behind hands it to the next test — which is how the migration test spent a while
+  failing on other people's leftovers. The suite is verified by hashing that directory
+  before and after a run, not by trusting the tests' own cleanup.

@@ -12,8 +12,13 @@ extends SceneTree
 ##  - a real save is adopted, content and all, and the original is left where it was;
 ##  - junk, another project's savegame.json, and an empty-named file are all ignored;
 ##  - an install that already has a save never adopts anything.
+##
+## The live save slots are wiped for the run and put back by tests/save_guard.gd:
+## "an install that already has a save never adopts anything" needs an install that
+## does not, and the player's own slots are not this test's to assume away.
 
 const SaveGame := preload("res://world/savegame.gd")
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 const ROOT := "user://migration_test"
 
@@ -48,8 +53,11 @@ func _remove_recursive(path: String) -> void:
 
 func _init() -> void:
 	var fails: PackedStringArray = []
-	var backup := SaveGame.read()
-	var had_save := SaveGame.exists()
+	# The live saves are the player's: snapshot them, and empty the slots so this
+	# test's "nothing to adopt" case really is nothing. Without the wipe it passed
+	# only on an install that had never saved anything.
+	var guard := SaveGuard.new()
+	guard.wipe()
 
 	_cleanup()
 	var ours := ROOT.path_join("34/app_userdata/Nakamoto's Paradigm")
@@ -109,10 +117,7 @@ func _init() -> void:
 	_remove_recursive(sibling_root)
 
 	_cleanup()
-	if had_save:
-		_write(SaveGame.SAVE_PATH, JSON.stringify(backup))
-	else:
-		DirAccess.remove_absolute(SaveGame.SAVE_PATH)
+	guard.restore()
 
 	if fails.is_empty():
 		print("RESULT ALL PASS")

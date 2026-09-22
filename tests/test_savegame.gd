@@ -5,11 +5,13 @@ extends SceneTree
 ## 3. Load Game path: the Saves screen's row sets pending_load, and the player
 ##    restores that slot in _ready — no intro story on the way in.
 
+const SaveGuard := preload("res://tests/save_guard.gd")
 const SAVEGAME := preload("res://world/savegame.gd")
 
 func _init() -> void:
-	# Clean slate: remove any save from previous runs.
-	DirAccess.open("user://").remove("savegame.json")
+	# The machine's saves are the player's: snapshot them, and write nothing into
+	# them that outlives this run.
+	var guard := SaveGuard.new()
 
 	# -- Part A: no save -> Load Game is still visible (always shown).
 	var splash = load("res://ui/splash.tscn").instantiate()
@@ -117,8 +119,8 @@ func _init() -> void:
 	print("RESULT hidden=%s save=%s visible=%s load=%s standalone=%s armor=%s tod_saved=%s tod_restored=%s legacy=%s row=%s skips_story=%s"
 			% [hidden_ok, roundtrip_ok, visible_ok, load_ok, standalone_ok,
 			armor_ok, tod_saved, tod_restored, legacy_ok, row_ok, skips_story])
-	# Clean up: don't leave a bogus save in the user's game dir.
-	DirAccess.open("user://").remove("savegame.json")
+	# Put the machine's saves back.
+	guard.restore()
 	quit(0 if (hidden_ok and roundtrip_ok and visible_ok and load_ok
 			and armor_ok and tod_saved and tod_restored and legacy_ok
 			and row_ok and skips_story) else 1)

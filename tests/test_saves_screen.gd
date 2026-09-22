@@ -4,10 +4,12 @@ extends SceneTree
 ## The rows are built from SaveGame, so what this checks is that the list says
 ## what is really on disk (a named slot with its detail, empty slots that cannot
 ## be loaded, the autosave as a row of its own), that pressing a filled row asks
-## for that slot by number, and that the splash's two entries do two different
-## jobs: Continue jumps to the last slot played, Load Game opens the list.
+## for that slot by number, and that the splash's single entry opens that list
+## with the slot last played ready to press.
 ##
-## Restores the user's real saves afterwards.
+## Restores the user's real saves afterwards, via tests/save_guard.gd.
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 class FakePlayer extends Node:
 	var state := {"pos": [1.0, 2.0, 3.0], "life": 33.0, "sunbulbs": 5, "items": []}
@@ -18,11 +20,10 @@ class FakePlayer extends Node:
 func _init() -> void:
 	var fails: Array = []
 
-	# ---- back up what this machine has, then start from a known board
-	var backup: Dictionary = {}
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		backup[slot] = SaveGame.read_slot(slot)
-		SaveGame.delete_slot(slot)
+	# ---- the machine's saves are snapshotted, then the board is set: a named slot
+	# with a detail line, an empty slot, and the autosave.
+	var guard := SaveGuard.new()
+	guard.wipe()
 
 	var p := FakePlayer.new()
 	root.add_child(p)
@@ -59,7 +60,7 @@ func _init() -> void:
 	var saves: Control = splash.get_node_or_null("Saves")
 	if saves == null:
 		fails.append("no_saves_screen")
-		_report(fails, backup)
+		_report(fails, guard)
 		return
 	if saves.visible:
 		fails.append("saves_visible_before_asking")
@@ -162,19 +163,14 @@ func _init() -> void:
 	#      is deliberately not repeated here: the splash is listening, so a press
 	#      queues a scene change and any await after it wakes up to freed nodes.
 
-	_report(fails, backup)
+	_report(fails, guard)
 
 
-func _report(fails: Array, backup: Dictionary) -> void:
+func _report(fails: Array, guard: RefCounted) -> void:
 	SaveGame.pending_load = false
 	SaveGame.pending_slot = 0
 	SaveGame.pending_new_run = false
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		SaveGame.delete_slot(slot)
-		if not (backup[slot] as Dictionary).is_empty():
-			var f := FileAccess.open(SaveGame.slot_path(slot), FileAccess.WRITE)
-			if f != null:
-				f.store_string(JSON.stringify(backup[slot]))
+	guard.restore()
 	if fails.is_empty():
 		print("RESULT ALL PASS rows=5")
 		quit(0)

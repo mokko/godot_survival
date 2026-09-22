@@ -1,7 +1,9 @@
 extends SceneTree
 ## Headless check: 16 slots, first-free-slot pickup flow, equipping,
 ## full-inventory rejection, savegame round-trip, and death wiping items.
-## Restores the user's real savegame.json afterwards.
+## Restores the user's real saves afterwards, via tests/save_guard.gd.
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
@@ -13,8 +15,8 @@ func _init() -> void:
 	var inv = main.get_node("HUD/Inventory")
 	var fails: PackedStringArray = []
 
-	# Back up the user's real save so tests can't destroy it.
-	var backup := SaveGame.read()
+	# The machine's saves belong to whoever is playing: snapshot them first.
+	var guard := SaveGuard.new()
 
 	# 1. Inventory exists with 16 empty slots.
 	if inv == null or inv.slots.size() != 16 or not inv.slots.all(func(s): return s == ""):
@@ -79,10 +81,8 @@ func _init() -> void:
 		fails.append("restore_defaulted_counts")
 	inv.clear_all()
 
-	# Restore the user's real save.
-	if not backup.is_empty():
-		var f := FileAccess.open(SaveGame.SAVE_PATH, FileAccess.WRITE)
-		f.store_string(JSON.stringify(backup))
+	# Put the machine's saves back.
+	guard.restore()
 
 	if fails.is_empty():
 		print("RESULT ALL PASS")

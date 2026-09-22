@@ -8,7 +8,9 @@ extends SceneTree
 ## written by hand. Plus the ESC rule: this screen answers ESC only when its
 ## opener says it may (the pause menu keeps that key for itself).
 ##
-## Restores the user's real saves afterwards.
+## The machine's saves are snapshotted and restored via tests/save_guard.gd.
+
+const SaveGuard := preload("res://tests/save_guard.gd")
 
 class FakePlayer extends Node:
 	var state := {"pos": [1.0, 2.0, 3.0], "life": 21.0, "sunbulbs": 2, "items": []}
@@ -19,10 +21,9 @@ class FakePlayer extends Node:
 func _init() -> void:
 	var fails: Array = []
 
-	var backup: Dictionary = {}
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		backup[slot] = SaveGame.read_slot(slot)
-		SaveGame.delete_slot(slot)
+	# The machine's saves are snapshotted and put back by the guard.
+	var guard := SaveGuard.new()
+	guard.wipe()
 
 	var p := FakePlayer.new()
 	root.add_child(p)
@@ -122,12 +123,7 @@ func _init() -> void:
 	screen.queue_free()
 	await process_frame
 
-	for slot in range(1, SaveGame.MAX_SLOT + 1):
-		SaveGame.delete_slot(slot)
-		if not (backup[slot] as Dictionary).is_empty():
-			var f := FileAccess.open(SaveGame.slot_path(slot), FileAccess.WRITE)
-			if f != null:
-				f.store_string(JSON.stringify(backup[slot]))
+	guard.restore()
 	if fails.is_empty():
 		print("RESULT ALL PASS save_mode")
 		quit(0)

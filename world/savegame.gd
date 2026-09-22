@@ -13,7 +13,7 @@ class_name SaveGame
 ## straight off the dictionary and ignores what it does not recognise, so a file
 ## written before slots existed still loads.
 ##
-## Writers: the Saves screen, the pause menu's Save, the autosave clock on the
+## Writers: the Saves screen (from the pause menu's one save entry), the autosave clock on the
 ## player, and the death path — which no longer touches a file at all. Dying
 ## costs the run, not the save: the last save stays loadable.
 ##
