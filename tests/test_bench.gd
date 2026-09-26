@@ -109,6 +109,12 @@ func _init() -> void:
 	#    refuses to capture it.
 	if bench._hint == null or bench._hint.name != "BenchHint":
 		fails.append("the bench built no prompt label")
+	# The prompt has to be able to clear itself while a menu is up. The tree is paused
+	# then, so a node that stops processing freezes mid-prompt in front of the Frame
+	# screen — which is exactly what the first render of that screen showed. Headless
+	# cannot capture the mouse to drive the path itself, so this pins the mechanism.
+	if bench.process_mode != Node.PROCESS_MODE_ALWAYS:
+		fails.append("the bench stops processing while paused, so its prompt cannot clear")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	for i in 2:
 		await physics_frame

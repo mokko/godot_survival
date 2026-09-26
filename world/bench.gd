@@ -34,6 +34,11 @@ var _hint: Label = null
 
 func _ready() -> void:
 	add_to_group("bench")     # tests and anything else find benches through this
+	# Keeps ticking while the tree is paused, so the prompt can clear itself the moment
+	# a menu takes the mouse. Without this it freezes mid-prompt and the "E — service the
+	# frame" line sits behind the open Frame screen (and behind the pause menu) for as
+	# long as they are up: the node that would have hidden it is not running.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_visuals()
 	_build_collision()
 	_hint = _make_hint_label()
@@ -171,7 +176,9 @@ func _make_hint_label() -> Label:
 	var label := Label.new()
 	label.name = "BenchHint"
 	label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	label.position = Vector2(-190, -70)
+	# Well clear of the inventory bar, which owns the bottom strip of the screen: the
+	# boat's prompt sits at -70 and is drawn across the slots.
+	label.position = Vector2(-190, -150)
 	label.custom_minimum_size = Vector2(380, 0)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 16)

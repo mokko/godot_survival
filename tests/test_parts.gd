@@ -35,6 +35,10 @@ func _init() -> void:
 			fails.append("%s is not on land" % id)
 		if p.get_node_or_null("Mesh") == null:
 			fails.append("%s has no mesh" % id)
+		# Its prompt must be able to clear while a menu is up, which needs it to keep
+		# processing through the pause — the same reason the bench does.
+		if p.process_mode != Node.PROCESS_MODE_ALWAYS:
+			fails.append("%s stops processing while paused, so its prompt cannot clear" % id)
 	for id in Legs.PARTS:
 		if not seen.has(id):
 			fails.append("%s lies nowhere in the world" % id)
