@@ -108,6 +108,8 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
   magnifying glass and the binoculars.
 - **The HUD** — `ui/hud.md`: the four batteries and the rest of that surface.
 - **Boats** — `world/boats.md`: the sailing route and the hull rules.
+- **The service bench** — `world/bench.md`: where a bench stands, how it opens the
+  robot editor, and why nothing about it is recorded.
 - **Saves** — `world/savegame.md`: the five slots, the autosave, and where `user://` really is.
 - **Species** — `flora/plants.md`, `fauna/animals.md`.
 - **Research** — `research/`: the geography, the older premise notes, the
