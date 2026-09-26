@@ -46,6 +46,10 @@ const VIEWS := [
 	# inland of the Ezo mooring at z≈114, working face toward +Z).
 	{"name": "08_bench_ezo", "x": 33.0, "z": 87.0, "eye": 1.6, "yaw": 180.0,
 		"pitch": -9.0, "time": 0.3},
+	# A robot part lying near the start beach (tools/build_parts.gd puts
+	# tread_triangle at (-104, 79)); the camera stands a few metres south of it.
+	{"name": "09_part_ezo", "x": -104.0, "z": 84.0, "eye": 1.6, "yaw": 180.0,
+		"pitch": -12.0, "time": 0.3},
 ]
 
 var _out_dir := DEFAULT_DIR
