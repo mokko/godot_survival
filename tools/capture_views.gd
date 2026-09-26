@@ -78,7 +78,6 @@ func _init() -> void:
 	if hud:
 		hud.visible = false
 	_day_cycle = main.get_node_or_null("DayCycle")
-	_player = get_first_node_in_group("player")
 	_clutter = main.get_node_or_null("Clutter")
 
 	var cam := Camera3D.new()
@@ -88,6 +87,14 @@ func _init() -> void:
 
 	for i in 30:
 		await process_frame
+
+	# The player joins its group in its own _ready, which does not run until the tree
+	# ticks — looked up in the same breath as add_child() this is null, and the "carry
+	# the player along" step below then quietly does nothing, leaving the clutter window
+	# at the spawn for every later shot.
+	_player = get_first_node_in_group("player")
+	if _player == null:
+		push_warning("shots: no player in the tree — the clutter window will not follow")
 
 	seed(SEED)   # Ezo.random_land_point() is unseeded RNG: fix it for repeatability
 	for view in VIEWS:
@@ -117,6 +124,14 @@ func _shoot(cam: Camera3D, view: Dictionary) -> void:
 	if _player != null:
 		_player.global_position = Vector3(spot.x,
 				Ezo.height_at(spot.x, spot.z) + 0.5, spot.z)
+		# Build this pose's scatter window right away instead of hoping the budgeted
+		# fills catch up. A teleport of a hundred metres or more leaves every cell new,
+		# and the 30 settle frames below are not enough for that: the bench view came
+		# out with 0 pebbles, 0 twigs and 0 tufts, which reads as "no scatter here"
+		# rather than as the tool racing itself. plan_fill() is the synchronous path
+		# clutter.gd keeps for exactly this.
+		if _clutter != null and _clutter.has_method("plan_fill"):
+			_clutter.plan_fill(Vector2(spot.x, spot.z))
 	for i in SETTLE_FRAMES:
 		await process_frame
 	cam.global_position = Vector3(spot.x, Ezo.height_at(spot.x, spot.z) + eye, spot.z)
