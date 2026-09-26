@@ -103,7 +103,29 @@ func _init() -> void:
 	if paused:
 		fails.append("closing the frame screen did not resume the game")
 
-	# 6. The decision: a bench is a place you remember, not a record. Nothing about
+	# 6. Standing at a bench prompts the player, so the mechanic is discoverable at
+	#    all. The label itself exists regardless; the prompt only *shows* while the
+	#    world holds the mouse, so the visibility half is skipped where headless
+	#    refuses to capture it.
+	if bench._hint == null or bench._hint.name != "BenchHint":
+		fails.append("the bench built no prompt label")
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	for i in 2:
+		await physics_frame
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if bench._hint == null or not bench._hint.visible:
+			fails.append("standing at a bench shows no prompt")
+		elif not str(bench._hint.text).contains("service"):
+			fails.append("the bench prompt says '%s'" % bench._hint.text)
+		player.global_position = bench.global_position + Vector3(20.0, 0.0, 0.0)
+		for i in 2:
+			await physics_frame
+		if bench._hint.visible:
+			fails.append("the bench prompt is still up from 20 m away")
+	else:
+		print("  (idle-prompt check skipped: headless did not capture the mouse)")
+
+	# 7. The decision: a bench is a place you remember, not a record. Nothing about
 	#    benches is written into the notebook, and the pause menu has no button for
 	#    the frame screen — the bench in the world is the only way in.
 	for key in Notes.drawn():

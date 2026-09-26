@@ -30,7 +30,6 @@ const PropMesh := preload("res://world/prop_mesh.gd")
 
 ## The bench's own idle prompt, parented to the HUD (built in code, like the boat's).
 var _hint: Label = null
-var _hint_timer := 0.0
 
 
 func _ready() -> void:
@@ -38,11 +37,6 @@ func _ready() -> void:
 	_build_visuals()
 	_build_collision()
 	_hint = _make_hint_label()
-
-
-func use_radius() -> float:
-	## How close the player has to be to service the frame here.
-	return USE_RADIUS
 
 
 func frame_menu() -> Node:
@@ -85,8 +79,8 @@ func use_for_test(player: Node3D) -> bool:
 	return true
 
 
-func _physics_process(delta: float) -> void:
-	_tick_hint(delta)
+func _physics_process(_delta: float) -> void:
+	_tick_hint()
 
 
 # ------------------------------------------------------------------- visuals
@@ -186,29 +180,15 @@ func _make_hint_label() -> Label:
 	return label
 
 
-func _say(text: String, seconds := 4.0) -> void:
+func _tick_hint() -> void:
+	## Idle prompt, so the player knows a bench can be used at all. Only while the
+	## world has the mouse: with a menu or the inventory up, E is not the bench's.
 	if _hint == null:
 		return
-	_hint.text = text
-	_hint.visible = true
-	_hint_timer = seconds
-
-
-func _tick_hint(delta: float) -> void:
-	if _hint == null:
-		return
-	if _hint_timer > 0.0:
-		_hint_timer -= delta
-		if _hint_timer <= 0.0:
-			_hint.visible = false
-		return
-	# Idle prompt, so the player knows a bench can be used at all.
 	var player := get_tree().get_first_node_in_group("player")
 	if player == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		_hint.visible = false
 		return
-	if can_be_used_by(player):
+	_hint.visible = can_be_used_by(player)
+	if _hint.visible:
 		_hint.text = "E — service the frame"
-		_hint.visible = true
-	else:
-		_hint.visible = false
