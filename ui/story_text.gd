@@ -10,14 +10,17 @@ extends RefCounted
 ## A page is `{"title": …, "body": …}`: the title is shown the way a typist set a heading
 ## (`ui/story.gd`'s `display_title()`), and the body is the prose.
 ##
-## Writing rules, because the typewriter is unforgiving:
-##  - **titles are short.** There was no bold on a typewriter, so a heading is set in
-##    CAPITALS *and letterspaced*, which roughly triples its length — too long and it
-##    re-wraps and the heading falls apart. TITLE_MAX is what still fits on one line.
+## Writing rules, because the typewriter is unforgiving. The numbers are spelled out here so
+## they are readable at the point of writing; the constants below are what the code and the
+## test actually enforce, so they win if the two ever disagree — and both move together if the
+## block width or the font size changes.
+##  - **titles: 23 letters or fewer** (TITLE_MAX). There was no bold on a typewriter, so a
+##    heading is set in CAPITALS *and letterspaced*, which roughly triples it — a title longer
+##    than that sets past 75 characters letterspaced, re-wraps, and the heading falls apart.
+##  - **body lines: 75 characters or fewer** (MAX_LINE). A single newline is the end of a line,
+##    so a longer one re-wraps in the middle of a sentence in the monospace face;
 ##  - a blank line is a paragraph break, and the machine takes a carriage-return beat
 ##    there. The blank line between title and body is what gives a heading its beat;
-##  - a single newline is the end of a line, so keep body lines under MAX_LINE characters
-##    or they re-wrap in the middle of a sentence in the monospace face;
 ##  - a page ends with a newline, and the text is typed from a fixed left margin.
 
 ## The measure: the monospace block holds this many characters at `font_size = 20` in its
