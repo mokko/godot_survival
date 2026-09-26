@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://items/part_pickup.tscn" id="1_4v0i6"]
+[ext_resource type="Script" path="res://items/part_pickup.gd" id="2_hbwfw"]
+
+[node name="Parts" type="Node3D" unique_id=424688513]
+
+[node name="Part_tread_triangle" type="Area3D" parent="." unique_id=1809560400 groups=["part_pickup"] instance=ExtResource("1_4v0i6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104, 2.2860239, 79)
+script = ExtResource("2_hbwfw")
+part_id = "tread_triangle"
+
+[node name="Part_legs_three" type="Area3D" parent="." unique_id=1870812508 groups=["part_pickup"] instance=ExtResource("1_4v0i6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.6235526, 98)
+script = ExtResource("2_hbwfw")
+part_id = "legs_three"
+
+[node name="Part_legs_telescope" type="Area3D" parent="." unique_id=102448460 groups=["part_pickup"] instance=ExtResource("1_4v0i6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 175, 2.2184544, 548)
+script = ExtResource("2_hbwfw")
+part_id = "legs_telescope"

@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://items/part_pickup.gd" id="1_script"]
+
+[sub_resource type="SphereShape3D" id="Shape_part"]
+radius = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh_part"]
+size = Vector3(0.34, 0.24, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_part"]
+albedo_color = Color(0.55, 0.6, 0.68, 1)
+
+[node name="PartPickup" type="Area3D" groups=["part_pickup"]]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("Shape_part")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+material_override = SubResource("Mat_part")
+mesh = SubResource("Mesh_part")

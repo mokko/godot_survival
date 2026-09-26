@@ -31,6 +31,8 @@ const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
 const SAVEGAME := preload("res://world/savegame.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
 const PediaArt := preload("res://ui/pedia_art.gd")
+const RobotParts := preload("res://player/robot_parts.gd")
+const Legs := preload("res://player/legs.gd")
 ## How close the drone has to be to an island for it to be written into the
 ## notebook: a mooring off its coast counts, so the boat route fills the Islands
 ## chapter as you sail it.
@@ -96,6 +98,7 @@ func save_state() -> Dictionary:
 		"armor": combat.armor_id,
 		"armor_durability": combat.armor_durability,
 		"notes": Notes.drawn(),
+		"parts": RobotParts.owned(),
 		"legs": equipment.fitted_legs() if equipment != null else "",
 	}
 	# Time of day lives on the DayCycle node (a sibling), not on the player.
@@ -140,6 +143,9 @@ func load_state(data: Dictionary) -> void:
 			inventory.refresh()
 	# The notebook comes back with the run: what was drawn stays drawn.
 	Notes.restore(data.get("notes", []))
+	# The parts the drone owns come back too, before the fit below — a saved fit is
+	# only meaningful if the part that provides it is still on the robot's list.
+	RobotParts.restore(data.get("parts", []))
 	# Armor lives on the combat node, not the inventory, so restore it even
 	# if the inventory could not be resolved this early.
 	var saved_armor := str(data.get("armor", ""))
@@ -211,6 +217,7 @@ func _ready() -> void:
 		# drone is handed (equipment), where it wakes up (islands) and what it
 		# studies (plants, animals) — see _update_notes() and player/study.gd.
 		Notes.clear()
+		RobotParts.clear()
 		give_starting_items()
 	_update_notes()
 
@@ -319,6 +326,33 @@ func add_item(item_id: String) -> bool:
 		# in the bag.
 		combat.reset_wear(item_id)
 	return ok
+
+
+func collect_part(part_id: String) -> bool:
+	## A robot part found out in the world. It goes onto the robot's own list
+	## (`player/robot_parts.gd`) and never into the inventory: parts are fitted at a
+	## service bench, and the inventory stays a bag of tools and loot. True when the part
+	## was new, so the pickup can tell "just found" from "already had that".
+	return RobotParts.own(part_id)
+
+
+func owns_part(part_id: String) -> bool:
+	## Whether the drone may fit this. The stock fit is always its own; anything else has
+	## to have been found. For anything listing what can be fitted (the Frame screen).
+	return part_id == Legs.STOCK or RobotParts.has(part_id)
+
+
+func fit_legs(part_id: String) -> bool:
+	## Fit a leg part, if the drone owns it. The ownership rule lives here rather than in
+	## the screen, so no caller can fit a part by guessing its id. `equipment.set_legs()`
+	## stays the raw setter — that is what restoring a save uses, since a save is trusted
+	## over ownership.
+	if not Legs.NAMES.has(part_id) or not owns_part(part_id):
+		return false
+	if equipment == null or not equipment.set_legs(part_id):
+		return false
+	equipment.play_flourish()
+	return true
 
 
 func get_equipped_item() -> String:

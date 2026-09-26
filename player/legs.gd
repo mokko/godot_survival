@@ -31,6 +31,18 @@ const NAMES := {
 	"legs_telescope": "Telescope legs",
 }
 
+## What a part looks like lying in the world, so two of them on the same beach are not
+## the same grey box. Matched to the fit's own paint, and kept here with NAMES because
+## this file is the one place a fit is described.
+const COLOURS := {
+	"tread_plain": Color(0.12, 0.13, 0.15),
+	"tread_triangle": Color(0.20, 0.22, 0.25),
+	"legs_three": Color(0.88, 0.90, 0.92),
+	"legs_telescope": Color(0.75, 0.77, 0.80),
+}
+
+const DEFAULT_COLOUR := Color(0.55, 0.60, 0.68)
+
 var _part := STOCK
 
 

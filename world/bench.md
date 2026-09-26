@@ -62,8 +62,9 @@ takes `E` first.
 
 ## The screen, and the parts
 
-The Frame screen is a **first cut**: it names the bench's island and says that nothing is fitted yet.
-The slot list arrives with the parts.
+The Frame screen lists the **leg fits the drone owns** — the stock treads it was built with, plus the
+parts it has found. It marks the fit it is wearing and fits another when you press it; a part the
+player has not found is not listed at all, so the screen never teases something that is not there.
 
 **Robot parts go straight to the robot, not into the inventory** (decided). Two things follow, and both
 are the point:
@@ -76,11 +77,22 @@ are the point:
 The bench remains the only way into the editor: seeing what you have collected and fitting it both
 happen at a bench.
 
-The first three parts exist as geometry: **`player/legs.gd`** holds the drone's locomotion as
-swappable fits — *triangle treads*, *three legs* (R2-D2's two side legs plus the third centre one)
-and *telescope legs*, on top of the stock twin treads the drone is built with. `equipment.set_legs()`
-is the one way to change them, and the fit rides in the save under `legs`. Nothing collects or offers
-them yet: the Frame screen's slot list is the next piece.
+The first three parts are **leg fits** (`player/legs.gd`): *triangle treads*, *three legs* (R2-D2's two
+side legs plus the third centre one) and *telescope legs*, on top of the stock twin treads. `legs.gd`
+is the one place a fit is described — its name, its geometry and the colour it shows as a part lying in
+the world.
+
+- **Finding one**: `items/part_pickup.gd` sits in the world, and walking into it calls
+  `player.collect_part()`. `tools/build_parts.gd` bakes `world/parts_placed.tscn` from a `SITES` table
+  (one line per part), the same shape as the bench builder. They are placed near paths the player
+  already walks rather than beside the benches they are fitted at — you find a part out on the island
+  and carry it back, which is the loop.
+- **Owning one**: `player/robot_parts.gd`, a static registry saved under `parts`. A fresh run clears it;
+  dying does not.
+- **Fitting one**: only at a bench, and only through `player.fit_legs()`, which is where the ownership
+  rule lives — the stock fit is always the drone's, anything else must have been found. `ui/editor.gd`
+  never touches the equipment directly, so nothing can be fitted by guessing an id.
+- **Keeping it**: the fit rides in the save under `legs`, the parts list under `parts`.
 
 ## Known rough edges
 
