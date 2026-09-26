@@ -68,6 +68,11 @@ including this one. Two things move it, and both were got wrong once:
   *not* the display title — to pin the folder. That works for **player builds only**: the
   engine forces the default `app_userdata/<project name>` location for editor and
   `--script` runs, so the test suite never sees the custom path.
+
+  Keep this explanation *here*, not as a comment inside `project.godot`: the editor
+  re-serialises that file whenever it saves, and an in-section comment block gets
+  flattened into a bogus key — taking the `config/use_custom_user_dir` line beside it
+  with it, which silently puts the savegame folder back under the display title.
 - **The snap revision.** The snap sets `XDG_DATA_HOME` per revision (`godot-4/34`, not
   `godot-4/30`), so a snap refresh still hands out a fresh, empty directory.
 
