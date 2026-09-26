@@ -80,6 +80,9 @@ happen at a bench.
 
 - The benches sit near the landings, which makes them forgiving rather than hidden. Moving a `SITES`
   entry further inland is a one-line change if they should take more finding.
-- `E` already does two other jobs in this game — board a boat, and equip armour from the inventory. At a
-  bench the boat case cannot collide, but the armour case is global: standing at a bench holding an
-  armour piece still equips it on the same press. Harmless today; worth a rule when the parts land.
+- `E` already does two other jobs in this game — board a boat, and equip armour from the inventory. The
+  boat case cannot collide, because there are no boats at benches. The armour case is **accepted
+  rather than engineered around** (Maurice's call, 26 Sep): *close to a bench, `E` opens the robot
+  editor* — and if the armour piece also equips on the same press, so be it. A 4 m radius makes that a
+  corner of the world rather than a problem, and one key doing different things in different places is
+  already how the boat behaves.
