@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://world/clutter.gd" id="17_clutter"]
 [ext_resource type="PackedScene" path="res://world/boats_placed.tscn" id="18_boats"]
 [ext_resource type="Script" path="res://ui/energy_meter.gd" id="19_energy"]
+[ext_resource type="PackedScene" path="res://world/benches_placed.tscn" id="20_benches"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -172,6 +173,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
 script = ExtResource("17_clutter")
 
 [node name="Boats" parent="." instance=ExtResource("18_boats")]
+
+[node name="Benches" parent="." instance=ExtResource("20_benches")]
 
 [node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.929348)

@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/pause_menu.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://ui/pedia.tscn" id="2_pedia"]
 [ext_resource type="PackedScene" path="res://ui/saves.tscn" id="3_saves"]
+[ext_resource type="PackedScene" path="res://ui/editor.tscn" id="4_editor"]
 
 [sub_resource type="StyleBoxFlat" id="Style_panel"]
 content_margin_left = 32.0
@@ -76,6 +77,8 @@ text = "Quit to Menu"
 [node name="Pedia" parent="." instance=ExtResource("2_pedia")]
 
 [node name="Saves" parent="." instance=ExtResource("3_saves")]
+
+[node name="Editor" parent="." instance=ExtResource("4_editor")]
 
 [connection signal="pressed" from="Center/Padding/Panel/VBox/Continue" to="." method="_on_continue"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/SavesButton" to="." method="_on_saves"]

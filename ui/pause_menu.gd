@@ -11,12 +11,16 @@ extends Control
 ## the file it wrote, and its own "Saved into Slot 2." is the feedback the menu
 ## used to draw a toast for.
 ##
-## The Pedia (ui/pedia.tscn) is a child of this menu and is shown in place of it.
-## This node is the only one that listens for ESC: while the book is open the key
-## walks the Pedia back a page instead of resuming the game.
+## The Pedia (ui/pedia.tscn) and the Saves screen are children of this menu, shown
+## in place of it. So is the Frame screen (ui/editor.tscn) — except that one is
+## opened from a service bench in the world (`open_editor`) and has no button here,
+## so closing it drops the player straight back into the game rather than the menu.
+## This node is the only one that listens for ESC: while any of those screens is
+## open the key walks that screen back instead of resuming the game.
 
 @onready var pedia: Control = $Pedia
 @onready var saves: Control = $Saves
+@onready var editor: Control = $Editor
 @onready var menu: CenterContainer = $Center
 
 
@@ -26,6 +30,7 @@ func _ready() -> void:
 	# Button presses are wired via [connection] entries in pause_menu.tscn.
 	pedia.closed.connect(_on_pedia_closed)
 	saves.closed.connect(_on_saves_closed)
+	editor.closed.connect(_on_editor_closed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -37,18 +42,22 @@ func _unhandled_input(event: InputEvent) -> void:
 			pedia.back()   # one page up; closing the book lands back here
 		elif saves.visible:
 			saves.close()  # which lands back here too
+		elif editor.visible:
+			editor.close() # which lands back in the world (see _on_editor_closed)
 		else:
 			_on_continue()
 
 
 func open() -> void:
 	visible = true
-	# Never resume play with the book or the saves list open — a fresh pause shows
-	# the menu.
+	# Never resume play with the book, the saves list or the frame screen open — a
+	# fresh pause shows the menu.
 	if pedia.visible:
 		pedia.close()
 	if saves.visible:
 		saves.close()
+	if editor.visible:
+		editor.close()
 	_set_crosshair_visible(false)
 	_apply_padding()
 	get_tree().paused = true
@@ -105,6 +114,32 @@ func _on_pedia() -> void:
 	## draws its own dim and panel, and two stacked panels read as a bug.
 	menu.hide()
 	pedia.open()
+
+
+func open_editor(bench: Node = null) -> void:
+	## Opened from a service bench in the world (world/bench.gd) — the only way in.
+	## There is no button for it here: finding a bench is the point. Because it is
+	## not opened *from* this menu, it does the whole open dance itself — pause,
+	## release the mouse, step the menu aside — and closing it resumes play instead
+	## of showing the menu (the player was playing, not browsing).
+	visible = true
+	if pedia.visible:
+		pedia.close()
+	if saves.visible:
+		saves.close()
+	_set_crosshair_visible(false)
+	_apply_padding()
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	menu.hide()
+	editor.open(bench)
+
+
+func _on_editor_closed() -> void:
+	## Straight back into the game, standing at the bench. ESC never comes here
+	## twice: `_unhandled_input` routed the key to `editor.close()`, and this is the
+	## one place that answer is acted on.
+	_on_continue()
 
 
 func _on_pedia_closed() -> void:

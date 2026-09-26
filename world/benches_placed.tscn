@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://world/bench.tscn" id="1_tqqdd"]
+[ext_resource type="Script" path="res://world/bench.gd" id="2_7k5fq"]
+
+[node name="Benches" type="Node3D" unique_id=1351214035]
+
+[node name="Bench_Ezo" type="StaticBody3D" parent="." unique_id=1984676104 instance=ExtResource("1_tqqdd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 2.4366004, 81)
+script = ExtResource("2_7k5fq")
+island = "Ezo"
+
+[node name="Bench_Honshu" type="StaticBody3D" parent="." unique_id=920831526 instance=ExtResource("1_tqqdd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 175.5, 2.2005982, 579.5)
+script = ExtResource("2_7k5fq")
+island = "Honshu"
+
+[node name="Bench_Shikoku" type="StaticBody3D" parent="." unique_id=1062468306 instance=ExtResource("1_tqqdd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 5.9473524, 689)
+script = ExtResource("2_7k5fq")
+island = "Shikoku"
+
+[node name="Bench_Kyushu" type="StaticBody3D" parent="." unique_id=1223646033 instance=ExtResource("1_tqqdd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105, 6.262989, 682.5)
+script = ExtResource("2_7k5fq")
+island = "Kyushu"

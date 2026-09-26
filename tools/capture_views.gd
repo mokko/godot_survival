@@ -42,6 +42,10 @@ const VIEWS := [
 		"pitch": -6.0, "time": 0.92},
 	{"name": "07_boat_ezo", "x": 38.0, "z": 120.0, "eye": 2.8, "yaw": -135.0,
 		"pitch": -14.0, "time": 0.3},
+	# The Ezo service bench, seen from the beach side it faces (it stands ~30 m
+	# inland of the Ezo mooring at z≈114, working face toward +Z).
+	{"name": "08_bench_ezo", "x": 33.0, "z": 87.0, "eye": 1.6, "yaw": 180.0,
+		"pitch": -9.0, "time": 0.3},
 ]
 
 var _out_dir := DEFAULT_DIR

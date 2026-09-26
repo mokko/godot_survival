@@ -37,6 +37,9 @@ const BOB_HEIGHT := 0.06
 const BOB_PERIOD := 3.2
 const RIDE_HEIGHT := 1.15      # deck height the player is pinned to
 
+## Merging the hull pieces into one vertex-coloured surface (world/prop_mesh.gd).
+const PropMesh := preload("res://world/prop_mesh.gd")
+
 const HULL := Color(0.46, 0.31, 0.19)
 const DECK := Color(0.62, 0.47, 0.30)
 const MAST := Color(0.30, 0.21, 0.12)
@@ -238,8 +241,8 @@ func _build_visuals() -> void:
 	]
 	_hull_mesh = MeshInstance3D.new()
 	_hull_mesh.name = "Hull"
-	_hull_mesh.mesh = _merged(parts)
-	_hull_mesh.material_override = _paint()
+	_hull_mesh.mesh = PropMesh.merge(parts)
+	_hull_mesh.material_override = PropMesh.paint()
 	add_child(_hull_mesh)
 	# A lit lantern at the bow, so a moored boat is findable from the water after
 	# dark. Deliberately NOT in the "glow_plants" group: that group's contract is
@@ -258,44 +261,6 @@ func _build_visuals() -> void:
 	_lantern.material_override = lamp_mat
 	_lantern.position = Vector3(0, 0.75, -2.1)
 	add_child(_lantern)
-
-
-func _merged(parts: Array) -> Mesh:
-	## parts: [[Mesh, Transform3D, Color], ...] -> one surface with vertex colours.
-	##
-	## Built vertex by vertex rather than with SurfaceTool.append_from(): append_from
-	## copies the *source* mesh's own arrays and ignores a colour set with set_color(),
-	## which left the whole boat with no vertex colours — and, with
-	## vertex_color_use_as_albedo, a black boat. So each part's arrays are read out,
-	## transformed and re-emitted with the part's colour (plus normals: a surface
-	## with no NORMAL array renders black for the same reason).
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for part in parts:
-		var src: Mesh = part[0]
-		var xform: Transform3D = part[1]
-		var colour: Color = part[2]
-		var arrays := src.surface_get_arrays(0)
-		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-		var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
-		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-		var count := indices.size() if indices.size() > 0 else verts.size()
-		st.set_color(colour)
-		for i in count:
-			var vi: int = indices[i] if indices.size() > 0 else i
-			st.set_normal(xform.basis * normals[vi])
-			if uvs.size() > vi:
-				st.set_uv(uvs[vi])
-			st.add_vertex(xform * verts[vi])
-	return st.commit()
-
-
-func _paint() -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.vertex_color_use_as_albedo = true
-	m.roughness = 0.8
-	return m
 
 
 func _build_collision() -> void:
