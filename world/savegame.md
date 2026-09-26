@@ -65,9 +65,11 @@ including this one. Two things move it, and both were got wrong once:
 
 - **The game's name.** `user://` follows `config/name`, so `project.godot` sets
   `config/use_custom_user_dir` + `config/custom_user_dir_name="Nakamoto"` — deliberately
-  *not* the display title — to pin the folder. That works for **player builds only**: the
-  engine forces the default `app_userdata/<project name>` location for editor and
-  `--script` runs, so the test suite never sees the custom path.
+  *not* the display title — to pin the folder. Measured on this machine, it applies to
+  headless `--script` runs too: `OS.get_user_data_dir()` reports
+  `…/godot-4/34/.local/share/Nakamoto`, one level shallower than the engine's
+  `<xdg>/godot/app_userdata/<name>` default. So a test must not walk a fixed number of
+  parents up from the user dir — the two layouts differ by a level.
 
   Keep this explanation *here*, not as a comment inside `project.godot`: the editor
   re-serialises that file whenever it saves, and an in-section comment block gets

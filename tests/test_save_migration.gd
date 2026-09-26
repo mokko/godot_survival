@@ -103,11 +103,18 @@ func _init() -> void:
 	if SaveGame.exists():
 		fails.append("wrote_a_save_with_nothing_to_adopt")
 
-	# 4. The ancestor walk finds a sibling revision without being told where to look.
-	#    This is the real path: <here>/../<other revision>/app_userdata/*.
-	var here := OS.get_user_data_dir()
-	var revision := here.get_base_dir().get_base_dir().get_base_dir()
-	var sibling_root := revision.get_base_dir().path_join("sibling_probe")
+	# 4. The ancestor walk finds a sibling folder without being told where to look.
+	#    This is the real path: <here>/../<sibling>/app_userdata/*.
+	#    The probe goes beside the *user directory*, not a fixed number of steps up
+	#    from it: with `config/use_custom_user_dir` the user dir sits one level
+	#    shallower than the engine's `<xdg>/godot/app_userdata/<name>` default, so
+	#    "four get_base_dir() calls up" lands inside the snap's own revision folder,
+	#    which snap confinement refuses to create anything in (the write then fails
+	#    and this case reports a miss that is really a permissions error). The user
+	#    dir's parent is writable by construction — the engine created the user dir
+	#    inside it — and the walk starts at that same parent, so it is found either
+	#    way.
+	var sibling_root := OS.get_user_data_dir().get_base_dir().path_join("sibling_probe")
 	_write(sibling_root.path_join("app_userdata/Nakamoto/savegame.json"),
 			"{\"pos\": [9.0, 0.0, 9.0]}")
 	var found: Array = SaveGame.legacy_roots()
