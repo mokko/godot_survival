@@ -23,6 +23,33 @@ Every page starts clean: the reveal, the carriage-return beat, the clack clock a
 all reset in `_begin_page()`, and the previous page's bell is cut off rather than ringing into
 the new page.
 
+## The heading
+
+Every page opens with its **title**, set the way a typist set a heading: **CAPITALS, and
+letterspaced** (`D I S P L A C E D`), on its own line, with a blank line under it.
+
+Why that and not something else: a mechanical typewriter has **no bold and no italic** — one
+ribbon colour, one weight of type — so the emphasis a typist actually had was capitals,
+spacing, and rules made of hyphens. Overstriking a character twice for a heavier look is the
+other historical trick, and it cannot be faked in a Label: a doubled letter just reads as a
+typo.
+
+`display_title()` in `ui/story.gd` does the letterspacing, so **the catalogue holds plain
+words** (`"Displaced"`, never `"D I S P L A C E D"`) — the display form is not writing, and it
+is not typed into the data. The heading is the first line of the typed text, which is what
+gives it clacks of its own and a carriage-return beat under it (the blank line after it).
+
+Two limits, both enforced by `tests/test_story.gd`:
+
+- **Titles are short** (`TITLE_MAX`, 23 letters): letterspacing roughly triples the length, so
+  a long title re-wraps and the heading falls apart.
+- The *displayed* heading has to fit the measure like any other line (`MAX_LINE`, 75).
+
+A **centred** heading is what a typist did with a page title — counting characters and spacing
+over from the margin — and it is available if wanted: pad the line with leading spaces. The
+cost is that the padding is typed like everything else, so a centred heading opens with about
+a second of the carriage travelling with nothing appearing on screen.
+
 ## The typing
 
 Characters come out at `CHARS_PER_SEC` (28), and **every sound is fired from the characters
@@ -54,10 +81,11 @@ whatever monospace the machine has rather than to a missing-glyph box.
 
 Two things to know if you touch the layout:
 
-- **The text block has to stay wide enough for the longest line** (~71 characters): the
-  prose is hand-wrapped with hard newlines, so a narrower block re-wraps it mid-sentence
-  and the composition falls apart. The block is 900 px at `font_size = 20`; check
-  `label.get_line_count()` still equals the text's own line count if you change either.
+- **The text block has to stay wide enough for the longest line** (`MAX_LINE`, 75
+  characters — measured: the face advances 12.00 px a character and the block is 900 px at
+  `font_size = 20`): the prose is hand-wrapped with hard newlines, so a narrower block
+  re-wraps it mid-sentence and the composition falls apart. If you change the block or the
+  size, `tests/test_story.gd` measures the rendered label against the text and says so.
 - **The text starts at a fixed left margin and runs ragged right**, like a typed page: both
   labels are `horizontal_alignment = 0`, and the 900 px block is centred on screen, so the
   column sits in the middle but every line begins at the same edge. Centred text reads as a

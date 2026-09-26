@@ -101,12 +101,45 @@ func is_last_page() -> bool:
 	return _page + 1 >= page_count()
 
 
+func page_title() -> String:
+	## The page's title as written in the catalogue (not as displayed).
+	return str(_page_record().get("title", ""))
+
+
+func page_body() -> String:
+	## The page's prose as written in the catalogue.
+	return str(_page_record().get("body", ""))
+
+
+func _page_record() -> Dictionary:
+	## A page is {"title": …, "body": …}; anything else in the list is treated as empty
+	## rather than crashing the intro.
+	var record = StoryText.PAGES[_page]
+	return record if record is Dictionary else {}
+
+
+func display_title(title: String) -> String:
+	## How a typist set a heading, because a typewriter has no bold: **CAPITALS, and
+	## letterspaced**, with a wider gap between words. That spacing is the one emphasis
+	## available — the other historical trick, overstriking a character twice for a
+	## heavier look, cannot be done in a Label and would read as a typo anyway.
+	var words: PackedStringArray = []
+	for word in title.to_upper().split(" ", false):
+		var letters: PackedStringArray = []
+		for i in word.length():
+			letters.append(word[i])
+		words.append(" ".join(letters))
+	return "   ".join(words)
+
+
 func _begin_page(index: int) -> void:
 	## Show a page from its first character. Everything a page owns resets here, so a
 	## page can never inherit half a line, a running beat or a stale cursor from the
-	## one before it.
+	## one before it. The heading goes in as the first line of the typed text, which is
+	## what gives it clacks of its own and a carriage-return beat under it (the blank
+	## line between heading and body).
 	_page = index
-	_text = str(StoryText.PAGES[_page])
+	_text = display_title(page_title()) + "\n\n" + page_body()
 	_shown = 0.0
 	_done = false
 	_hold = 0.0
