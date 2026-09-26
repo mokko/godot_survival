@@ -1,9 +1,17 @@
 extends Node3D
-## Equipment visuals: builds a drone body (treads, core, dome head) and shows/
+## Equipment visuals: builds a drone body (legs, core, dome head) and shows/
 ## hides weapon + armor props as the player equips things. Attached to the
 ## player; props are plain meshes parented at fixed offsets — no animation.
+##
+## What the drone stands on is a child `Legs` node (`player/legs.gd`), not meshes
+## built here: the fit is swappable, and that node is the only thing allowed to
+## parent leg meshes onto the body. The stock fit is the twin treads, so a fresh run
+## is unchanged.
 
 const ItemDB := preload("res://items/item_db.gd")
+const Legs := preload("res://player/legs.gd")
+
+var _legs: Node3D = null
 
 var _props := {}         # item id -> Node3D
 var _flourish := 0.0     # counts down while the equip flourish plays
@@ -105,31 +113,12 @@ func _build_drone_body() -> void:
 	dark.roughness = 0.6
 	dark.metallic = 0.5
 
-	# Treads (WALL-E): two dark track boxes left and right.
-	for side in [-1.0, 1.0]:
-		var tread := MeshInstance3D.new()
-		var tm := BoxMesh.new()
-		tm.size = Vector3(0.16, 0.3, 0.62)
-		tread.mesh = tm
-		tread.position = Vector3(side * 0.32, 0.22, 0)
-		tread.material_override = dark
-		add_child(tread)
-		# Hub caps (R2-style silver circles on the tread sides).
-		for zz in [-0.2, 0.0, 0.2]:
-			var hub := MeshInstance3D.new()
-			var hm := CylinderMesh.new()
-			hm.top_radius = 0.05
-			hm.bottom_radius = 0.05
-			hm.height = 0.02
-			hub.mesh = hm
-			hub.position = Vector3(side * 0.41, 0.22, zz)
-			hub.rotation.z = PI / 2
-			var hub_mat := StandardMaterial3D.new()
-			hub_mat.albedo_color = Color(0.75, 0.77, 0.8)
-			hub_mat.metallic = 0.8
-			hub_mat.roughness = 0.25
-			hub.material_override = hub_mat
-			add_child(hub)
+	# Legs (the fit lives in player/legs.gd, including this stock one). Part set
+	# before it enters the tree, so its own _ready does not build a second fit.
+	_legs = Legs.new()
+	_legs.name = "Legs"
+	_legs.set_part(Legs.STOCK)
+	add_child(_legs)
 
 	# Body (WALL-E box + R2 white barrel): rounded box in white with a blue
 	# panel band across the chest.
@@ -567,6 +556,22 @@ func show_for_equipped(item_id: String) -> void:
 func show_armor(worn: bool) -> void:
 	if _props.has("leather_armor"):
 		_props["leather_armor"].visible = worn
+
+
+func set_legs(part_id: String) -> bool:
+	## The one way to change what the drone stands on — the Frame screen calls this
+	## (`player/legs.gd` holds the catalogue and builds the geometry). False when the
+	## id is not a fit we know.
+	if _legs == null:
+		return false
+	return _legs.set_part(part_id)
+
+
+func fitted_legs() -> String:
+	## Which fit is on the drone, for saving and for anything showing it.
+	if _legs == null:
+		return ""
+	return _legs.part()
 
 
 func get_sword_pivot() -> Node3D:

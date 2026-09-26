@@ -76,6 +76,12 @@ are the point:
 The bench remains the only way into the editor: seeing what you have collected and fitting it both
 happen at a bench.
 
+The first three parts exist as geometry: **`player/legs.gd`** holds the drone's locomotion as
+swappable fits — *triangle treads*, *three legs* (R2-D2's two side legs plus the third centre one)
+and *telescope legs*, on top of the stock twin treads the drone is built with. `equipment.set_legs()`
+is the one way to change them, and the fit rides in the save under `legs`. Nothing collects or offers
+them yet: the Frame screen's slot list is the next piece.
+
 ## Known rough edges
 
 - The benches sit near the landings, which makes them forgiving rather than hidden. Moving a `SITES`

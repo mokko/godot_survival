@@ -96,6 +96,7 @@ func save_state() -> Dictionary:
 		"armor": combat.armor_id,
 		"armor_durability": combat.armor_durability,
 		"notes": Notes.drawn(),
+		"legs": equipment.fitted_legs() if equipment != null else "",
 	}
 	# Time of day lives on the DayCycle node (a sibling), not on the player.
 	var cycle := get_node_or_null("../DayCycle")
@@ -148,6 +149,12 @@ func load_state(data: Dictionary) -> void:
 		if inventory != null:
 			inventory.set_worn(saved_armor)
 			inventory.refresh()
+	# What the drone stands on. An empty or unknown id in the save leaves the stock
+	# fit alone rather than breaking the body — `set_legs` validates.
+	if equipment != null:
+		var saved_legs := str(data.get("legs", ""))
+		if saved_legs != "":
+			equipment.set_legs(saved_legs)
 	_update_hud()
 
 
