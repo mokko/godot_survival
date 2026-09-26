@@ -94,3 +94,16 @@ write_wav("hurt.wav", mix(tone(0.32, 330, 120, curve=3.5, harmonics=((1.0, 1.0),
                           noise(0.3, 0.08, curve=3.0)))
 write_wav("enemy_death.wav", mix(tone(0.6, 200, 45, curve=2.2, harmonics=((1.0, 1.0), (2.0, 0.3))),
                                  noise(0.45, 0.12, curve=2.5)))
+
+# Typewriter set, for the story screen's intro (ui/story.gd). The key clack is
+# deliberately very short — it fires on the order of twenty times a second, so anything
+# long smears into a buzz; the return is the carriage sliding back plus the little bell,
+# staggered so the bell rings after the slide.
+write_wav("type_key.wav", mix(noise(0.032, 0.9, curve=7.0),
+                              tone(0.05, 300, 120, curve=8.0,
+                                   harmonics=((1.0, 1.0), (2.0, 0.3)))))
+write_wav("type_return.wav", mix(tone(0.17, 780, 170, curve=3.0,
+                                      harmonics=((1.0, 1.0), (2.0, 0.25))),
+                                 [0.0] * int(SR * 0.07)
+                                 + tone(0.42, 1190, 1130, curve=5.0,
+                                        harmonics=((1.0, 1.0), (2.4, 0.4), (3.9, 0.2)))))

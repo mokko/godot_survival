@@ -107,6 +107,8 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
 - **Pedia and study** — `ui/pedia.md`: the notebook, its three layers, the
   magnifying glass and the binoculars.
 - **The HUD** — `ui/hud.md`: the four batteries and the rest of that surface.
+- **The story screen** — `ui/story.md`: the intro, typed out as a mechanical
+  typewriter, with its clack and carriage-return sounds.
 - **Boats** — `world/boats.md`: the sailing route and the hull rules.
 - **The service bench** — `world/bench.md`: where a bench stands, how it opens the
   robot editor, and why nothing about it is recorded.

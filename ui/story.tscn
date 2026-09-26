@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/story.gd" id="1_script"]
+
+[sub_resource type="SystemFont" id="Font_typewriter"]
+font_names = PackedStringArray("Nimbus Mono PS", "Courier New", "Courier", "DejaVu Sans Mono", "Liberation Mono", "Noto Sans Mono", "monospace")
+subpixel_positioning = 0
 
 [node name="Story" type="Control"]
 layout_mode = 3
@@ -31,10 +35,12 @@ mouse_filter = 2
 theme_override_constants/separation = 32
 
 [node name="Text" type="Label" parent="Center/VBox"]
-custom_minimum_size = Vector2(640, 0)
+custom_minimum_size = Vector2(900, 0)
 layout_mode = 2
 mouse_filter = 2
-theme_override_font_sizes/font_size = 24
+theme_override_constants/line_spacing = 8
+theme_override_fonts/font = SubResource("Font_typewriter")
+theme_override_font_sizes/font_size = 20
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -43,6 +49,7 @@ autowrap_mode = 2
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_fonts/font = SubResource("Font_typewriter")
+theme_override_font_sizes/font_size = 15
 text = ""
 horizontal_alignment = 1
