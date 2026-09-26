@@ -3,8 +3,25 @@
 The screen between the splash menu and the game, and the only place the intro is told. It is
 a **mechanical typewriter**: a monospace typewriter face, a clack per character, and a
 carriage return with its bell at every line break. `ui/story.gd` is the behaviour,
-`ui/story.tscn` the layout, `sounds/type_key.wav` and `sounds/type_return.wav` the two
-noises.
+`ui/story.tscn` the layout, `ui/story_text.gd` holds the words, and
+`sounds/type_key.wav` and `sounds/type_return.wav` are the two noises.
+
+## The pages
+
+The intro is a **stack of screens, not one**: `ui/story_text.gd` holds `PAGES`, one entry per
+screen, and `ui/story.gd` types them in order. **Add a page by adding an entry to `PAGES`** —
+nothing else has to change, because the count, the paging and the last-page prompt all read
+from that list.
+
+One press moves exactly one step — the next page, or the game once the last page is done. It
+is deliberately **one press, one thing**: no skip-then-confirm, and no "press to finish typing
+this page" state in between either, so a press can never do something the player did not
+predict. What the finished page's hint says tells them which step they are about to take
+(`PROMPT_NEXT` / `PROMPT_BEGIN`).
+
+Every page starts clean: the reveal, the carriage-return beat, the clack clock and the cursor
+all reset in `_begin_page()`, and the previous page's bell is cut off rather than ringing into
+the new page.
 
 ## The typing
 

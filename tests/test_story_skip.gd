@@ -20,16 +20,19 @@ func _left_click() -> void:
 	Input.flush_buffered_events()
 
 func _init() -> void:
-	# --- Click skips while typing ---
+	# --- Click walks the pages, then enters the game ---
 	var story = load("res://ui/story.tscn").instantiate()
 	root.add_child(story)
 	current_scene = story
 	for i in 10:
 		await process_frame
-	_left_click()
+	# One press moves one step, so it takes as many presses as the intro has pages.
+	var pages: int = story.page_count()
+	for i in pages:
+		_left_click()
 	var click_ok: bool = await _await_game()
 
-	# --- ESC skips while typing (fresh story) ---
+	# --- ESC walks the pages too (fresh story) ---
 	var main = current_scene
 	root.remove_child(main)
 	main.free()
@@ -38,10 +41,11 @@ func _init() -> void:
 	current_scene = story
 	for i in 10:
 		await process_frame
-	_esc_press()
+	for i in pages:
+		_esc_press()
 	var esc_ok: bool = await _await_game()
 
-	print("RESULT click_skips=%s esc_skips=%s" % [click_ok, esc_ok])
+	print("RESULT pages=%d click_skips=%s esc_skips=%s" % [pages, click_ok, esc_ok])
 	quit(0 if (click_ok and esc_ok) else 1)
 
 

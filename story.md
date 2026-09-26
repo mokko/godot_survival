@@ -1,8 +1,8 @@
 # Story — Nakamoto's Paradigm
 
-The working narrative bible. `ui/story.gd` draws its intro from here
-(the `FULL_TEXT` constant is the stand-in until we lift text from this
-file into the game).
+The working narrative bible. The game's intro is drawn from here: the words the
+story screens type live in `ui/story_text.gd` (`PAGES`, one entry per screen),
+and are a stand-in until more of this file is lifted into it.
 
 ## Premise
 

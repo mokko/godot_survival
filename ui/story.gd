@@ -1,9 +1,14 @@
 extends Control
-## Story screen — sits between the splash menu and the game. Shows intro
-## text typed letter by letter on a near-black background, **as a mechanical
-## typewriter**: a monospace typewriter face, a clack per character, and a
-## carriage return with its bell at every line break. ESC or a left click (at any
-## point, even mid-typing) immediately enters the game.
+## Story screens — sit between the splash menu and the game. The intro is told as a
+## **stack of pages** (`ui/story_text.gd` holds the words), each typed out on a near-black
+## background **as a mechanical typewriter**: a monospace typewriter face, a clack per
+## character, and a carriage return with its bell at every line break.
+##
+## ESC or a left click moves on — to the next page, or into the game once the last page is
+## done. It is deliberately **one press, one thing**: there is no skip-then-confirm
+## two-stage, and no "press to finish typing this page" state either, so a press always
+## moves the story forward by exactly one step. The screen is reached on a fresh run only
+## (`ui/splash.gd`); Load Game skips it.
 ##
 ## The click is handled in _unhandled_input, so every node in story.tscn must
 ## keep mouse_filter = MOUSE_FILTER_IGNORE: a Control on the default STOP grabs
@@ -18,8 +23,9 @@ extends Control
 ## separate clock, so they can never drift from the text.
 
 const GAME_SCENE := "res://world/main.tscn"
-## Typewriter speed. 28 cps reads as deliberate narration; 40 rushed it (the
-## whole intro lands in ~15 s, and a click or ESC still skips at any point).
+const StoryText := preload("res://ui/story_text.gd")
+## Typewriter speed. 28 cps reads as deliberate narration; 40 rushed it (a page lands in a
+## few seconds, and a click or ESC still moves on at any point).
 const CHARS_PER_SEC := 28.0
 ## A clack does not fire faster than this however fast the reveal runs. At 28 cps
 ## a clack on every single character is one solid buzz rather than typing, so the
@@ -30,33 +36,22 @@ const KEY_MIN_GAP := 0.055
 ## sentence arriving on its own.
 const RETURN_PAUSE := 0.26
 ## Sits at the end of the revealed text while the machine is still typing, the way
-## a cursor waits for the next keystroke. Dropped once the intro is complete, so
-## the finished screen is the finished text.
+## a cursor waits for the next keystroke. Dropped once a page is complete, so a
+## finished page is the finished text.
 const CURSOR := "▌"
 ## Key clacks are the loudest thing here because they repeat ~18 times a second;
 ## the return is a one-off and can ring.
 const KEY_VOLUME_DB := -12.0
 const RETURN_VOLUME_DB := -7.0
-
-## The intro, lifted from story.md § Premise. Typed out by _process; the
-## player skips it with a click or ESC (see research/old.md/story.md for the fuller
-## narrative it should eventually grow into).
-const FULL_TEXT := """You are a mind without a body.
-
-Not dead — displaced. Somewhere behind you is a life you can no longer
-reach, and a name you cannot remember.
-
-What you have is a drone: small, patient. Through it you see and hear and
-touch this place — all of it secondhand, remote.
-
-You wake on a shore that is not Japan, and is shaped like Japan.
-Someone built this. Someone put you here.
-
-You do not yet know why.
-"""
+## What the finished page says to do next.
+const PROMPT_NEXT := "click or press ESC for the next page"
+const PROMPT_BEGIN := "click or press ESC to begin"
 
 @onready var label: Label = $Center/VBox/Text
+@onready var hint: Label = $Center/VBox/Hint
 
+var _page := 0               # which page of ui/story_text.gd is up
+var _text := ""              # that page's words, cached for _process
 var _shown := 0.0            # characters revealed so far (float accumulator)
 var _done := false
 var _starting := false
@@ -77,12 +72,58 @@ func _make_snd(path: String, volume_db: float) -> AudioStreamPlayer:
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	label.text = ""
 	# Two players on purpose: the carriage return has to ring on while the next
 	# line's clacks start, and one player would cut it off.
 	_snd_key = _make_snd("res://sounds/type_key.wav", KEY_VOLUME_DB)
 	_snd_return = _make_snd("res://sounds/type_return.wav", RETURN_VOLUME_DB)
 	_rng.seed = 20260926          # the same intro sounds the same every run
+	_begin_page(0)
+
+
+# --------------------------------------------------------------------- the pages
+
+func page_count() -> int:
+	## How many screens the intro is told in.
+	return StoryText.PAGES.size()
+
+
+func page_index() -> int:
+	## Which page is up, from 0.
+	return _page
+
+
+func page_text() -> String:
+	## The page's words — what the tests measure against, and what is being typed.
+	return _text
+
+
+func is_last_page() -> bool:
+	return _page + 1 >= page_count()
+
+
+func _begin_page(index: int) -> void:
+	## Show a page from its first character. Everything a page owns resets here, so a
+	## page can never inherit half a line, a running beat or a stale cursor from the
+	## one before it.
+	_page = index
+	_text = str(StoryText.PAGES[_page])
+	_shown = 0.0
+	_done = false
+	_hold = 0.0
+	_since_key = 99.0            # the first clack of a page comes at once
+	label.text = ""
+	hint.text = ""
+	if _snd_return != null:
+		_snd_return.stop()       # the previous page's bell does not ring into this one
+
+
+func next_page() -> bool:
+	## Move on: the next page, or false once the last one is up — the caller turns that
+	## into entering the game. Public so a test can drive pages without input events.
+	if is_last_page():
+		return false
+	_begin_page(_page + 1)
+	return true
 
 
 func _process(delta: float) -> void:
@@ -94,14 +135,14 @@ func _process(delta: float) -> void:
 		_hold = maxf(_hold - delta, 0.0)
 		return
 	var before := int(_shown)
-	var limit := FULL_TEXT.length()
+	var limit := _text.length()
 	_shown = minf(_shown + CHARS_PER_SEC * delta, float(limit))
 	var now := int(_shown)
 	# A line break among the characters just revealed stops the reveal *at* the break,
 	# so the carriage return happens at the end of a line and the next line starts
 	# after the beat. Without this the break would be ordinary and the bell would ring
 	# somewhere inside the following sentence.
-	var brk := FULL_TEXT.find("\n", before)
+	var brk := _text.find("\n", before)
 	if brk != -1 and brk < now:
 		now = brk + 1
 		_shown = float(now)
@@ -110,11 +151,11 @@ func _process(delta: float) -> void:
 		_hold = RETURN_PAUSE
 	if now > before:
 		_clack()
-	label.text = FULL_TEXT.substr(0, now) + (CURSOR if now < limit else "")
+	label.text = _text.substr(0, now) + (CURSOR if now < limit else "")
 	if now >= limit:
 		_done = true
-		label.text = FULL_TEXT
-		$Center/VBox/Hint.text = "click or press ESC to begin"
+		label.text = _text
+		hint.text = PROMPT_BEGIN if is_last_page() else PROMPT_NEXT
 
 
 func _clack() -> void:
@@ -129,11 +170,22 @@ func _clack() -> void:
 	_snd_key.play()
 
 
+# ----------------------------------------------------------------------- input
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		_start_game()
+		_advance()
 	elif event is InputEventMouseButton and event.pressed \
 			and event.button_index == MOUSE_BUTTON_LEFT:
+		_advance()
+
+
+func _advance() -> void:
+	## One press moves the story on by one step, whether the page is still typing or
+	## long finished.
+	if _starting:
+		return
+	if not next_page():
 		_start_game()
 
 
@@ -149,9 +201,9 @@ func _start_game() -> void:
 	# Immediate visual feedback: the world scene takes a while to load (several
 	# seconds on a Rock 5B), so the player must see the skip register the
 	# instant they press.
-	$Center/VBox/Text.hide()
-	$Center/VBox/Hint.text = "Loading..."
-	$Center/VBox/Hint.show()
+	label.hide()
+	hint.text = "Loading..."
+	hint.show()
 	# The hint has to actually reach the screen before the load blocks the
 	# main thread. `process_frame` is emitted *before* drawing, and
 	# RenderingServer.frame_post_draw never fires in headless runs, so wait a
