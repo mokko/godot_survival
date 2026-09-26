@@ -42,7 +42,7 @@ theme_override_constants/line_spacing = 8
 theme_override_fonts/font = SubResource("Font_typewriter")
 theme_override_font_sizes/font_size = 20
 text = ""
-horizontal_alignment = 1
+horizontal_alignment = 0
 autowrap_mode = 2
 
 [node name="Hint" type="Label" parent="Center/VBox"]
@@ -52,4 +52,4 @@ theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 theme_override_fonts/font = SubResource("Font_typewriter")
 theme_override_font_sizes/font_size = 15
 text = ""
-horizontal_alignment = 1
+horizontal_alignment = 0

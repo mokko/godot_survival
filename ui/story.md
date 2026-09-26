@@ -41,9 +41,10 @@ Two things to know if you touch the layout:
   prose is hand-wrapped with hard newlines, so a narrower block re-wraps it mid-sentence
   and the composition falls apart. The block is 900 px at `font_size = 20`; check
   `label.get_line_count()` still equals the text's own line count if you change either.
-- The text is still **centred**, which is a terminal look rather than a typed page. A real
-  typewriter works from a fixed left margin; left-aligning is a one-line change if that
-  reads better.
+- **The text starts at a fixed left margin and runs ragged right**, like a typed page: both
+  labels are `horizontal_alignment = 0`, and the 900 px block is centred on screen, so the
+  column sits in the middle but every line begins at the same edge. Centred text reads as a
+  terminal, which is not what a typewriter does.
 
 ## Skipping
 
