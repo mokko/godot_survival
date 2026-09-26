@@ -49,6 +49,11 @@ change the environment.
   ways to work more knowledge about Japan into the game this way: the
   geography is the first layer, and later content (flora, fauna, story)
   should keep pointing back at the real places.
+- **No minimap — the world is the map.** There is no HUD map, no waypoint and
+  no on-screen marker for anything the player has found. Navigation is by
+  landmarks and memory (the way Minecraft does it), and discovery is the
+  player's to keep: a place found in the world is not written into the
+  notebook for them, and nothing pins it to the screen.
 - **Single player.** The game is a single-player experience — no
   multiplayer or network play.
 
