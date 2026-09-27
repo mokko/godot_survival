@@ -229,6 +229,16 @@ after a load): a drone that dies before it reaches the satchel comes back with t
 started with, and the satchel is still waiting for it. The katana and the binoculars are ordinary gear:
 they go with the rest of the loot, so a respawn is back to fists plus its own notes.
 
+**...and the world is put back the way the run found it.** `_restart()` asks every node in the
+**`pickup` group** to `respawn()`, and each member decides what that means: a **sunbulb** comes back
+somewhere else on the island (`flora/sunbulb.gd`), the **katana** comes back where it lay
+(`items/item_pickup.gd`, which remembers its own start transform), the **Explorer's Kit** comes back on
+the cape shut with its contents (`world/explorer_kit.gd`, which also takes the bag off the drone's
+shoulder and forgets the container), and a **boat** comes back on its mooring (`world/boat.gd`, which
+lets its driver go — a hull that kept one would drag the respawned drone back out to sea every frame).
+So a death costs the loot and the walk, never the ability to get the gear back. `tests/test_respawn.gd`
+pins all three.
+
 ## Where to change what
 
 - Damage per weapon: `items/weapon.gd` (`damage_of`).

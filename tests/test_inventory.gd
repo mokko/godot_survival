@@ -5,6 +5,18 @@ extends SceneTree
 
 const SaveGuard := preload("res://tests/save_guard.gd")
 
+
+func _wheel(up: bool, shift := false) -> void:
+	## A real wheel event through the ordinary pipeline: `player._unhandled_input` is what
+	## decides whether a wheel walks the hotbar or zooms, so nothing here calls the
+	## inventory directly.
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN
+	ev.pressed = true
+	ev.shift_pressed = shift
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
@@ -32,6 +44,52 @@ func _init() -> void:
 	inv.equip(1)
 	if player.get_equipped_item() != "stick":
 		fails.append("equip")
+
+	# 3b. The mouse wheel walks the hotbar: the number keys' job by hand, **skipping empty
+	#     slots** and wrapping (Maurice's call). Sent as a real wheel event, because the
+	#     *player* is what turns a wheel into a selection — and Shift is held for the zoom
+	#     (`tests/test_instrument_zoom.gd`), so that split is checked here too.
+	# The fade-in overlay swallows input until it clears (`player._lock_check`), so the wheel
+	# has to wait for the run to be listening at all.
+	for i in 60:
+		await physics_frame
+	inv.slots[5] = "shell"
+	inv.counts[5] = 1
+	inv.equip(0)
+	# 0 -> 1: the next held slot along.
+	_wheel(false)
+	await physics_frame
+	if inv.equipped_slot != 1:
+		fails.append("wheel_down_to_%d" % inv.equipped_slot)
+	# 1 -> 5: slots 2, 3 and 4 are empty, so they are stepped over.
+	_wheel(false)
+	await physics_frame
+	if inv.equipped_slot != 5:
+		fails.append("wheel_did_not_skip_empties:%d" % inv.equipped_slot)
+	# 5 -> 1: and back over them.
+	_wheel(true)
+	await physics_frame
+	if inv.equipped_slot != 1:
+		fails.append("wheel_up_did_not_skip_empties:%d" % inv.equipped_slot)
+	# 1 -> 0.
+	_wheel(true)
+	await physics_frame
+	if inv.equipped_slot != 0:
+		fails.append("wheel_up_to_%d" % inv.equipped_slot)
+	# 0 -> 5: it wraps rather than dead-ending at the first slot.
+	_wheel(true)
+	await physics_frame
+	if inv.equipped_slot != 5:
+		fails.append("wheel_up_did_not_wrap:%d" % inv.equipped_slot)
+	# Shift+wheel is the zoom (`tests/test_instrument_zoom.gd`): the selection must not move.
+	_wheel(false, true)
+	await physics_frame
+	if inv.equipped_slot != 5:
+		fails.append("shift_wheel_moved_the_selection:%d" % inv.equipped_slot)
+	# Put the bar back the way the cases below expect it: two items, the second held.
+	inv.slots[5] = ""
+	inv.counts[5] = 0
+	inv.equip(1)
 
 	# 4. Arrows stack: packs of 5 top up to the 50 ceiling, then next slot.
 	# (Done on a half-empty inventory: 2 items + 10 packs = 12 slots used.)

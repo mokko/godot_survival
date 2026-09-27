@@ -30,6 +30,14 @@ dies before it reaches the satchel comes back with the same empty hands it start
 satchel is still out there waiting. That is what `_keepsakes_found` is for, and it is read back off the
 restored bag when a save is loaded.
 
+**And a death puts it back on the cape** (`world/explorer_kit.gd::respawn()`, asked for by
+`player/player.gd::_restart` walking the `pickup` group): shut, solid, its mark lit, its contents
+available again — the binoculars the wipe took are fetchable, and a second press of E never hands over
+a second notebook, because an item the drone carries is left alone. The bag leaves the drone's
+shoulder with it, and the run's record of having opened this satchel (`player.opened_containers`) is
+forgotten — leave *that* standing and the satchel hides itself the moment it next syncs. A save never
+forgets a container; only the death path does.
+
 ## Where it lies, and how to move it
 
 The satchel is a plain node in `world/main.tscn`:

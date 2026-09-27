@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" path="res://flora/ghostsilk.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" path="res://flora/plants_placed.tscn" id="6_plants"]
 [ext_resource type="PackedScene" path="res://fauna/animals_placed.tscn" id="7_animals"]
-[ext_resource type="PackedScene" path="res://world/movable_block.tscn" id="8_5vw27"]
 [ext_resource type="Script" path="res://ui/fade_in.gd" id="10_fade"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11_pause"]
 [ext_resource type="Script" path="res://world/day_cycle.gd" id="12_day"]
@@ -195,23 +194,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.61766, 5.005619, 39.92934
 
 [node name="Animals" parent="." unique_id=274652852 instance=ExtResource("7_animals")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8170018, 0)
-
-[node name="Blocks" type="Node3D" parent="." unique_id=1689743588]
-
-[node name="Block1" parent="Blocks" unique_id=2136088590 instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.5, 3, 78.5)
-mass = 10.0
-
-[node name="Block2" parent="Blocks" unique_id=1749879049 instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 3, 77)
-mass = 10.0
-
-[node name="Block3" parent="Blocks" unique_id=2011982623 instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -111.5, 3, 79.5)
-mass = 10.0
-
-[node name="MovableBlock" parent="Blocks" unique_id=548078291 instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.78288, 3.4241955, 63.300095)
 
 [node name="Items" type="Node3D" parent="."]
 

@@ -205,16 +205,21 @@ func _init() -> void:
 		fails.append("loupe_view_not_shown")
 	if study._view.tubes != 1:
 		fails.append("loupe_has_%d_tubes" % study._view.tubes)
-	# The view draws behind the rest of the HUD on purpose: the Pedia lives in
-	# the pause menu, and a view added last would dim the open book and put a
-	# lens over it. Draw order is the whole mechanism, so it is what we check —
-	# a headless run has no renderer to look at.
+	# The view draws behind the rest of the HUD on purpose: the Pedia lives in the pause menu,
+	# and a view added last would dim the open book and put a lens over it. Draw order is the
+	# whole mechanism, so it is what we check — a headless run has no renderer to look at. The
+	# one thing *ahead* of it is the world's back buffer, which the lens blur reads
+	# (`ui/instrument_view.gd`): copy the screen after the strips and the blur eats its own mask.
 	var hud: CanvasLayer = main.get_node("HUD")
-	if study._view.get_index() != 0:
-		fails.append("instrument_view_not_behind_the_hud")
+	if study._backbuffer == null or study._backbuffer.get_index() > study._view.get_index():
+		fails.append("instrument_backbuffer_not_behind_the_lens")
 	var pause: Node = hud.get_node_or_null("PauseMenu")
 	if pause != null and pause.get_index() < study._view.get_index():
 		fails.append("pause_menu_draws_under_the_instrument_view")
+	if study._view.get_index() >= hud.get_child_count() - 1:
+		fails.append("instrument_view_not_behind_the_hud")
+	if study._view._lens == null:
+		fails.append("no_lens_on_the_instrument_view")
 	if study.begin():
 		fails.append("studied_something_with_nothing_in_view")
 	if study.is_studying():
@@ -248,6 +253,22 @@ func _init() -> void:
 		fails.append("session_did_not_end_when_drawn")
 	if study._meter.message == "":
 		fails.append("no_drawn_message")
+
+	# 3b. A species already in the notebook is not studied again: the click says so and
+	#     starts nothing (Maurice's call). The same plant, still in front of the drone.
+	if not _equip(player, "magnifying_glass"):
+		fails.append("glass_not_equippable_for_the_repeat")
+	await _wait(0.1)
+	player.camera.look_at(plant.global_position + Vector3(0.0, 1.0, 0.0))
+	await _wait(0.2)
+	if not study.begin():
+		fails.append("a_repeat_study_was_refused_silently")
+	if study.is_studying():
+		fails.append("a_session_started_on_a_species_already_drawn")
+	if not study._meter.message.contains("Already"):
+		fails.append("no_already_studied_message: '%s'" % study._meter.message)
+	if study.progress() != 0.0:
+		fails.append("a_repeat_study_kept_progress:%.1f" % study.progress())
 
 	# 4. An explorer has more than one way of looking, and the glass will not watch an
 	#    animal alive: it refuses and names the binoculars instead.

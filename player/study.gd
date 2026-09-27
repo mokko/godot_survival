@@ -48,6 +48,10 @@ const LOST_GRACE := 0.6       ## seconds the subject may slip off the crosshair
 const AIM_SLACK := 0.07       ## radians of tolerance when the ray itself misses
 const MESSAGE_HOLD := 2.0     ## how long a "wrong tool" line stays
 const LINE_FADE := 1.2        ## alpha per second while a line fades out
+## What a click says when the species is already in the notebook (`begin()`). Short on
+## purpose: the meter's lines are the drone's own terse notes, and there is nothing to
+## advise — the page exists.
+const ALREADY_STUDIED := "Already studied"
 ## What the camera narrows to while that glass is **raised** — the pull itself belongs to
 ## `player/player.gd`. The loupe is the stronger glass of the two (30 against 35): it is
 ## used on something within arm's reach, where a wider view would only fill the circle with
@@ -79,6 +83,8 @@ var _lost := 0.0
 var _message := 0.0
 var _view: Control = null
 var _meter: Control = null
+## The world's copy the lens blur reads (`BackBufferCopy`, this view's first sibling).
+var _backbuffer: BackBufferCopy = null
 
 
 func _ready() -> void:
@@ -158,6 +164,15 @@ func begin() -> bool:
 		cancel()
 		_show_message(refusal)
 		return true
+	if Notes.has(str(found["chapter"]), str(found["id"])):
+		## **Already in the notebook, so there is nothing to draw.** The drone says so
+		## instead of holding a subject for eight seconds to write down what it has
+		## already written — and the refusal is the same for both routes, so an animal
+		## watched through the binoculars cannot then be autopsied for the same page
+		## (Maurice's call: do not allow the study of a species already studied).
+		cancel()
+		_show_message(ALREADY_STUDIED)
+		return true
 	_subject = found["node"]
 	_tool = tool
 	_range = range_m
@@ -230,10 +245,11 @@ func _draw_entry() -> void:
 	_subject_name = ""
 	## An autopsy gets its own word: it reached the same page the binoculars would
 	## have, but it was done the other way, and the drone should hear which.
-	var note := "Autopsy: %s" % name if autopsy else "Drawn: %s" % name
-	if not fresh:
-		note += " (again)"
-	_show_message(note)
+	_show_message("Autopsy: %s" % name if autopsy else "Drawn: %s" % name)
+	# A session only ever starts on a species the notebook does **not** hold — `begin()`
+	# refuses one that is already in it — so this is the first writing of the page, and
+	# there is no "(again)" line to print any more. The `fresh` guard stays as
+	# belt-and-braces for the day something else calls this.
 	if fresh:
 		entry_drawn.emit(drawn_chapter, drawn_id)
 		if not had_enough and _survey_complete():
@@ -427,18 +443,31 @@ func _build_hud() -> void:
 	var hud: CanvasLayer = player.get_node_or_null("../HUD")
 	if hud == null:
 		return
+	# The world, copied before anything of this view draws: the lens blur inside the circles
+	# reads it as `SCREEN_TEXTURE` (ui/instrument_view.gd), and a copy taken *after* the mask
+	# strips would blur the mask into itself. Nothing else in the HUD reads it.
+	#
+	# `BackBufferCopy` is a `Node2D`, not a `Control`, so there is no rect to set and no
+	# mouse filter to ignore — by design, because `COPY_MODE_VIEWPORT` copies the whole
+	# viewport whatever the node's own size says. All that matters is that it draws before
+	# the view does.
+	_backbuffer = BackBufferCopy.new()
+	_backbuffer.name = "InstrumentBackBuffer"
+	_backbuffer.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	hud.add_child(_backbuffer)
+	hud.move_child(_backbuffer, 0)
 	_view = Control.new()
 	_view.set_script(InstrumentView)
 	_view.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_view.visible = false
 	hud.add_child(_view)
-	# Then send it to the back of the HUD. The Pedia lives in the pause menu,
-	# which is the HUD's first child, so a view added last would dim the book and
-	# put two lenses over it — reading the notebook through the binoculars. This
-	# view is of the *world*; the book belongs in front of the world. Nothing to
-	# hide, no state to keep in step: it is draw order and nothing else.
-	hud.move_child(_view, 0)
+	# Then send it to the back of the HUD — **behind everything but the back buffer**. The
+	# Pedia lives in the pause menu, which is the HUD's first child, so a view added last
+	# would dim the book and put two lenses over it — reading the notebook through the
+	# binoculars. This view is of the *world*; the book belongs in front of the world.
+	# Nothing to hide, no state to keep in step: it is draw order and nothing else.
+	hud.move_child(_view, 1)
 	_meter = Control.new()
 	_meter.set_script(StudyMeter)
 	_meter.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)

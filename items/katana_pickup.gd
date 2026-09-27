@@ -19,8 +19,13 @@ extends "res://items/item_pickup.gd"
 ## are on the terrain — see `world/kit.md`.
 ##
 ## Picking it up is also one of the run's **screens**: `ui/story_text.gd`'s `katana`
-## milestone, played through the HUD's story screen. Any katana plays it, on purpose — the
-## page is about recognising a sword for what it is, not about that particular blade.
+## milestone, played through the HUD's story screen. Any katana plays it, on purpose —
+## the page is about recognising a sword for what it is, not about that particular blade.
+##
+## **A death puts the sword back where it lay** (`pickup` group →
+## `items/item_pickup.gd::respawn()`): the blade is the one thing a fresh run needs to
+## fight at all, and the drone comes back to the cape with empty hands, so losing it to a
+## death should cost a walk and not the weapon.
 
 const PropMesh := preload("res://world/prop_mesh.gd")
 
@@ -36,6 +41,14 @@ const SAYA := Color(0.11, 0.12, 0.15)
 ## decides which way it points. Everything sits just above the node's origin: the node
 ## is placed at the terrain's height, and the sword lies on it.
 const BLADE_LENGTH := 0.6
+
+
+func _ready() -> void:
+	super._ready()
+	# A death puts it back on the cape (`items/item_pickup.gd::respawn()`, asked for by
+	# `player/player.gd::_restart`). The group is opt-in — only the things a death should
+	# give back are in it — so the sword joins it here rather than in the base class.
+	add_to_group("pickup")
 
 
 func _on_body_entered(body: Node) -> void:

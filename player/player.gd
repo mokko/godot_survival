@@ -314,6 +314,17 @@ func has_opened_container(id: String) -> bool:
 	return opened_containers.has(id)
 
 
+func forget_container(id: String) -> void:
+	## Un-remember an emptied container. Called by `world/explorer_kit.gd::respawn()`: a
+	## death puts the satchel back on the cape **with its contents**, and a satchel the run
+	## is still recorded as having been through would hide itself the moment it synced
+	## (`explorer_kit._sync_from_player`, and `player/equipment.gd` asking the same
+	## question for the bag on the drone's shoulder).
+	##
+	## Only the death path calls this. A save never does.
+	opened_containers.erase(id)
+
+
 func _note_keepsakes_in_bag() -> void:
 	## The bag is the truth about what the drone has held. Called after a load, so a
 	## restored keepsake is one that can come back if it is lost later.
@@ -515,16 +526,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
 		camera.rotation.x = clamp(camera.rotation.x, -1.2, 1.2)
 
-	# Scroll wheel zoom.
+	# The scroll wheel: **it walks the hotbar** (Maurice's call — a hand on the wheel is a
+	# hand on the weapons, and it does what the number keys do), and **Shift keeps the
+	# zoom**, which is where the wheel's old job went: the field of view is still the only
+	# thing the player can change with it, and the glasses' pull is built on `base_fov`, so
+	# the binding had to stay reachable.
 	if event is InputEventMouseButton and event.pressed:
-		# The wheel moves the *base* zoom rather than the camera, so a raised glass can pull
-		# the view in and hand it back to whatever the player had chosen — including a choice
-		# made while the glass was up. `_set_base_fov` still applies it straight away when
-		# nothing is raised, so the wheel feels as immediate as it always did.
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_set_base_fov(base_fov - ZOOM_SPEED)
+			if event.shift_pressed:
+				_set_base_fov(base_fov - ZOOM_SPEED)
+			else:
+				_cycle_item(-1)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_set_base_fov(base_fov + ZOOM_SPEED)
+			if event.shift_pressed:
+				_set_base_fov(base_fov + ZOOM_SPEED)
+			else:
+				_cycle_item(1)
+		# The wheel moves the *base* zoom rather than the camera, so a raised glass can
+		# pull the view in and hand it back to whatever the player had chosen — including
+		# a choice made while the glass was up. `_set_base_fov` still applies it straight
+		# away when nothing is raised, so Shift+wheel feels as immediate as it always did.
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if get_equipped_item() == "sword":
 				do_slash()
@@ -736,6 +757,14 @@ func set_instrument_fov(target: float) -> void:
 func instrument_fov() -> float:
 	## What a raised glass is asking for. For tests, and for anything reporting state.
 	return _fov_target
+
+
+func _cycle_item(step: int) -> void:
+	## The wheel's selection: the number keys' job (the inventory owns the slots and the
+	## rules), asked for from here because the player is what sees the input — and because
+	## the same branch has to tell Shift+wheel apart from the plain wheel.
+	if inventory != null:
+		inventory.select_by_wheel(step)
 
 
 func _set_base_fov(value: float) -> void:
@@ -969,7 +998,12 @@ func _restart() -> void:
 	# ...and the clock starts again with it. A respawn in a halted sky would leave the
 	# world frozen around a living drone.
 	_set_clock_running(true)
-	# Respawn all pickups (sunbulbs).
+	# Put the world back the way the run found it: **every node in the `pickup` group is
+	# asked to `respawn()`**. The group is the list of things a death gives back, and each
+	# member decides what that means — a sunbulb comes back somewhere else on the island
+	# (`flora/sunbulb.gd`), the katana and the Explorer's Kit come back where they were
+	# (`items/katana_pickup.gd`, `world/explorer_kit.gd`), and a boat comes back on its
+	# mooring with the drone off its deck (`world/boat.gd`).
 	for pickup in get_tree().get_nodes_in_group("pickup"):
 		pickup.respawn()
 	_update_hud()

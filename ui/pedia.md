@@ -45,7 +45,11 @@ fills its own way:
   something with before it magnifies cannot be used to find that something. Putting it
   away hands the view straight back to the player's own zoom. Slip off the subject for
   more than a moment and the drawing starts again from nothing. The glass works close:
-  **6 m**.
+  **6 m**. **A species already in the notebook is not studied again**: the click says
+  **"Already studied"** and starts nothing, on both routes — an animal watched through the
+  binoculars cannot then be autopsied for the page it already has. **And the glass is glass**:
+  inside the circles the world is blurred (a five-tap mip blur, `ui/instrument_view.gd`), so
+  looking through an instrument reads as looking through one rather than through a hole.
 - **Animals** have two routes to the same page, because an explorer has more than
   one way of looking:
   - **watch one through the Binoculars** for eight seconds — the observation route,

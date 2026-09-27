@@ -282,6 +282,12 @@ func _init() -> void:
 	await _wait(0.2)
 	# The glass comes out of the satchel in a real run; here it is handed over directly,
 	# because this test is about names and not about world/explorer_kit.gd.
+	# The study case needs a species the notebook does **not** hold: studying one that is
+	# already drawn is refused now (`player/study.gd`'s "Already studied"), and this same
+	# frostneedle was unlocked a few lines up so the Pedia page could show the player's own
+	# name. Take that one entry back out — nothing else changes, and the name stays.
+	var drawn_now: Array = Notes.drawn()
+	Notes.restore(drawn_now.filter(func(k): return str(k) != "plants/%s" % PLANT))
 	player.add_item("magnifying_glass")
 	await _wait(0.1)
 	if not _equip(player, "magnifying_glass"):
@@ -301,6 +307,9 @@ func _init() -> void:
 		fails.append("meter_says_%s" % study._meter.subject)
 	if study._meter.subject == NAME:
 		fails.append("meter_spent_the_name:%s" % study._meter.subject)
+	# Put the drawing back: this case stops mid-hold (it is about the name the meter must not
+	# say yet), and the death case below expects a drawing to lose.
+	Notes.unlock("plants", PLANT)
 
 	# 11. Dying keeps the notebook. The drone dies the way the island kills it (no life
 	#     left), respawns the way the game-over screen does, and both halves have to come

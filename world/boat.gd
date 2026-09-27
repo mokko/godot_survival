@@ -25,6 +25,11 @@ extends StaticBody3D
 ## completed circuit is the Pedia's Islands entry. The first boarding plays
 ## `ui/story_text.gd`'s `boat_discovery` page, which is where the player is told so.
 ##
+## **A death puts it back on its mooring** (`respawn()`, asked for by
+## `player/player.gd::_restart` walking the `pickup` group): a hull left mid-strait — or one
+## the drone died aboard — is somewhere the next attempt cannot reach, and every island past
+## Ezo is reached by boat.
+##
 ## The whole vessel is one merged, vertex-coloured mesh — one draw call per boat,
 ## for the same reason the benchmark flags the multi-mesh flora.
 
@@ -68,11 +73,19 @@ var _hint_timer := 0.0
 var _hull_mesh: MeshInstance3D
 var _lantern: MeshInstance3D
 var _mooring := Vector3.INF
+## The yaw it was placed with, so a boat put back has its **bow out to sea** again:
+## `tools/build_boats.gd` yaws each hull to face open water, and `tests/test_boat.gd` fails
+## if a moored bow points inland.
+var _mooring_yaw := 0.0
 
 
 func _ready() -> void:
 	_mooring = global_position
+	_mooring_yaw = rotation.y
 	add_to_group("boat")     # tests and the HUD find boats through this
+	# ...and it is in the `pickup` group, which is the list of things a death puts back
+	# (`player/player.gd::_restart` → `respawn()`).
+	add_to_group("pickup")
 	_build_visuals()
 	_build_collision()
 	_hint = _make_hint_label()
@@ -236,6 +249,28 @@ func _play_page_once() -> void:
 	if not story.play_milestone(BOAT_PAGE):
 		return
 	_page_played = true
+
+
+func respawn() -> void:
+	## **A death puts the boat back on its mooring, bow out to sea**, and takes the drone
+	## off its deck. `player/player.gd::_restart` asks for it, along with everything else a
+	## death gives back: a hull left mid-strait (or one that died with the drone aboard) is
+	## somewhere the next run cannot reach, and the boat is the only way to the other
+	## islands.
+	##
+	## The driver has to be let go, not just moved: while `_driver` is set the boat pins
+	## the drone to its deck **every physics frame** (`_seat_driver`), so a respawned drone
+	## at the spawn point would be dragged straight back out to sea. `leave_boat()` is the
+	## player's own half of that (it clears the reference the player keeps), and it is what
+	## the E-to-go-ashore path calls too.
+	##
+	## Idempotent: a boat nobody sailed is already there.
+	if _driver != null:
+		if _driver.has_method("leave_boat"):
+			_driver.leave_boat()
+		_driver = null
+	global_position = _mooring
+	rotation = Vector3(0.0, _mooring_yaw, 0.0)
 
 
 func _nearest_land() -> Vector3:

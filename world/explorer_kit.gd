@@ -36,6 +36,14 @@ extends StaticBody3D
 ## (`world/prop_mesh.gd`) on a `StaticBody3D`, so it cannot be walked through. When it
 ## is emptied its shape is disabled as well as hidden, so no invisible volume is left
 ## standing on the cape where the satchel lay.
+##
+## **A death puts it back on the cape, shut, with its contents** (`respawn()`, asked for by
+## `player/player.gd::_restart` walking the `pickup` group): the loot a death takes
+## includes the binoculars, and the kit is where the survey gear comes from — so a run that
+## dies out on the island can come back for it instead of being left with no way to fill
+## the notebook. The bag goes off the drone's shoulder with it, and the drone's record of
+## having been through this satchel is forgotten, so the next press of E is the same press
+## of E as the first time (only the gear it is still carrying is left out).
 
 const PropMesh := preload("res://world/prop_mesh.gd")
 
@@ -68,6 +76,10 @@ var _hint: Label = null
 
 func _ready() -> void:
 	add_to_group("explorer_kit")     # tests and anything else find them through this
+	# ...and it is in the `pickup` group, which is the list of things a death puts back
+	# (`player/player.gd::_restart` → `respawn()`). Opt-in, like the sword: the group is
+	# what a death gives back and nothing else joins it by default.
+	add_to_group("pickup")
 	# Keeps ticking while the tree is paused, so the prompt can clear itself the moment
 	# a menu takes the mouse — the bench's reason, and the same one line.
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -136,7 +148,7 @@ func use(player: Node3D) -> bool:
 	_set_open()
 	if player.has_method("open_container"):
 		player.open_container(container_id)
-	_wear_satchel(player)
+	_set_satchel_on(player, true)
 	# Finding the kit is a *screen* (ui/story_text.gd's `explorer_kit` milestone): the
 	# satchel narrates itself rather than being a silent container. Played here, on the
 	# opening path only — a satchel a save remembers as already emptied is on the
@@ -148,17 +160,22 @@ func use(player: Node3D) -> bool:
 	return true
 
 
-func _wear_satchel(player: Node3D) -> void:
-	## The other half of emptying it: the four instruments went into this satchel, and
-	## the satchel goes onto the drone (`player/equipment.gd`'s `show_satchel`), so the
-	## bag the drone carries is the bag that was lying on the cape.
+func _set_satchel_on(player: Node, worn: bool) -> void:
+	## The bag itself. `player/equipment.gd`'s `show_satchel` is the only thing that puts
+	## it on the drone's shoulder and the only thing that takes it off, and both directions
+	## belong to the satchel being **emptied** and to it being **put back**:
 	##
-	## A loaded run gets the same bag without this call — the equipment asks the
-	## player's opened-container list for itself, the same question this node asks in
-	## `_sync_from_player`.
+	##  - emptied → worn: the bag the drone carries is the bag that was lying on the cape;
+	##  - respawned → off: the bag is in the grass again, where it was found.
+	##
+	## A loaded run gets the right answer without either call — the equipment asks the
+	## player's opened-container list for itself (`equipment.gd::_sync_worn_satchel`), the
+	## same question this node asks in `_sync_from_player`.
+	if player == null:
+		return
 	var equipment: Node = player.get_node_or_null("Equipment")
 	if equipment != null and equipment.has_method("show_satchel"):
-		equipment.show_satchel(true)
+		equipment.show_satchel(worn)
 
 
 func story_screen() -> Node:
@@ -195,6 +212,40 @@ func _sync_from_player() -> void:
 	if player != null and player.has_method("has_opened_container") \
 			and player.has_opened_container(container_id):
 		_set_open()
+
+
+# ------------------------------------------------------------------ coming back
+
+func respawn() -> void:
+	## **A death puts the satchel back on the cape, shut, with its contents** — the bag in
+	## the grass at the spot `world/main.tscn` placed it (this one never moves), collectable
+	## again by the same press of E as the first time. `player/player.gd::_restart` asks for
+	## it: the death wipe takes the binoculars with the rest of the loot, and a run that
+	## died out on the island must be able to come back for the survey gear instead of
+	## being left with nothing to fill the notebook with.
+	##
+	## Idempotent, and free on a satchel that was never opened. Everything "emptied" means
+	## is undone together, because any one of them left standing leaves a satchel that
+	## cannot be used:
+	##
+	##  - the flag (`_opened`) — which is also what un-hides the idle prompt;
+	##  - the mesh;
+	##  - the collision shape, so it is solid in the grass again;
+	##  - the lit mark on the flap, which is gone for good on an emptied satchel;
+	##  - the player's record of having been through it (`forget_container`), which both
+	##    `_sync_from_player` **and** `player/equipment.gd` ask — leave it standing and the
+	##    satchel hides itself on the next sync;
+	##  - and the bag on the drone's shoulder, which goes back to the grass with it.
+	var player: Node = get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("forget_container"):
+		player.forget_container(container_id)
+	_opened = false
+	visible = true
+	if _shape != null:
+		_shape.set_deferred("disabled", false)
+	if _glow != null:
+		_glow.visible = true
+	_set_satchel_on(player, false)
 
 
 func _physics_process(_delta: float) -> void:

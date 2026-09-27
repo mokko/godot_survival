@@ -208,6 +208,35 @@ func _unhandled_input(event: InputEvent) -> void:
 			equip_armor_from_inventory()
 
 
+func select_by_wheel(step: int) -> bool:
+	## The mouse wheel walking the hotbar — the number keys' job done by hand, asked for by
+	## `player/player.gd`'s wheel branch (the player owns the wheel because Shift still
+	## zooms with it). True when the selection moved.
+	##
+	## Two differences from a number key, and both are deliberate: the wheel **wraps**
+	## (slot 9 → slot 1 → …, so a wheel never dead-ends) and it **skips empty slots** (a
+	## landing on nothing reads as a broken wheel, while a number key pressed on an empty
+	## slot is a deliberate way to put a tool away). With nothing held it starts walking
+	## from the first slot.
+	if step == 0:
+		return false
+	var filled := 0
+	for i in SLOTS:
+		if slots[i] != "" and counts[i] > 0:
+			filled += 1
+	if filled == 0:
+		return false
+	var slot: int = equipped_slot
+	for _try in SLOTS:
+		slot = posmod(slot + step, SLOTS)
+		if slots[slot] != "" and counts[slot] > 0:
+			break
+	if slot == equipped_slot:
+		return false
+	equip(slot)
+	return true
+
+
 func restore(items: Array, counts_in: Array) -> void:
 	## Replace the whole inventory (savegame load). Invalid ids are kept as-is;
 	## arrays are clamped to SLOTS.

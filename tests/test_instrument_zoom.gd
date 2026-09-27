@@ -64,10 +64,14 @@ func _wait_until(condition: Callable, timeout: float) -> bool:
 
 func _wheel(up: bool) -> void:
 	## A real wheel event through the ordinary pipeline: the handler in
-	## `player/player.gd::_unhandled_input` is part of what is being tested.
+	## `player/player.gd::_unhandled_input` is part of what is being tested. **Shift is
+	## held**, because the plain wheel now walks the hotbar (`ui/inventory.gd`'s
+	## `select_by_wheel`) and the zoom moved to Shift+wheel — which of the two a wheel does
+	## is pinned in `tests/test_inventory.gd`, and this test is about the zoom.
 	var ev := InputEventMouseButton.new()
 	ev.button_index = MOUSE_BUTTON_WHEEL_UP if up else MOUSE_BUTTON_WHEEL_DOWN
 	ev.pressed = true
+	ev.shift_pressed = true
 	Input.parse_input_event(ev)
 	Input.flush_buffered_events()
 
