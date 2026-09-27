@@ -3,6 +3,22 @@ extends SceneTree
 ## the route except the last, each knowing its next island, reachable from dry
 ## land, boardable, steerable, refusing to strand the player at sea, and refusing
 ## to sail onto land.
+##
+## ...and the Islands chapter: a boat is what charts an island, by sailing right round it
+## (section 10), so a run's notebook holds no island until one has been circled.
+
+const Notes := preload("res://ui/pedia_notes.gd")
+const StoryText := preload("res://ui/story_text.gd")
+
+
+func _close_story(main: Node) -> void:
+	## A milestone page goes up over a **paused** world, and every wait below is a physics
+	## frame: a page left up would stall the whole test with a failure that looks like a
+	## dozen broken features. The boat's page is Maurice's to write, so this has to be safe
+	## whether or not there are words behind the id.
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story != null and story.is_playing():
+		story._advance()
 
 
 func _init() -> void:
@@ -62,6 +78,18 @@ func _init() -> void:
 	boat.board_for_test(player)
 	if not player.in_boat() or boat.driver() != player:
 		fails.append("boarding did not seat the player")
+	# ...and the **first** boat a run boards says what a boat is for, once (`world/boat.gd`'s
+	# `BOAT_PAGE`: sail round an island and it goes into the notebook). The words are
+	# Maurice's and not written yet, so this checks what it can: a page that exists plays
+	# here, one that does not plays nothing at all — and either way the page is closed,
+	# because a milestone screen pauses the world the waits below are counting frames in.
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story == null:
+		fails.append("the HUD has no milestone story screen")
+	elif not StoryText.milestone(boat.BOAT_PAGE).is_empty():
+		if not story.is_playing() or str(story.milestone_id()) != str(boat.BOAT_PAGE):
+			fails.append("the first boarding played no boat page")
+	_close_story(main)
 	for i in 5:
 		await physics_frame
 	var deck_gap: float = absf(player.global_position.y - (boat.global_position.y + boat.RIDE_HEIGHT))
@@ -114,6 +142,15 @@ func _init() -> void:
 		await physics_frame
 	if player.global_position.y < -1.0:
 		fails.append("player fell through the shore after landing")
+	# Nothing is written into the notebook by landing: the Islands chapter is charted by
+	# sailing round an island (section 10), so the book opens empty even though the run woke
+	# up here. `player.island_here()` still answers — the survey beat asks it whose page a
+	# finished survey earned — and it must name the island the drone is standing on.
+	var landed: String = str(player.island_here())
+	if landed != "ezo":
+		fails.append("the drone does not know which island it landed on: '%s'" % landed)
+	if Notes.count_drawn("islands") != 0:
+		fails.append("landing wrote an island into the notebook: %s" % str(Notes.drawn()))
 
 	# 7. The bow points out to sea: pressing W must not sail the player into the
 	#    beach the boat is moored beside (the new-style boats are yawed south).
@@ -129,6 +166,7 @@ func _init() -> void:
 	boat.global_position = Vector3(mooring.x, 0.0, mooring.z)
 	boat.rotation.y = 0.0        # bow north: straight at the beach
 	boat.board_for_test(player)
+	_close_story(main)           # a second boarding says nothing (the page is a one-off)
 	for i in 3:
 		await physics_frame
 	Input.action_press("move_forward")
@@ -185,6 +223,43 @@ func _init() -> void:
 	if player.global_position.distance_to(spawn) > 2.0:
 		fails.append("open-sea save did not fall back to the spawn point")
 
+	# 10. **The Islands chapter is a map the player drew.** Nothing is written by standing on
+	#     an island or landing on it — the run opens the book on four empty chapters — and
+	#     sailing right round one is what writes it down. The ring is walked with the hull, a
+	#     waypoint per compass sector, each waypoint a point the rule itself accepts
+	#     (`_chart_ring`): so this fails if the band or the requirement ever asked for a
+	#     sector that is not reachable, which is the whole reason CHART_BAND is measured.
+	var ring: Array = _chart_ring("ezo")
+	if ring.size() != Ezo.CHART_SECTORS:
+		fails.append("ezo offers %d of %d chart sectors" % [ring.size(), Ezo.CHART_SECTORS])
+	boat.global_position = Vector3(mooring.x, 0.0, mooring.z)
+	boat.rotation.y = PI
+	boat.board_for_test(player)
+	if story != null and story.is_playing():
+		fails.append("the boat's page came up on a later boarding")
+	_close_story(main)
+	for i in 3:
+		await physics_frame
+	# Half a circuit is not a circuit.
+	for i in ring.size() / 2:
+		var half: Vector2 = ring[i]
+		boat.global_position = Vector3(half.x, 0.0, half.y)
+		for j in 2:
+			await physics_frame
+	if Notes.has("islands", "ezo"):
+		fails.append("half a circuit wrote the island into the notebook")
+	# ...and all of it is.
+	for p in ring:
+		boat.global_position = Vector3(p.x, 0.0, p.y)
+		for j in 2:
+			await physics_frame
+	if not Notes.has("islands", "ezo"):
+		fails.append("sailing right round Ezo did not write it into the notebook")
+	if str(player.island_here()) != "ezo":
+		fails.append("the drone does not know it is off Ezo: '%s'" % player.island_here())
+	if not boat._go_ashore():
+		fails.append("could not land again after the circuit")
+
 	main.queue_free()
 	if fails.is_empty():
 		print("RESULT ALL PASS")
@@ -192,3 +267,31 @@ func _init() -> void:
 	else:
 		print("RESULT FAIL: ", ", ".join(fails))
 		quit(1)
+
+
+func _chart_ring(id: String) -> Array:
+	## One waypoint per compass sector that the charting rule accepts, found by walking
+	## bearings out from the island's chart centre until the rule says "this is sea in the
+	## band". The list is what a hull sailing right round the island would pass through, and
+	## building it from the rule is the point: a sector that cannot be reached cannot be put
+	## in the ring, and the caller sees the shortfall.
+	var out: Array = []
+	var centre: Vector2 = Ezo.centre_of(id)
+	for s in Ezo.CHART_SECTORS:
+		var found := Vector2.INF
+		var dir := Vector2(cos(_bearing(s)), sin(_bearing(s)))
+		var r := 4.0
+		while r <= 900.0 and found == Vector2.INF:
+			var p: Vector2 = centre + dir * r
+			if Ezo.chart_sector(id, p) == s:
+				found = p
+			r += 4.0
+		if found != Vector2.INF:
+			out.append(found)
+	return out
+
+
+func _bearing(sector: int) -> float:
+	## A bearing in the middle of a sector: the ring waypoint should be found by walking out
+	## along the sector's own half-way line, so it is unambiguously that sector's.
+	return -PI + (float(sector) + 0.5) * (TAU / float(Ezo.CHART_SECTORS))

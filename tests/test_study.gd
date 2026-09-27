@@ -15,8 +15,11 @@ extends SceneTree
 ##    reaches the notebook;
 ##  - what is drawn survives a save and a load.
 ##
-## Also covers the two discovery rules that need no studying: what the drone
-## carries (Equipment) and the island it is standing on (Islands).
+## Also covers the two discovery rules that need no studying — what the drone
+## **carries** (Equipment) — and the two that do not fill themselves: **Islands**,
+## which are charted by sailing right round one (`player._chart_step()`), so a run
+## opens the book on four empty chapters, and the **survey's beat**, which is earned
+## by drawing SURVEY_PLANTS plants and SURVEY_ANIMALS animals on one island.
 
 const Notes := preload("res://ui/pedia_notes.gd")
 const PediaData := preload("res://ui/pedia_data.gd")
@@ -43,6 +46,49 @@ func _wait_until(condition: Callable, timeout: float) -> bool:
 			return true
 		await physics_frame
 	return condition.call()
+
+
+## Where the survey puts its plants: **not straight ahead**, because the sections above
+## leave their own plants standing — the frostneedle of section 3 is four metres in front of
+## the drone and already drawn — and the aim takes the nearest studyable thing, so a click
+## aimed through it would catch that instead. Each offset is (right, forward) in metres.
+const PLANT_SIDES := [Vector2(2.6, 3.0), Vector2(-2.6, 3.0), Vector2(-2.0, -3.2)]
+
+
+func _draw_a_plant(main: Node, player: Node, study: Node, species: String) -> String:
+	## Spawn one of a species beside the drone — **on the terrain at its own spot**, not at
+	## the drone's height: the ground climbs and falls over a few metres, and a plant buried
+	## in a slope is behind the hill rather than under the crosshair. Aimed at its **origin**,
+	## so the ray and the angular fallback agree about what is being looked at, and the
+	## session is checked to have caught the species asked for before the hold is timed —
+	## otherwise the drawing that completes a survey would secretly be a re-drawing of
+	## something already in the book. Answers with the species id drawn, or "" if no
+	## placement in front of the drone was clear.
+	for side in PLANT_SIDES:
+		var right: Vector3 = player.global_transform.basis.x
+		var forward: Vector3 = -player.global_transform.basis.z
+		var at: Vector3 = player.global_position + right * side.x + forward * side.y
+		var node: Node3D = (load("res://flora/%s.tscn" % species) as PackedScene).instantiate()
+		main.add_child(node)
+		node.global_position = Vector3(at.x, Ezo.height_at(at.x, at.z), at.z)
+		await _wait(0.2)
+		player.camera.look_at(node.global_position)
+		await _wait(0.2)
+		if not study.begin():
+			node.queue_free()
+			continue
+		if str(study.subject_id()) != species:
+			study.cancel()                 # something else was in the way; look elsewhere
+			node.queue_free()
+			continue
+		if not await _wait_until(func() -> bool: return Notes.has("plants", species), 14.0):
+			print("  (%s: hold never finished — progress %.1f, studying %s, subject %s)"
+					% [species, study.progress(), str(study.is_studying()),
+						str(study.subject_id())])
+			return ""
+		return species
+	print("  (%s: nothing in front of the drone was clear enough to aim at)" % species)
+	return ""
 
 
 func _wait_tracking(player: Node, target: Node3D, condition: Callable, timeout: float) -> bool:
@@ -141,8 +187,12 @@ func _init() -> void:
 	for item_id in ["notebook", "pen", "magnifying_glass"]:
 		if not Notes.has("equipment", item_id):
 			fails.append("carried_%s_not_noted" % item_id)
-	if not Notes.has("islands", "ezo"):
-		fails.append("island_not_noted")
+	# The Islands chapter is empty at the start as well, and that is the point: the drone
+	# has woken up on Ezo, not *sailed round* it, and an island is charted by circling it in
+	# a boat (`player._chart_step()`, walked in tests/test_boat.gd section 10). A book that
+	# wrote itself a page for the ground under the drone's feet could never open empty.
+	if Notes.count_drawn("islands") != 0:
+		fails.append("an island was written down without being charted: %s" % str(Notes.drawn()))
 
 	# 2. Equipping the glass shows the loupe (one lens, not the binoculars' two) and
 	#    a click with nothing in view starts nothing.
@@ -418,6 +468,49 @@ func _init() -> void:
 	await _wait(0.2)
 	if study._view.redraw_requests <= swaps:
 		fails.append("changing_the_tool_did_not_redraw")
+
+	# 13. The survey's beat: SURVEY_PLANTS plants **and** SURVEY_ANIMALS animals is a survey
+	#     of an island, and what it earns is that island's own page — `ui/story_text.gd`'s
+	#     `ezo` for Ezo, asked for on the drawing that *completed* the count and on that
+	#     drawing only. The notebook is brought to one drawing short by hand, because the
+	#     six holds themselves are what the sections above already cover; the **crossing**
+	#     is what this checks, and the crossing is a real drawing.
+	for id in PediaData.subchapter_ids("plants"):
+		if Notes.count_drawn("plants") >= StudyScript.SURVEY_PLANTS - 1:
+			break
+		if str(id) in ["lantern_reed", "windsinger"]:
+			continue                  # the two left for the real drawings below
+		Notes.unlock("plants", str(id))
+	for id in PediaData.subchapter_ids("animals"):
+		if Notes.count_drawn("animals") >= StudyScript.SURVEY_ANIMALS:
+			break
+		Notes.unlock("animals", str(id))
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story == null:
+		fails.append("no_story_screen_for_the_survey")
+	elif Notes.count_drawn("plants") != StudyScript.SURVEY_PLANTS - 1 \
+			or Notes.count_drawn("animals") != StudyScript.SURVEY_ANIMALS:
+		fails.append("could_not_set_up_a_survey:%d/%d"
+				% [Notes.count_drawn("plants"), Notes.count_drawn("animals")])
+	else:
+		if not _equip(player, "magnifying_glass"):
+			fails.append("glass_not_equippable_for_the_survey")
+		await _wait(0.1)
+		if story.is_playing():
+			fails.append("a_page_was_up_before_the_survey_was_complete")
+		if await _draw_a_plant(main, player, study, "lantern_reed") == "":
+			fails.append("the_plant_that_completes_a_survey_was_not_drawn")
+		if not story.is_playing():
+			fails.append("the_completed_survey_played_no_page")
+		elif str(story.milestone_id()) != "ezo":
+			fails.append("the_survey_played_%s" % story.milestone_id())
+		_close_story(main)
+		await _wait(0.1)
+		# ...and the page is asked for by the crossing, not by every drawing after it.
+		if await _draw_a_plant(main, player, study, "windsinger") == "":
+			fails.append("the_plant_after_a_survey_was_not_drawn")
+		if story.is_playing():
+			fails.append("the_survey_page_came_up_twice")
 
 	if fails.is_empty():
 		print("RESULT ALL PASS")

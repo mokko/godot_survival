@@ -61,8 +61,21 @@ fills its own way:
     with a blade"), the binoculars refuse close work ("Close work — use the
     magnifying glass").
 - **Equipment** notes itself the moment the drone carries it.
-- **Islands** write themselves down when the drone is on one or moored off its
-  coast (60 m), so sailing the boat route fills that chapter.
+- **Islands** write themselves down by **sailing right round one**: the drone credits the
+  compass sector it is in while it is aboard, for the island whose coast it is nearest
+  (`player/player.gd::_chart_step`, the charting section of `world/island.gd`), and the
+  entry lands when all twelve sectors have been sailed through. Nothing is written by
+  standing on an island or landing on one — including the island a run wakes up on — so
+  the chapter is a map the player *drew* and the book really does open empty. The first
+  boat a run boards says so (`ui/story_text.gd`'s `boat_discovery` page, written when
+  Maurice writes it).
+- **The survey's beat**: once **3 plants and 3 animals** have been drawn, the drone can
+  say something about the island it did the work on, and that island's page is played as
+  a **milestone** (`player/study.gd::_play_survey_beat` → `ui/story_text.gd`'s `ezo` for
+  Ezo). It is asked for on the drawing that *completed* the count, never from saved state,
+  and an island whose words are not written yet simply plays nothing — `play_milestone()`
+  refuses an id with no page behind it, so `honshu`, `shikoku` and `kyushu` can be written
+  when they have content.
 
 Fresh run: empty. Death: the notes stay, along with the notebook, the pen and the
 glass (`KEEPSAKE_ITEMS`) — they are the drone's own record and its instruments, and

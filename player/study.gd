@@ -56,6 +56,13 @@ const LINE_FADE := 1.2        ## alpha per second while a line fades out
 const BINOCULAR_FOV := 35.0
 const MAGNIFIER_FOV := 30.0
 
+## The survey's own beat: how much of a place has to be written down before the drone can
+## say anything about it. **Species, and both chapters** — a notebook full of plants and no
+## animals is not a survey, and the two instruments are the two halves of the job. What it
+## buys is one page: the one belonging to the island it was done on (`_play_survey_beat`).
+const SURVEY_PLANTS := 3
+const SURVEY_ANIMALS := 3
+
 ## Emitted once per newly drawn entry (nothing else reports a new drawing).
 signal entry_drawn(chapter: String, id: String)
 
@@ -205,6 +212,10 @@ func _update_session(delta: float) -> void:
 
 
 func _draw_entry() -> void:
+	## The survey beat is decided *around* the unlock — the question before it and the
+	## question after — so the page is asked for exactly once per run, by the drawing that
+	## completed the survey, and never by the fourth plant afterwards.
+	var had_enough := _survey_complete()
 	var drawn_chapter := _chapter
 	var drawn_id := _id
 	var fresh := Notes.unlock(drawn_chapter, drawn_id)
@@ -225,6 +236,48 @@ func _draw_entry() -> void:
 	_show_message(note)
 	if fresh:
 		entry_drawn.emit(drawn_chapter, drawn_id)
+		if not had_enough and _survey_complete():
+			_play_survey_beat()
+
+
+func _survey_complete() -> bool:
+	## Whether the notebook holds enough of this island to say anything about **why** —
+	## both chapters, so the count cannot be met with the loupe alone or the binoculars
+	## alone. The numbers are the whole of the rule; the words are the page's.
+	return Notes.count_drawn("plants") >= SURVEY_PLANTS \
+			and Notes.count_drawn("animals") >= SURVEY_ANIMALS
+
+
+func _play_survey_beat() -> void:
+	## The reward for the survey: **one page, in the drone's own voice**, over the paused
+	## world — the same machine the satchel and the bench ask for. Asked for on the event
+	## (the drawing that completed the count) and never from saved state, so loading a run
+	## does not replay it, and worked out from what the drone has written down rather than
+	## told to it by anyone.
+	##
+	## The page asked for is the one belonging to **the island the survey was done on**
+	## (`player.island_here()`, the same answer the notebook's Islands chapter uses), so
+	## each island can be given its own beat later. An island with no page written yet
+	## plays nothing: `ui/story.gd:play_milestone()` refuses an id it has no words for,
+	## which is exactly right for a survey whose island has not been written up.
+	var island_id := ""
+	if player != null and player.has_method("island_here"):
+		island_id = str(player.island_here())
+	if island_id == "":
+		return
+	var story := story_screen()
+	if story != null and story.has_method("play_milestone"):
+		story.play_milestone(island_id)
+
+
+func story_screen() -> Node:
+	## The milestone story screen, a child of the HUD (`world/main.tscn`) — the lookup
+	## `world/explorer_kit.gd` and `world/bench.gd` make. Whoever *caused* a page asks for
+	## it; this node never types text of its own.
+	var scene := get_tree().current_scene
+	if scene == null:
+		return null
+	return scene.get_node_or_null("HUD/StoryScreen")
 
 
 func _update_meter() -> void:

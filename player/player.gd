@@ -34,13 +34,20 @@ const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
 const NOTEBOOK_ITEM := "notebook"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
-const PediaArt := preload("res://ui/pedia_art.gd")
 const RobotParts := preload("res://player/robot_parts.gd")
 const Legs := preload("res://player/legs.gd")
-## How close the drone has to be to an island for it to be written into the
-## notebook: a mooring off its coast counts, so the boat route fills the Islands
-## chapter as you sail it.
+## How close the drone has to be to an island's coast to count as *there* — used by
+## `island_here()` (the survey beat's "whose page has this earned") and by nothing that
+## writes the notebook: the Islands chapter fills by **sailing round** an island
+## (`_chart_step`).
 const ISLAND_DISCOVERY := 60.0
+## How many of an island's CHART_SECTORS a hull has to sail through before the island goes
+## into the notebook: **all of them** — the entry says "I sailed right round it", and the
+## measurement behind `Ezo.CHART_BAND` says every one of the four islands can offer all
+## twelve sectors of real sea in that band (worst case: Shikoku, 68 m off the coast at one
+## bearing). A coastline change that walled a sector off would make a page unobtainable, and
+## `tests/test_boat.gd`'s ring test is what catches it.
+const CHART_REQUIRED := 12
 const DISCOVERY_INTERVAL := 0.5   ## seconds between discovery polls
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
@@ -60,6 +67,9 @@ var base_fov: float = FOV_DEFAULT
 ## `player/study.gd`, the only thing that knows which glass is up and whether a drawing
 ## session is actually running.
 var _fov_target := -1.0
+## The chart masks of the islands the drone has sailed round: island id -> bit mask of the
+## sectors `_chart_step()` has credited. Memory only, per run (see `_chart_step`).
+var _charted: Dictionary = {}
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE
@@ -602,17 +612,61 @@ func do_study() -> void:
 ## -------------------------------------------------------- the notebook's notes
 
 func _update_notes() -> void:
-	## What the notebook records without studying: what the drone is carrying
-	## (Equipment) and where it is standing (Islands). Species are the other way
-	## round — they only go in by being studied (player/study.gd).
+	## What the notebook records without studying: what the drone is **carrying**
+	## (Equipment). Species go in by being studied (`player/study.gd`) and islands by being
+	## charted (`_chart_step`) — never by standing still. A run opens the book on four empty
+	## chapters, and every entry in it is something the drone did.
 	if inventory != null:
 		for i in inventory.SLOTS:
 			if inventory.slots[i] != "" and inventory.counts[i] > 0:
 				Notes.unlock("equipment", inventory.slots[i])
+
+
+func island_here() -> String:
+	## Which island the drone is standing on, "" out at sea. One answer for both callers:
+	## `player/study.gd` asks it whose page a finished survey has earned, and the charting
+	## below asks it which island a hull is off.
 	var here := Vector2(global_position.x, global_position.z)
-	for island_id in ["ezo", "honshu", "shikoku", "kyushu"]:
-		if PediaArt.island_distance(island_id, here) <= ISLAND_DISCOVERY:
-			Notes.unlock("islands", island_id)
+	return Ezo.nearest_island(here, ISLAND_DISCOVERY)
+
+
+func _chart_step() -> void:
+	## **Sailing round an island is what writes it into the notebook.** While the drone is
+	## aboard, the compass sector it is in is credited to the island it is nearest
+	## (`world/island.gd`'s charting section owns the geometry and the band); when every
+	## sector has been sailed through, the island's Pedia entry lands. So the Islands chapter
+	## is a map the player *drew*, not a record of the ground they happened to stand on, and
+	## a run opens the book on four empty chapters.
+	##
+	## The half-sailed sectors are **not saved**: a circuit interrupted by a save is a
+	## circuit to sail again, and that is a smaller thing to carry in the file than a
+	## per-island progress table.
+	if not in_boat():
+		return
+	var here := Vector2(global_position.x, global_position.z)
+	var island_id := Ezo.nearest_island(here, Ezo.CHART_BAND)
+	if island_id == "":
+		return
+	var sector := Ezo.chart_sector(island_id, here)
+	if sector < 0:
+		return
+	var bit := 1 << sector
+	var mask: int = int(_charted.get(island_id, 0))
+	if mask & bit != 0:
+		return
+	mask |= bit
+	_charted[island_id] = mask
+	if _charted_sectors(mask) >= CHART_REQUIRED:
+		Notes.unlock("islands", island_id)
+
+
+func _charted_sectors(mask: int) -> int:
+	## How many of the compass sectors are in a chart mask.
+	var total := 0
+	for i in Ezo.CHART_SECTORS:
+		if mask & (1 << i) != 0:
+			total += 1
+	return total
 
 
 func play_slash_sound() -> void:
@@ -709,6 +763,11 @@ func _physics_process(delta: float) -> void:
 	if _game_over:
 		# Dead: show game-over screen, wait for ESC to restart at spawn.
 		return
+
+	# Sailing round an island is the notebook's Islands chapter (see _chart_step): a boat
+	# is charted work, and this costs one distance test per island per frame plus a single
+	# ground sample (about 0.1 ms), and nothing at all on land or in water beside no island.
+	_chart_step()
 
 	# Rotate the autosave every AUTOSAVE_SECONDS (300, the fifth slot). Same file
 	# every time, so a crash can only cost the player the last five minutes.

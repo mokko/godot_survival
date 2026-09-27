@@ -294,6 +294,96 @@ static func signed_distance(p: Vector2) -> float:
 	return best
 
 
+## ----------------------------------------------------------------- charting
+## How a boat's circumnavigation is measured: in **sectors of the compass** around an
+## island, the bearing taken from `centre_of()`, a sector counting when the hull is in sea
+## within CHART_BAND of that island's coast. Nothing here is saved: a half-sailed circuit
+## lives for the run (`player/player.gd`'s `_charted`), not in the file.
+##
+## **CHART_BAND is measured, not chosen.** A throwaway probe walked the compass around all
+## four islands and asked, sector by sector, how far off the coast the nearest *sea* in that
+## sector sits: Ezo 2 m, Honshu 35 m, Shikoku 68 m, Kyushu 50 m. 90 m is that worst case
+## with room to spare, so every island of the four can be sailed right round and none of
+## them is walled off by the geometry — and a coastline change that would wall one off is
+## caught by the ring test in `tests/test_boat.gd`, which walks the hull round Ezo and would
+## stop completing.
+const CHART_SECTORS := 12
+const CHART_BAND := 90.0
+
+
+static func outline_of(id: String) -> Array:
+	## One island's outline by the id the notebook uses. `ui/pedia_art.gd` asks this too, so
+	## the id -> outline rule lives here and nowhere else.
+	match id:
+		"ezo":
+			return OUTLINE
+		"honshu":
+			return HONSHU_OUTLINE
+		"shikoku":
+			return SHIKOKU_OUTLINE
+		"kyushu":
+			return KYUSHU_OUTLINE
+	return []
+
+
+static func centre_of(id: String) -> Vector2:
+	## The mean of an island's outline points: the origin the chart bearings are measured
+	## from. Not a true centroid — all it has to do is sit inside the island so that every
+	## bearing crosses its coast, which a mean of the outline does.
+	var outline := outline_of(id)
+	if outline.is_empty():
+		return Vector2.ZERO
+	var sum := Vector2.ZERO
+	for p in outline:
+		sum += p
+	return sum / float(outline.size())
+
+
+static func distance_to_island(id: String, p: Vector2) -> float:
+	## How far p is from that island's coast, whichever side of it p is on.
+	var outline := outline_of(id)
+	if outline.is_empty():
+		return 1000000.0
+	return absf(_poly_signed_distance(outline, p))
+
+
+static func nearest_island(p: Vector2, band: float) -> String:
+	## The island whose coast p is nearest, "" when all four are further away than `band`.
+	## **One answer for both callers**: the boat's circuit (`player/player.gd`) and the
+	## survey beat's "whose page has this earned" (`player/study.gd`).
+	var best := ""
+	var best_d := band
+	for id in ["ezo", "honshu", "shikoku", "kyushu"]:
+		var d := distance_to_island(id, p)
+		if d < best_d:
+			best_d = d
+			best = id
+	return best
+
+
+static func chart_sector(id: String, p: Vector2) -> int:
+	## Which slice of the compass around an island p falls in, or -1 when p is not sea in
+	## that island's band. A bearing from `centre_of()`, so a hull that sails round lights
+	## the sectors up in order and one that paces up and down a bay does not.
+	##
+	## **Offshore only**, and that is not a detail: the caldera lake's floor is below water
+	## level, so `is_navigable()` alone calls it sailable water — a sector credited from a
+	## lake would be one no hull can ever reach, and the chart would demand it. The signed
+	## distance is the difference between "water" and "the sea".
+	var outline := outline_of(id)
+	if outline.is_empty():
+		return -1
+	var d := _poly_signed_distance(outline, p)
+	if d >= 0.0 or -d > CHART_BAND:
+		return -1
+	if not is_navigable(p.x, p.y):
+		return -1
+	var c := centre_of(id)
+	var bearing := atan2(p.y - c.y, p.x - c.x)          # -PI..PI
+	return clampi(int(floor((bearing + PI) / (TAU / float(CHART_SECTORS)))),
+			0, CHART_SECTORS - 1)
+
+
 static func _islet_quad(c: Vector2, r: float) -> Array:
 	return [
 		Vector2(c.x - r, c.y - r * 0.6), Vector2(c.x + r, c.y - r * 0.5),

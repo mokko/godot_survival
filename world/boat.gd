@@ -19,6 +19,12 @@ extends StaticBody3D
 ## hull at y=0.05 under 2.77 m of hill, the pinned player 1.6 m under the surface
 ## — "the boat can get under the island").
 ##
+## **A boat is also the map.** Sailing right round an island is what writes it into the
+## notebook: the drone's frame loop credits the compass sector it is in while it is aboard
+## (`player/player.gd::_chart_step`, the charting section in `world/island.gd`), and the
+## completed circuit is the Pedia's Islands entry. The first boarding plays
+## `ui/story_text.gd`'s `boat_discovery` page, which is where the player is told so.
+##
 ## The whole vessel is one merged, vertex-coloured mesh — one draw call per boat,
 ## for the same reason the benchmark flags the multi-mesh flora.
 
@@ -36,6 +42,15 @@ const BOW_PROBE := 2.2         # metres ahead of the hull centre the depth is te
 const BOB_HEIGHT := 0.06
 const BOB_PERIOD := 3.2
 const RIDE_HEIGHT := 1.15      # deck height the player is pinned to
+
+## What the first boarding says (`ui/story_text.gd`'s milestone of this id): a boat is the
+## thing that charts the islands, and the page is where that is said. Nothing is written in
+## the catalogue until Maurice writes it — an id with no page plays nothing at all.
+const BOAT_PAGE := "boat_discovery"
+
+## Whether that page has been played. Once per process, like the bench's: the first boat
+## *this run* boards is the one that explains itself.
+static var _page_played := false
 
 ## Merging the hull pieces into one vertex-coloured surface (world/prop_mesh.gd).
 const PropMesh := preload("res://world/prop_mesh.gd")
@@ -177,6 +192,12 @@ func _board(player: CharacterBody3D) -> void:
 	_driver = player
 	if player.has_method("board_boat"):
 		player.board_boat(self)
+	# The first boat a run boards says what a boat is for (`ui/story_text.gd`'s
+	# `boat_discovery`: sail round an island and it goes into the notebook). Played on the
+	# act of boarding, once per process — the bench's rule, and the same static. An id with
+	# no page written behind it plays nothing at all, which is what "not written yet"
+	# should do.
+	_play_page_once()
 	_seat_driver()
 	_say("Aboard — W/S sail, A/D steer, E to go ashore")
 
@@ -189,7 +210,9 @@ func _seat_driver() -> void:
 
 
 func _go_ashore() -> bool:
-	## Put the player on the nearest land and hand control back.
+	## Put the player on the nearest land and hand control back. Nothing is written into the
+	## notebook here: an island is charted by **sailing round it** (`player/player.gd`'s
+	## `_chart_step`), not by landing on it.
 	var spot := _nearest_land()
 	if spot == Vector3.INF:
 		return false
@@ -199,6 +222,20 @@ func _go_ashore() -> bool:
 	_driver = null
 	_say("Ashore")
 	return true
+
+
+func _play_page_once() -> void:
+	## Ask the HUD's milestone story screen for `BOAT_PAGE`, once. The lookup is the one
+	## `world/bench.gd` and `world/explorer_kit.gd` make.
+	if _page_played:
+		return
+	var scene := get_tree().current_scene
+	var story: Node = scene.get_node_or_null("HUD/StoryScreen") if scene != null else null
+	if story == null or not story.has_method("play_milestone"):
+		return
+	if not story.play_milestone(BOAT_PAGE):
+		return
+	_page_played = true
 
 
 func _nearest_land() -> Vector3:

@@ -109,8 +109,23 @@ You must be someone with knowledge of Japanese history.
 		"title": "The Workbench",
 		"body": """You found the workbench where you can edit your robot.
 
-You may find new parts for your robot and you can implement
-them here.
+If find new parts for your robot, you can implement them here.
+""",
+	},
+	"ezo": {
+		"title": "The First Island",
+		"body": """You have researched the flora and fauna of this island. You have
+gained knowledge by observing, drawing, taking notes.
+
+This island is has the shape of Hokkaido. It's just much smaller. It
+is like a memorial of the real Hokkaido.
+
+Hokkaido is Japan's northernmost main island, the second largest
+after Honshu. It's known for its mountains, forests, volcanic
+landscapes and long winters. It's also the homeland of the Ainu.
+
+The island used to be called Ezo or Ezochi
+
 """,
 	},
 }

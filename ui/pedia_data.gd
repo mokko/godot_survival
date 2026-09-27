@@ -283,9 +283,10 @@ const SUBCHAPTERS := {
 
 ## What a chapter says when nothing is drawn in it yet: the notebook starts empty
 ## and fills by being out in the world, so an empty chapter has to tell the player
-## how it fills (Maurice's rule: species are drawn by studying them).
+## how it fills (Maurice's rule: species are drawn by studying them; islands are
+## charted by sailing right round them).
 const EMPTY_HINTS := {
-	"islands": "Nothing here yet. An island writes itself down once you stand on it — or moor off its coast.",
+	"islands": "Nothing here yet. Sail right round an island in a boat and its page is yours — this chapter is the map you have drawn.",
 	"plants": "Nothing drawn yet. Equip the Magnifying Glass, put the crosshair on a plant and hold it for eight seconds.",
 	"animals": "Nothing drawn yet. Watch one through the Binoculars for eight seconds — or kill it with a blade and examine what is left with the Magnifying Glass.",
 	"equipment": "Nothing yet. What the drone carries is noted down as soon as it is picked up.",

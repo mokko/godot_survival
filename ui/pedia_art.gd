@@ -53,18 +53,10 @@ static func _centred(ops: Array, size: Vector2) -> Array:
 ## -------------------------------------------------------------------- islands
 
 static func island_outline(id: String) -> Array:
-	## The world-space outline the plate is drawn from — one place to look when
-	## world/island.gd changes.
-	match id:
-		"ezo":
-			return Island.OUTLINE
-		"honshu":
-			return Island.HONSHU_OUTLINE
-		"shikoku":
-			return Island.SHIKOKU_OUTLINE
-		"kyushu":
-			return Island.KYUSHU_OUTLINE
-	return []
+	## The world-space outline the plate is drawn from. The id -> outline rule lives in the
+	## world's own geometry (`world/island.gd::outline_of`), so the art and the charting
+	## cannot disagree about which coastline an island id means.
+	return Island.outline_of(id)
 
 
 static func _island_ops(id: String, size: Vector2) -> Array:
@@ -88,47 +80,6 @@ static func _island_ops(id: String, size: Vector2) -> Array:
 				VectorArt.fit_point(Vector2(Island.SPAWN_XZ.x, Island.SPAWN_XZ.y),
 						transform), 3.0, MARKER))
 	return ops
-
-
-static func island_distance(id: String, point: Vector2) -> float:
-	## World-space distance from a point (x, z) to an island's coastline, 0 when the
-	## point is inside the island. Uses the world's own outlines, so "have I reached
-	## Honshu" is answered by the same data the terrain is built from.
-	var outline: Array = island_outline(id)
-	if outline.size() < 3:
-		return INF
-	if _inside_polygon(outline, point):
-		return 0.0
-	var best := INF
-	for i in outline.size():
-		var a: Vector2 = outline[i]
-		var b: Vector2 = outline[(i + 1) % outline.size()]
-		best = minf(best, _segment_distance(point, a, b))
-	return best
-
-
-static func _inside_polygon(points: Array, p: Vector2) -> bool:
-	## Ray casting to +x: an odd number of crossings means inside.
-	var inside := false
-	var j := points.size() - 1
-	for i in points.size():
-		var a: Vector2 = points[i]
-		var b: Vector2 = points[j]
-		if (a.y > p.y) != (b.y > p.y):
-			var x: float = (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x
-			if p.x < x:
-				inside = not inside
-		j = i
-	return inside
-
-
-static func _segment_distance(p: Vector2, a: Vector2, b: Vector2) -> float:
-	var ab := b - a
-	var len_sq := ab.length_squared()
-	if len_sq < 0.0001:
-		return p.distance_to(a)
-	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
-	return p.distance_to(a + ab * t)
 
 
 static func _closed(points: PackedVector2Array) -> Array:

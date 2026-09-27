@@ -149,3 +149,29 @@ kept until they are pruned.
     not the guaranteed one: the field is on the page whenever the player wants it, so
     missing the moment a species is drawn costs nothing. Worth doing when the naming
     itself has been played and the wording can be judged in the hand.
+- [x] **The notebook fills by doing** (Maurice's calls, 27 Sep) — a run opens the Pedia on four
+  **empty** chapters, and every entry in it is something the drone did:
+  - **species** by study (`player/study.gd`), and **equipment** by carrying it — both as before,
+    because picking something up is an act;
+  - **islands** by **sailing right round** them, not by standing on them and not by landing on
+    one: the chapter is a map the player drew. `player/player.gd::_chart_step()` credits the
+    compass sector the hull is in while it is aboard, `world/island.gd`'s charting section owns
+    the geometry and the band, and all twelve sectors are required. **`CHART_BAND` is a measured
+    number, not a taste** (worst sea in a sector: Ezo 2 m, Honshu 35 m, Shikoku 68 m, Kyushu 50 m
+    off the coast, so 90 m with margin), and `tests/test_boat.gd` section 10 walks the ring — a
+    coastline change that walled a sector off fails a test instead of quietly making a page
+    unobtainable;
+  - **the survey's beat**: three plants **and** three animals drawn on one island plays that
+    island's own page (`player/study.gd::_play_survey_beat` → `ui/story_text.gd`'s `ezo` for
+    Ezo) — one page, in the drone's own voice, on the drawing that completes the count and never
+    again. Islands with no content have no page and play nothing: `play_milestone()` refuses an
+    id with no words, which is right for a survey nobody has written up yet;
+  - **the boat's page** (`boat_discovery`) is **wired and waiting for its words**: the first
+    boarding asks for it (`world/boat.gd::_play_page_once`), which is where a player should be
+    told that a boat is what charts an island. `tests/test_boat.gd` starts checking it the moment
+    there is a page behind the id.
+  - Answered the open question in the same pass: the reward is a **milestone page**, and the
+    voice is the drone's own knowledge coming back — not a message left by someone else. The
+    world has no second character, the kit already supplies the absent giver ("someone wants you
+    to study your surroundings"), and the intro's own move is a drone that recognises a sword and
+    asks itself how it knows. A deduction needs evidence, which is what the count is for.

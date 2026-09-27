@@ -58,6 +58,19 @@ static func drawn() -> Array:
 	return keys
 
 
+static func count_drawn(chapter: String) -> int:
+	## How many entries of one chapter the notebook holds. One reader so far — the study
+	## code's survey beat (`player/study.gd`), which asks whether enough of this place has
+	## been written down to say anything about it — but the count is a property of the
+	## notebook, not of that beat, so it lives here beside the keys it counts.
+	var prefix := chapter + "/"
+	var total := 0
+	for key in _drawn:
+		if str(key).begins_with(prefix):
+			total += 1
+	return total
+
+
 static func restore(keys: Array) -> void:
 	_drawn.clear()
 	for key in keys:
