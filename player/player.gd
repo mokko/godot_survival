@@ -44,6 +44,19 @@ const ZOOM_SPEED = 5.0
 const FOV_MIN = 50.0
 const FOV_MAX = 150.0
 const FOV_DEFAULT = 75.0
+## How fast the field of view travels when a glass is raised or lowered, in FOV degrees
+## per second. 80 crosses the whole 75 -> 30 pull in a little over half a second: quick
+## enough to read as the glass finding focus, slow enough not to snap.
+const FOV_PULL_SPEED := 80.0
+
+## The player's own zoom, which the scroll wheel owns (kept inside FOV_MIN..FOV_MAX). The
+## camera sits here whenever no glass is up and comes back here when one goes down, so a
+## zoom made with the binoculars raised is the player's to keep.
+var base_fov: float = FOV_DEFAULT
+## What a raised glass wants the field of view to be, or -1.0 for none. Set every frame by
+## `player/study.gd`, the only thing that knows which glass is up and whether a drawing
+## session is actually running.
+var _fov_target := -1.0
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var life: float = START_LIFE
@@ -110,6 +123,10 @@ func save_state() -> Dictionary:
 		"armor": combat.armor_id,
 		"armor_durability": combat.armor_durability,
 		"notes": Notes.drawn(),
+		# The player's own names for what is in there, as a sibling of the drawings
+		# (ui/pedia_notes.gd): a save written before naming existed simply has no such
+		# key, and an old run shows data-table names until something is renamed.
+		"names": Notes.names(),
 		"parts": RobotParts.owned(),
 		"containers": opened_containers.duplicate(),
 		"legs": equipment.fitted_legs() if equipment != null else "",
@@ -154,8 +171,11 @@ func load_state(data: Dictionary) -> void:
 			inventory.equip(eq)
 		else:
 			inventory.refresh()
-	# The notebook comes back with the run: what was drawn stays drawn.
+	# The notebook comes back with the run: what was drawn stays drawn, and what the
+	# player called it comes back with it. Names are restored after the drawings they
+	# belong to, so a name can never end up on an entry the notebook does not hold.
 	Notes.restore(data.get("notes", []))
+	Notes.restore_names(data.get("names", {}))
 	# Containers opened earlier in the run come back emptied (world/explorer_kit.gd),
 	# so a container the drone has already been through does not offer its contents
 	# again.
@@ -220,6 +240,8 @@ func _ready() -> void:
 	_build_hit_marker()
 	_update_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	base_fov = FOV_DEFAULT
+	_fov_target = -1.0
 	camera.fov = FOV_DEFAULT
 	if pause_menu != null:
 		pause_requested.connect(pause_menu.open)
@@ -441,10 +463,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# Scroll wheel zoom.
 	if event is InputEventMouseButton and event.pressed:
+		# The wheel moves the *base* zoom rather than the camera, so a raised glass can pull
+		# the view in and hand it back to whatever the player had chosen — including a choice
+		# made while the glass was up. `_set_base_fov` still applies it straight away when
+		# nothing is raised, so the wheel feels as immediate as it always did.
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			camera.fov = max(camera.fov - ZOOM_SPEED, FOV_MIN)
+			_set_base_fov(base_fov - ZOOM_SPEED)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			camera.fov = min(camera.fov + ZOOM_SPEED, FOV_MAX)
+			_set_base_fov(base_fov + ZOOM_SPEED)
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if get_equipped_item() == "sword":
 				do_slash()
@@ -600,7 +626,39 @@ func play_grab_sound() -> void:
 	_snd_grab.play()
 
 
+func set_instrument_fov(target: float) -> void:
+	## The field of view a raised instrument wants, or -1.0 for "none". Asked every frame
+	## by `player/study.gd`, which is the only thing that knows which glass is up and
+	## whether a drawing session is running. The camera eases toward it in
+	## `_physics_process`, so the pull never snaps.
+	_fov_target = target
+
+
+func instrument_fov() -> float:
+	## What a raised glass is asking for. For tests, and for anything reporting state.
+	return _fov_target
+
+
+func _set_base_fov(value: float) -> void:
+	## The scroll wheel's value, held inside FOV_MIN..FOV_MAX and applied to the camera
+	## straight away while no glass is raised, so the wheel is exactly as immediate as it
+	## was before the glasses could pull the view in.
+	base_fov = clampf(value, FOV_MIN, FOV_MAX)
+	if _fov_target <= 0.0:
+		camera.fov = base_fov
+
+
+func _update_fov(delta: float) -> void:
+	## The one place that *eases* `camera.fov`: the wheel chooses `base_fov`, a raised
+	## glass asks for a narrower view, and this moves between the two. `move_toward` and
+	## not a lerp, so it arrives and stops — a lerp creeps toward the target for ever and
+	## never compares equal in a test.
+	var want: float = _fov_target if _fov_target > 0.0 else base_fov
+	camera.fov = move_toward(camera.fov, want, FOV_PULL_SPEED * delta)
+
+
 func _physics_process(delta: float) -> void:
+	_update_fov(delta)
 	_tick_hurt(delta)
 	_tick_hit_marker(delta)
 	if _game_over:
@@ -779,6 +837,8 @@ func _restart() -> void:
 	_drain_accum = 0.0
 	sunbulbs_collected = 0
 	velocity = Vector3.ZERO
+	base_fov = FOV_DEFAULT
+	_fov_target = -1.0
 	camera.fov = FOV_DEFAULT
 	# Respawn at the game's starting point on the SW cape.
 	var spawn: Vector3 = Ezo.spawn_point()

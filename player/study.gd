@@ -42,6 +42,12 @@ const LOST_GRACE := 0.6       ## seconds the subject may slip off the crosshair
 const AIM_SLACK := 0.07       ## radians of tolerance when the ray itself misses
 const MESSAGE_HOLD := 2.0     ## how long a "wrong tool" line stays
 const LINE_FADE := 1.2        ## alpha per second while a line fades out
+## What the camera narrows to while that glass is held on a subject — the pull itself
+## belongs to `player/player.gd`. The loupe is the stronger glass of the two but is held
+## back on purpose: the same hand movement sweeps across more of the target at 25, and
+## eight seconds of holding still at that pull is what generates the complaint.
+const BINOCULAR_FOV := 35.0
+const MAGNIFIER_FOV := 30.0
 
 ## Emitted once per newly drawn entry (nothing else reports a new drawing).
 signal entry_drawn(chapter: String, id: String)
@@ -143,7 +149,10 @@ func begin() -> bool:
 	_range = range_m
 	_chapter = found["chapter"]
 	_id = found["id"]
-	_subject_name = found["name"]
+	# The notebook's own name for it when the player has given one, the data table's
+	# otherwise. One resolver, so the meter's line, the Pedia's list and the page title
+	# cannot disagree about what this species is called (ui/pedia_notes.gd).
+	_subject_name = Notes.display_name(_chapter, _id)
 	_held = 0.0
 	_lost = 0.0
 	_message = 0.0
@@ -382,9 +391,14 @@ func _update_view() -> void:
 	## Binoculars: two tubes. Magnifying glass: one lens, closer in. Neither: none.
 	## Changing the tool redraws the mask (ui/instrument_view.gd::set_view) and
 	## holding it does not: this runs every frame, and the mask is drawn in 4 px strips.
+	##
+	## The glasses also pull the camera in, and that is decided here because this is the
+	## one place that knows which tool is held: half of what a glass does is the mask and
+	## half is the field of view, and the two must never disagree.
+	var held := instrument()
+	_pull_glass(held)
 	if _view == null:
 		return
-	var held := instrument()
 	_view.visible = held != ""
 	if held == BINOCULAR_ITEM:
 		_view.set_view(2, 0.34)
@@ -393,3 +407,22 @@ func _update_view() -> void:
 	if _meter != null and _meter.visible and _meter.message == "" \
 			and _subject == null:
 		_meter.visible = false
+
+
+func _pull_glass(held: String) -> void:
+	## Ask the player's camera for the field of view this glass wants, or `-1.0` for "no
+	## glass": the camera is `player/player.gd`'s to move, and it eases, so the pull reads
+	## as the glass finding focus instead of as a zoom being yanked.
+	##
+	## Only while a session is running: raise the binoculars on an empty hillside and
+	## nothing narrows until there is something to draw, which keeps a carried tool from
+	## zooming the view while the drone runs about. A slip that ends the session eases the
+	## view straight back — the same signal the meter gives.
+	var want := -1.0
+	if is_studying():
+		if held == BINOCULAR_ITEM:
+			want = BINOCULAR_FOV
+		elif held == MAGNIFIER_ITEM:
+			want = MAGNIFIER_FOV
+	if player != null and player.has_method("set_instrument_fov"):
+		player.set_instrument_fov(want)

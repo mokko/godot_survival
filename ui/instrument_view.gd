@@ -6,8 +6,18 @@ extends Control
 ##
 ## The mask is drawn with vertical strips rather than a texture: a circle-shaped
 ## hole in an overlay cannot be done with four rects, and a 4 px strip is invisible
-## at any window size. The camera's own field of view is deliberately left alone —
-## the scroll wheel owns that, and two zooms fighting each other reads as a bug.
+## at any window size.
+##
+## The magnification is the **camera's field of view**, pulled in by `player/player.gd`
+## while a glass is held on a subject; this file draws the mask and nothing else. That
+## split is deliberate and it is the whole trick: everything outside the circle is dimmed
+## away, so magnifying the entire camera cannot be seen, and one draw path stays the only
+## draw path. The alternative — a second `Viewport` rendering the reticle region into the
+## circle — is true lens magnification, and it costs a viewport, a texture and an
+## alignment to keep right, so it is a separate job and not a fix to this one.
+##
+## The scroll wheel still owns the base zoom (`player/player.gd::base_fov`); an
+## instrument's pull is a temporary offset from it, never a replacement.
 
 const DIM := Color(0, 0, 0, 0.72)
 const RIM := Color(0.85, 0.92, 1.0, 0.75)
