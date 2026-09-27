@@ -42,10 +42,21 @@ func _escape() -> InputEventAction:
 	return event
 
 
+class BookHolder extends Node:
+	## Stand-in for the run. The pause menu asks the player whether the notebook has been
+	## found before it lets the book open (`ui/pause_menu.gd::_book_found`), and this test
+	## is a UI-only host with no world in it, so this is the one answer it needs.
+	func has_item(_item_id: String) -> bool:
+		return true
+
+
 func _init() -> void:
 	var fails: PackedStringArray = []
 
 	var pause = load("res://ui/pause_menu.tscn").instantiate()
+	var holder := BookHolder.new()
+	holder.name = "Player"
+	pause.add_child(holder)
 	root.add_child(pause)
 	current_scene = pause
 	# Let the menu's _ready run (and its @onready nodes resolve) before poking it:

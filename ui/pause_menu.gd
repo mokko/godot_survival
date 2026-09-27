@@ -1,10 +1,10 @@
 extends Control
 ## In-game pause menu. Opens on ESC while playing: darkens the screen,
-## pauses the tree, shows Continue / Saves… / Pedia / Quit to Menu. Continue (or
+## pauses the tree, shows Continue / Save / Pedia / Quit to Menu. Continue (or
 ## ESC again) unpauses and re-captures the mouse. The player emits
 ## `pause_requested` on ESC; the HUD/main scene connects it to `open()`.
 ##
-## **Saves… is the only way to save from here**, and it opens the Saves screen
+## **Save is the only save entry here**, and it opens the Saves screen
 ## rather than writing on the spot: saving is a choice of which file, and a
 ## button that silently answers that question for you (it used to write into
 ## the run's own slot) is the same choice made blind. The screen answers with
@@ -15,13 +15,28 @@ extends Control
 ## in place of it. So is the Frame screen (ui/editor.tscn) — except that one is
 ## opened from a service bench in the world (`open_editor`) and has no button here,
 ## so closing it drops the player straight back into the game rather than the menu.
+## The **Pedia button is greyed out until the run has the notebook**. The book is gear
+## found in the Explorer's Kit a short walk from the spawn (`world/explorer_kit.gd`),
+## and a button that opens an empty notebook before the drone owns one reads as a
+## broken screen rather than as something still to come. It is greyed rather than
+## hidden — the panel keeps its shape and the player can see there is a thing to come
+## back for (the same reason `ui/splash.gd` greys the resolution row out instead of
+## hiding it). `_book_found()` is the one question both the refresh and the door ask,
+## so the button and the refusal cannot drift apart.
+##
 ## This node is the only one that listens for ESC: while any of those screens is
 ## open the key walks that screen back instead of resuming the game.
+
+## The item the Pedia *is*: found in the Explorer's Kit, carried for the rest of the run
+## (`player.gd`'s KEEPSAKE_ITEMS), and the thing that has to be in the bag before there is
+## anything to read.
+const NOTEBOOK_ITEM := "notebook"
 
 @onready var pedia: Control = $Pedia
 @onready var saves: Control = $Saves
 @onready var editor: Control = $Editor
 @onready var menu: CenterContainer = $Center
+@onready var pedia_button: Button = $Center/Padding/Panel/VBox/PediaButton
 
 
 func _ready() -> void:
@@ -31,6 +46,31 @@ func _ready() -> void:
 	pedia.closed.connect(_on_pedia_closed)
 	saves.closed.connect(_on_saves_closed)
 	editor.closed.connect(_on_editor_closed)
+	# Until it can be asked, the answer is "no notebook": this runs before the menu is in
+	# a world at all, and `open()` asks again every time the player actually pauses.
+	_refresh_pedia_button()
+
+
+func _book_found() -> bool:
+	## Whether this run is carrying the notebook: the bag is the truth about what the
+	## drone has (`player.has_item`, the same answer `world/explorer_kit.gd` gives gear
+	## when it decides what to hand over). No run around the menu — or a host without a
+	## player in it — answers no, so the gate fails closed rather than open.
+	var scene := get_tree().current_scene
+	var player: Node = scene.get_node_or_null("Player") if scene != null else null
+	if player == null or not player.has_method("has_item"):
+		return false
+	return player.has_item(NOTEBOOK_ITEM)
+
+
+func _refresh_pedia_button() -> void:
+	## Grey the button, and let being disabled be the whole of both the refusal and the
+	## message: Godot never emits `pressed` from a disabled Button and skips it in the
+	## focus chain, so mouse, keyboard and pad all get the same answer without a second
+	## rule to keep in sync. And it says nothing about why — no tooltip, no hint line,
+	## deliberately: the greyed row *is* the answer, and it is greyed rather than hidden
+	## so the change in the row reads as "not yet" rather than as "broken".
+	pedia_button.disabled = not _book_found()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -62,6 +102,9 @@ func open() -> void:
 	_apply_padding()
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# The notebook is found out in the world, so the button is re-read every time the menu
+	# comes up: pick the kit up, pause again, and the book is there.
+	_refresh_pedia_button()
 	# Give the menu keyboard/gamepad focus so the first button is highlighted
 	# (mirrors splash.gd). Without this nothing is selected and arrow keys do
 	# nothing until the mouse is used.
@@ -112,6 +155,11 @@ func _on_saves_closed() -> void:
 func _on_pedia() -> void:
 	## Show the book in place of the menu rather than on top of it: the Pedia
 	## draws its own dim and panel, and two stacked panels read as a bug.
+	## The disabled button is the refusal the player sees; this is the refusal itself,
+	## because this is the one door into the book and it should not open for a caller
+	## that got past the button (a direct call, a future hotkey, a test).
+	if not _book_found():
+		return
 	menu.hide()
 	pedia.open()
 

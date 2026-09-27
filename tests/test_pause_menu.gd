@@ -30,6 +30,36 @@ func _init() -> void:
 			or DisplayServer.get_name() == "headless"
 	var continued: bool = not menu.visible and not tree.paused and mouse_ok
 
-	print("RESULT opened=%s focused=%s frozen=%s continued=%s"
-			% [opened, focused, world_frozen, continued])
-	quit(0 if (opened and focused and world_frozen and continued) else 1)
+	# 3. Before the notebook is found, the book is shut to the player: the Pedia button is
+	#    greyed out, and the one door into the book refuses even when it is called directly
+	#    (a disabled Button emits nothing, so the refusal itself is what this pins).
+	var pedia_button: Button = menu.get_node("Center/Padding/Panel/VBox/PediaButton")
+	var pedia: Control = menu.get_node("Pedia")
+	player.pause_requested.emit()
+	for i in 5:
+		await process_frame
+	var greyed: bool = pedia_button.disabled
+	menu._on_pedia()
+	for i in 5:
+		await process_frame
+	var locked: bool = greyed and not pedia.visible \
+			and menu.get_node("Center").visible
+
+	# 4. Finding the notebook brings it alive: pause again and the book is there.
+	menu._on_continue()
+	for i in 5:
+		await process_frame
+	player.add_item("notebook")
+	player.pause_requested.emit()
+	for i in 5:
+		await process_frame
+	var unlocked: bool = not pedia_button.disabled
+	menu._on_pedia()
+	for i in 5:
+		await process_frame
+	var book_opens: bool = unlocked and pedia.visible
+
+	print("RESULT opened=%s focused=%s frozen=%s continued=%s locked=%s opens=%s"
+			% [opened, focused, world_frozen, continued, locked, book_opens])
+	quit(0 if (opened and focused and world_frozen and continued and locked
+			and book_opens) else 1)

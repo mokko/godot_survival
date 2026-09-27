@@ -141,7 +141,7 @@ func _init() -> void:
 	for child in menu.get_node("Center/Padding/Panel/VBox").get_children():
 		if child is Button:
 			buttons.append(child.text)
-	if buttons != PackedStringArray(["Continue", "Saves…", "Pedia", "Quit to Menu"]):
+	if buttons != PackedStringArray(["Continue", "Save", "Pedia", "Quit to Menu"]):
 		fails.append("the pause menu's buttons changed: %s" % ", ".join(buttons))
 
 	main.queue_free()
