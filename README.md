@@ -118,7 +118,7 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
 - **Saves** — `world/savegame.md`: the five slots, the autosave, and where `user://` really is.
 - **Species** — `flora/plants.md`, `fauna/animals.md`.
 - **Research** — `research/`: the geography, the older premise notes, the
-  researchers.
+  researchers, and the Ainu words Japanese uses.
 
 Project layout:
 

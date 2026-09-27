@@ -1,6 +1,7 @@
 # Geography of the Japanese archipelago — reference for Nakamoto's Paradigm
 
-Companion to `research/old.md` (worldbuilding, Ainu layer, premise) and the world-building canon
+Companion to `research/old.md` (worldbuilding, Ainu layer, premise), `research/ainu.md` (the Ainu
+words Japanese borrowed — animals and plants first) and the world-building canon
 in `flora/plants.md` + `fauna/animals.md`. This file is about the **real geography** the game is a
 homage to, and what of it is actually in the build today.
 
