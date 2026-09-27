@@ -7,8 +7,23 @@ instruments that fill it. Words live in `ui/pedia_data.gd`, plates in
 
 The drone carries a brown leather **notebook** with `Pedia` on the cover — an
 inventory item, found in the **Explorer's Kit** on Ezo's SW cape at the start of a run
-(`world/kit.md`) — and the pause menu opens it as a
+(`world/kit.md`) — and it opens as a
 screen of its own (same dim and panel as the menu, which hides while it is up).
+
+There are **two doors into it**, and both go through `PauseMenu`, which owns the book and
+the ESC key (`player/player.gd::read_the_book`):
+
+- the pause menu's **Pedia** row, greyed out until the drone is carrying the notebook
+  (`_book_found` is the one question both the row and the door ask);
+- the book **in the drone's hand** — with the notebook equipped, a left click out in the
+  world reads it, the same way a click studies with the glass up. A click still prefers
+  whatever is grabbable, so the auto-equipped notebook does not get in the way of picking
+  things up.
+
+They differ in one thing only, and deliberately: closing the book. Paused to browse, and
+closing lands back on the menu; read out in the world, and closing drops straight back into
+the game, because the player was playing. `open_pedia()` does the whole open dance itself
+for that reason, exactly like `open_editor()` from a bench.
 It opens on the line *Your research notes.* and three layers:
 
 1. **chapters** — the table of contents: Islands, Plants, Animals, Equipment,

@@ -29,6 +29,9 @@ const STARTING_ITEMS := []
 ## reason for the rule. The katana and the binoculars are ordinary gear and go with the
 ## rest of the loot.
 const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
+## The book itself: the item the Pedia *is* (`items/item_db.gd`), and the one held thing
+## whose use is reading it rather than acting on the world.
+const NOTEBOOK_ITEM := "notebook"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
 const PediaArt := preload("res://ui/pedia_art.gd")
@@ -444,6 +447,26 @@ func get_equipped_item() -> String:
 		return inventory.get_equipped_item()
 	return ""
 
+func read_the_book() -> bool:
+	## Open the Pedia from the world, with the notebook in hand. True when the book went up.
+	##
+	## The pause menu owns the book and the ESC key, so this goes through its own world door
+	## (`ui/pause_menu.gd::open_pedia`) instead of reaching into the screen: one screen, one
+	## owner, one gate. Duck-typed because a host without that menu (a UI-only test scene)
+	## must not crash here — it simply does not read the book.
+	##
+	## A click prefers whatever is grabbable, and this runs only when nothing was: the
+	## notebook is auto-equipped the moment the satchel hands it over (`ui/inventory.gd`,
+	## the first item into an empty hand), so the other order would make a fresh drone read
+	## its book every time it tried to pick up the katana.
+	if get_equipped_item() != NOTEBOOK_ITEM:
+		return false
+	if pause_menu == null or not pause_menu.has_method("open_pedia"):
+		return false
+	pause_menu.open_pedia()
+	return true
+
+
 func _lock_check() -> bool:
 	# Live check: the fade overlay clears its own flag when done.
 	if fade_in != null:
@@ -480,9 +503,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				# not punch or grab while a tool is held up.
 				do_study()
 			elif not _toggle_grab():
-				# Nothing to grab under the crosshair and no weapon equipped:
-				# the drone jabs instead of clicking at thin air.
-				do_punch()
+				# Nothing to grab under the crosshair and no weapon equipped. With the book in
+				# hand a click reads it — every held thing is used with this same click (see
+				# the glass above) — and without it the drone jabs at thin air.
+				if not read_the_book():
+					do_punch()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			_begin_draw_bow()
 	elif event is InputEventMouseButton and not event.pressed \

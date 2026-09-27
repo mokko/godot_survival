@@ -51,6 +51,12 @@ func _ready() -> void:
 	_refresh_pedia_button()
 
 
+## Whether the book was opened from the world — the drone reading it with the notebook in
+## hand (`open_pedia`) — rather than from this menu's button. It decides where closing
+## lands: back in the game, or back here on the menu. Consumed by `_on_pedia_closed()`.
+var _pedia_from_world := false
+
+
 func _book_found() -> bool:
 	## Whether this run is carrying the notebook: the bag is the truth about what the
 	## drone has (`player.has_item`, the same answer `world/explorer_kit.gd` gives gear
@@ -164,6 +170,25 @@ func _on_pedia() -> void:
 	pedia.open()
 
 
+func open_pedia() -> void:
+	## The book, opened from the world with the notebook in the drone's hand
+	## (`player/player.gd::read_the_book`). Same contract as the bench's door below: nothing
+	## opened this from the menu, so it runs the whole open dance itself — pause, release the
+	## mouse, step the menu aside — and closing it resumes play instead of showing the menu,
+	## because the player was playing and not browsing.
+	##
+	## `_on_pedia()` is still the one place the book is actually opened, gate and all, so this
+	## door and the button's cannot drift apart. Only reachable while playing: the drone is a
+	## paused node whenever a screen is up, so no other screen can be open underneath.
+	visible = true
+	_pedia_from_world = true
+	_set_crosshair_visible(false)
+	_apply_padding()
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_on_pedia()
+
+
 func open_editor(bench: Node = null) -> void:
 	## Opened from a service bench in the world (world/bench.gd) — the only way in.
 	## There is no button for it here: finding a bench is the point. Because it is
@@ -191,5 +216,12 @@ func _on_editor_closed() -> void:
 
 
 func _on_pedia_closed() -> void:
+	## Closing the book lands where the player came from: straight back into the game if they
+	## read it out in the world, on the menu if they paused to browse it. Same shape as the
+	## editor's own reader below, and for the same reason.
+	if _pedia_from_world:
+		_pedia_from_world = false
+		_on_continue()
+		return
 	menu.show()
 	$Center/Padding/Panel/VBox/Continue.grab_focus()
