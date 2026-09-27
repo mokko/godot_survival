@@ -1,0 +1,9 @@
+# using Xwayland (:0, auth .mutter-Xwaylandauth.NLBCW3)
+# survivor benchmark  date=2026-09-27T21:26:26+02:00  host=rock-5b-plus  godot=snap run godot-4
+BENCH adapter=Mali-G610 (Panfrost) display=X11 window=(960, 600)
+BENCH godot=4.7.2-stable (official) renderer=gl_compatibility
+BENCH | msaa x2 + ssao + clutter       | ssao=true  |   11.9 fps avg |   10.0 fps worst | 1468.4 draws |   2897854 prims | 20 frames drawn
+BENCH | ssao off                       | ssao=false |   11.7 fps avg |   11.0 fps worst | 1471.7 draws |   2893073 prims | 22 frames drawn
+BENCH | ssao off + msaa off            | ssao=false |   13.5 fps avg |   13.0 fps worst | 1478.3 draws |   2911798 prims | 24 frames drawn
+BENCH | ssao + msaa, clutter hidden    | ssao=true  |   12.4 fps avg |   11.0 fps worst | 1516.1 draws |   2940031 prims | 22 frames drawn
+RESULT BENCHMARK OK

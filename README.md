@@ -1,4 +1,4 @@
-# Nakamoto's Paradigm (v0.0.2-alpha)
+# Nakamoto's Paradigm (v0.0.3-alpha)
 
 Nakamoto's Paradigm (aka survivalm) is an experiment to learn more about Godot,
 games, and developing with AI. It is the first experiment — others will follow.
