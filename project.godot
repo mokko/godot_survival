@@ -32,6 +32,10 @@ window/stretch/aspect="expand"
 
 project/assembly_name="survivalm"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/no_middle_paste/plugin.cfg")
+
 [input]
 
 move_forward={
