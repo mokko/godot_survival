@@ -51,12 +51,12 @@ const VIEWS := [
 	{"name": "09_part_ezo", "x": -104.0, "z": 84.0, "eye": 1.6, "yaw": 180.0,
 		"pitch": -12.0, "time": 0.3},
 	# The Explorer's Kit, a short walk north of the spawn (world/kit.md): the camera
-	# stands on the spawn side of it, which is the face its latch and lit mark are
-	# built toward.
+	# stands on the spawn side of it, which is the face its flap, buckle and lit mark
+	# are built toward.
 	{"name": "10_kit_ezo", "x": -110.0, "z": 76.0, "eye": 1.8, "yaw": 180.0,
 		"pitch": -12.0, "time": 0.3},
-	# The same crate from close enough to judge the prop itself: the lid, the bands,
-	# the latch and the lit mark. A prop this small is a smudge at ten metres.
+	# The same satchel from close enough to judge the prop itself: the flap, the buckle
+	# and the lit mark. A prop this small is a smudge at ten metres.
 	{"name": "11_kit_closeup", "x": -110.0, "z": 71.9, "eye": 0.7, "yaw": 180.0,
 		"pitch": -14.0, "time": 0.3},
 	# The katana on the spawn cape (world/main.tscn, `Pickup15` — a lying prop, not a
