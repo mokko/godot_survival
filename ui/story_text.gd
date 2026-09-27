@@ -56,12 +56,13 @@ const PAGES := [
 		"title": "The beginning",
 		"body": """You wake up. Something is wrong. Where are you? Your eyes don't open.
 
-Then you discover a different way to see. This is different. It's like
-coming from a cam. How do you get here? What is this? You appear to be
-inside a robot. You can move. Let's see what we can find out.
+Then you discover a different way to see, to hear. This is different.
+It's like coming from a camera. How do you get here? What is this? You
+appear to be inside a robot. You can move. Let's see what you can find
+out.
 
-How do you get here? Who are you? You think you know who you are, but
-you can't remember your name.
+Another thought. How did you get here? Who are you? So far you thought,
+you knew who you were, but now you realize you don't remember your name.
 """,
 	},
 ]
@@ -83,12 +84,12 @@ const MILESTONES := {
 	"explorer_kit": {
 		"title": "The Explorer's Kit",
 		"body": """You found a leather satchel with several items in it. A book with a
-leather binding. It's empty. No text. Apparently, it's a notebook.
-Like people used hundreds of years ago. A pen to write in it. There
-is also pair of binoculars through which you can study far away
-things and magnifying glass for a close inspection. Apparently
-someone wants you to study like the explorer's on Earth in the
-18th century.
+leather binding. It's empty. No text. It's a notebook. Like people
+used hundreds of years ago. A pen to write in it. There is also a
+pair of binoculars through which you can study far away things and
+a magnifying glass for a close inspection. Apparently someone wants
+you to study the surroundings the old-fashioned way, like the
+explorers on Earth in the 18th century.
 """,
 	},
 	"katana": {
