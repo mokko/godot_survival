@@ -1,6 +1,7 @@
 extends SceneTree
 ## Headless check: drone equipment visuals — props exist, hidden by default,
-## shown when the matching item is equipped, armor shows on wear.
+## shown when the matching item is equipped, armor shows on wear, and the satchel
+## (the bag the drone's finds go into) is built and stays off until it is asked for.
 
 func _init() -> void:
 	var main = load("res://world/main.tscn").instantiate()
@@ -23,6 +24,23 @@ func _init() -> void:
 				and absf((n as MeshInstance3D).mesh.radius - 0.22) < 0.01)
 	if domes.size() != 1:
 		fails.append("dome_head")
+
+	# The satchel: built, and off on a run that has not found the Explorer's Kit. It goes
+	# on through `show_satchel` and nowhere else — `world/explorer_kit.gd` calls it when
+	# the kit is emptied, and `equipment.gd` asks the player's opened-container list for
+	# itself after a load.
+	if not equip.has_method("wears_satchel"):
+		fails.append("no_satchel_on_the_equipment")
+	elif equip.wears_satchel():
+		fails.append("wore_the_bag_on_a_fresh_run")
+	equip.show_satchel(true)
+	if not equip.wears_satchel():
+		fails.append("the_bag_would_not_go_on")
+	equip.show_satchel(false)
+	if equip.wears_satchel():
+		fails.append("the_bag_would_not_come_off")
+	if equip.get_node_or_null("Satchel") == null:
+		fails.append("no_Satchel_node")
 
 	# Two arms: shoulder pivots ArmL/ArmR, each carrying shoulder ball, upper
 	# arm, elbow, cuff, forearm and two claw fingers.

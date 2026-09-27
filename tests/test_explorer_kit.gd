@@ -1,23 +1,24 @@
 extends SceneTree
 ## Headless checks on the first minute of a run: where the Explorer's Kit stands, what
 ## it hands over, that it hands it over once, and that the katana lies within the same
-## stroll.
+## stroll, and that emptying the kit puts the satchel on the drone's shoulder and takes
+## it out of the grass.
 ##
-## The placement half is the reason this test exists at all. Nothing records the crate
+## The placement half is the reason this test exists at all. Nothing records the satchel
 ## — no HUD marker, no Pedia entry, no save flag for anything but *opened* — so "the
-## drone can find its gear" is only ever as true as the crate's transform in
-## `world/main.tscn`, and a crate standing in the sea or a metre under the ground looks
-## exactly like a working one from inside the code.
+## drone can find its gear" is only ever as true as its transform in
+## `world/main.tscn`, and a satchel standing in the sea or a metre under the ground
+## looks exactly like a working one from inside the code.
 
 const Ezo := preload("res://world/island.gd")
 const SaveGame := preload("res://world/savegame.gd")
 
 ## Where a new run wakes up (`world/island.gd`, SPAWN_XZ).
 const SPAWN := Vector2(-112.0, 82.0)
-## A first stroll, not a journey: the crate and the katana are both inside this much of
+## A first stroll, not a journey: the satchel and the katana are both inside this much of
 ## the spawn.
 const NEAR := 25.0
-## What is in the crate, spelled out here rather than read off it, so a contents list
+## What is in the satchel, spelled out here rather than read off it, so a contents list
 ## that quietly changed shape cannot pass.
 const EXPECTED := ["notebook", "pen", "magnifying_glass", "binoculars"]
 
@@ -46,14 +47,14 @@ func _init() -> void:
 	var player: CharacterBody3D = main.get_node("Player")
 	var inv = main.get_node("HUD/Inventory")
 
-	# 1. One crate, a stroll from the spawn, on ground a drone can stand on, sitting
-	#    exactly on the terrain (y from island.gd's height field, no floating crate).
-	var crates := get_nodes_in_group("explorer_kit")
-	if crates.size() != 1:
-		print("RESULT FAIL: crates=%d" % crates.size())
+	# 1. One satchel, a stroll from the spawn, on ground a drone can stand on, sitting
+	#    exactly on the terrain (y from island.gd's height field, no floating satchel).
+	var satchels := get_nodes_in_group("explorer_kit")
+	if satchels.size() != 1:
+		print("RESULT FAIL: satchels=%d" % satchels.size())
 		quit(1)
 		return
-	var kit: Node3D = crates[0]
+	var kit: Node3D = satchels[0]
 	var site := Vector2(kit.global_position.x, kit.global_position.z)
 	var ground: float = Ezo.height_at(site.x, site.y)
 	if site.distance_to(SPAWN) > NEAR:
@@ -66,6 +67,15 @@ func _init() -> void:
 		fails.append("kit_open_on_a_fresh_run")
 	if kit.contents() != EXPECTED:
 		fails.append("kit_contents=%s" % str(kit.contents()))
+	# The bag is lying on the cape and the drone is not wearing one: a run has to find
+	# it first, which is the whole of the "we carry our inventory in the satchel" idea.
+	var equip: Node = player.get_node_or_null("Equipment")
+	if equip == null or not equip.has_method("wears_satchel"):
+		fails.append("no_equipment_to_wear_a_bag")
+	elif equip.wears_satchel():
+		fails.append("wore_the_bag_before_finding_it")
+	if not kit.visible:
+		fails.append("the_satchel_is_not_on_the_cape_on_a_fresh_run")
 
 	# 2. The katana is on that same stroll, and it is a real pickup: walking into it
 	#    hands the sword over.
@@ -90,15 +100,15 @@ func _init() -> void:
 			fails.append("katana_not_collectable")
 	inv.clear_all()
 
-	# 3. A full bag keeps the crate shut: the gear waits in it rather than dropping to
-	#    the ground, and the crate does not report itself opened.
+	# 3. A full bag keeps the satchel shut: the gear waits in it rather than dropping to
+	#    the ground, and the satchel does not report itself opened.
 	for i in 20:
 		player.add_item("flint")
 	player.global_position = kit.global_position + Vector3(0.0, 0.0, 1.2)
 	if not inv.is_full():
 		fails.append("bag_not_full")
 	if kit.use_for_test(player):
-		fails.append("full_bag_opened_the_crate")
+		fails.append("full_bag_opened_the_satchel")
 	if kit.is_open() or inv.has_item("notebook"):
 		fails.append("full_bag_took_something")
 	inv.clear_all()
@@ -110,12 +120,12 @@ func _init() -> void:
 	if kit.is_open():
 		fails.append("open_from_far_away")
 
-	# 5. Beside it, the crate hands over exactly its four — and no katana.
+	# 5. Beside it, the satchel hands over exactly its four — and no katana.
 	player.global_position = kit.global_position + Vector3(0.0, 0.0, 1.2)
 	if not kit.use_for_test(player):
-		fails.append("crate_refused")
+		fails.append("satchel_refused")
 	if not kit.is_open():
-		fails.append("crate_still_shut")
+		fails.append("satchel_still_shut")
 	for item_id in EXPECTED:
 		if not inv.has_item(item_id):
 			fails.append("missing_%s" % item_id)
@@ -124,11 +134,24 @@ func _init() -> void:
 		if inv.slots[i] != "":
 			carried += 1
 	if carried != EXPECTED.size():
-		fails.append("crate_gave_%d_items" % carried)
+		fails.append("satchel_gave_%d_items" % carried)
 	if inv.has_item("sword"):
-		fails.append("crate_gave_a_katana")
+		fails.append("the_satchel_gave_a_katana")
 
-	# 5b. Finding the kit is the run's second screen: the crate asks the HUD's story screen
+	# Emptying it puts the bag on the drone and takes it out of the grass — the two are
+	# never on screen at once — and disables the shape, so no invisible wall is left
+	# standing where the satchel lay.
+	for i in 2:
+		await process_frame
+	if kit.visible:
+		fails.append("the_satchel_stayed_on_the_cape_after_opening")
+	if equip == null or not equip.wears_satchel():
+		fails.append("the_bag_did_not_go_onto_the_drone")
+	var shapes := kit.find_children("*", "CollisionShape3D", true, false)
+	if shapes.is_empty() or not (shapes[0] as CollisionShape3D).disabled:
+		fails.append("the_satchel_left_an_invisible_wall")
+
+	# 5b. Finding the kit is the run's second screen: the satchel asks the HUD's story screen
 	#     for its page (ui/story_text.gd's `explorer_kit` milestone) the moment it is
 	#     emptied, over a paused world — and one real click hands the run back, with the
 	#     world still standing (a milestone screen that loaded a scene would restart the
@@ -154,15 +177,15 @@ func _init() -> void:
 			fails.append("the click did not hand the run back (paused=%s shown=%s)"
 					% [paused, story.is_playing()])
 			# Do not poison the rest of the run over it: the checks below are about the
-			# crate's save state, not about the screen.
+			# satchel's save state, not about the screen.
 			paused = false
 
-	# 6. A second press hands nothing over again: the crate is one-shot.
+	# 6. A second press hands nothing over again: the satchel is one-shot.
 	var bag: Array = inv.slots.duplicate()
 	if not kit.use_for_test(player):
 		fails.append("second_press_refused")
 	if inv.slots != bag:
-		fails.append("crate_refilled")
+		fails.append("satchel_refilled")
 
 	# 7. "Opened" rides in the save...
 	if not player.has_opened_container("explorer_kit"):
@@ -171,9 +194,9 @@ func _init() -> void:
 	if not (state.get("containers", []) as Array).has("explorer_kit"):
 		fails.append("save_missing_containers")
 
-	# ...and a run restored from that state keeps the crate open. Loading goes through
+	# ...and a run restored from that state keeps the satchel open. Loading goes through
 	# the player (the state is read straight off the dictionary, no file needed), and a
-	# crate the scene has only just built is asked again — the loaded-run case.
+	# satchel the scene has only just built is asked again — the loaded-run case.
 	player.load_state(state)
 	if not player.has_opened_container("explorer_kit"):
 		fails.append("restored_run_lost_the_container")
@@ -185,12 +208,14 @@ func _init() -> void:
 	for i in 5:
 		await physics_frame
 	if not spare.is_open():
-		fails.append("crate_ignored_the_saved_opened_list")
+		fails.append("satchel_ignored_the_saved_opened_list")
+	if spare.visible:
+		fails.append("a_loaded_run_left_a_satchel_lying_on_the_cape")
 	var bag2: Array = inv.slots.duplicate()
 	player.global_position = spare.global_position + Vector3(0.0, 0.0, 1.2)
 	spare.use_for_test(player)
 	if inv.slots != bag2:
-		fails.append("restored_crate_refilled")
+		fails.append("restored_satchel_refilled")
 
 	if fails.is_empty():
 		print("RESULT ALL PASS kit=%s" % str(kit.global_position))
