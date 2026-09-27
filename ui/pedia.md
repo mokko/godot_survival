@@ -44,12 +44,16 @@ fills its own way:
   the moment it is out, drawing or no drawing, because a glass you have to click
   something with before it magnifies cannot be used to find that something. Putting it
   away hands the view straight back to the player's own zoom. Slip off the subject for
-  more than a moment and the drawing starts again from nothing. The glass works close:
+  more than a moment and the hold **ends where it stands**: the seconds it earned are kept
+  (banked per species), so the next attempt carries on from there instead of starting from
+  nothing. The glass works close:
   **6 m**. **A species already in the notebook is not studied again**: the click says
   **"Already studied"** and starts nothing, on both routes — an animal watched through the
-  binoculars cannot then be autopsied for the page it already has. **And the glass is glass**:
-  inside the circles the world is blurred (a five-tap mip blur, `ui/instrument_view.gd`), so
-  looking through an instrument reads as looking through one rather than through a hole.
+  binoculars cannot then be autopsied for the page it already has. **And the glass is glass**: the tube's view stays **sharp** — that is the
+  in-focus, magnified field — while everything beyond the rim goes softly out of focus in a
+  gradient (`ui/instrument_view.gd`, following the circle-of-confusion rule: the further from
+  the plane of focus, the larger the blur). Mild on purpose, and the strips dim that region at
+  the same time.
 - **Animals** have two routes to the same page, because an explorer has more than
   one way of looking:
   - **watch one through the Binoculars** for eight seconds — the observation route,
@@ -71,7 +75,7 @@ fills its own way:
   entry lands when all twelve sectors have been sailed through. Nothing is written by
   standing on an island or landing on one — including the island a run wakes up on — so
   the chapter is a map the player *drew* and the book really does open empty. The first
-  boat a run boards says so (`ui/story_text.gd`'s `boat_discovery` page, written when
+  boat a run boards says so (`ui/story_text.gd`'s `boat` page, written when
   Maurice writes it).
 - **The survey's beat**: once **3 plants and 3 animals** have been drawn, the drone can
   say something about the island it did the work on, and that island's page is played as

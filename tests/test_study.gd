@@ -270,6 +270,55 @@ func _init() -> void:
 	if study.progress() != 0.0:
 		fails.append("a_repeat_study_kept_progress:%.1f" % study.progress())
 
+	# 3c. **A slip banks what it earned.** Interrupting a hold no longer throws the time away:
+	#     the seconds come back on the next attempt at *that* species (Maurice's call, 27 Sep),
+	#     another species starts at zero, and the bank is spent once the entry is drawn.
+	var tree_side: Vector3 = player.global_position \
+			+ Vector3(forward.z, 0.0, -forward.x) * 3.2
+	var spire: Node3D = (load("res://flora/sporebell.tscn") as PackedScene).instantiate()
+	main.add_child(spire)
+	spire.global_position = Vector3(tree_side.x, Ezo.height_at(tree_side.x, tree_side.z), tree_side.z)
+	await _wait(0.2)
+	player.camera.look_at(spire.global_position + Vector3(0.0, 1.0, 0.0))
+	await _wait(0.2)
+	if not study.begin():
+		fails.append("the_sporebell_is_not_studyable")
+	if not await _wait_until(func() -> bool: return study.progress() >= 2.0, 8.0):
+		fails.append("no_progress_before_the_slip:%.1f" % study.progress())
+	var earned: float = study.progress()
+	# Out of the glass's reach: the hold ends by itself, the way a player's slip does.
+	spire.global_position = player.global_position + Vector3(0.0, 0.0, 40.0)
+	if not await _wait_until(func() -> bool: return not study.is_studying(), 8.0):
+		fails.append("the_session_outlived_the_slip")
+	var banked: float = study.banked_progress("plants", "sporebell")
+	if banked < earned - 0.3:
+		fails.append("the_slip_did_not_bank:%.1f of %.1f" % [banked, earned])
+	if Notes.has("plants", "sporebell"):
+		fails.append("an_interrupted_hold_drew_the_entry")
+	# Back within reach: the next attempt picks up where that one stopped...
+	spire.global_position = Vector3(tree_side.x, Ezo.height_at(tree_side.x, tree_side.z), tree_side.z)
+	await _wait(0.2)
+	player.camera.look_at(spire.global_position + Vector3(0.0, 1.0, 0.0))
+	await _wait(0.2)
+	if not study.begin():
+		fails.append("the_sporebell_could_not_be_studied_again")
+	elif study.progress() < banked - 0.4:
+		fails.append("the_resume_restarted:%.1f vs banked %.1f" % [study.progress(), banked])
+	# ...the bank is per species, not per drone...
+	if study.banked_progress("plants", "frostneedle") != 0.0:
+		fails.append("another_species_inherited_the_progress")
+	# ...and finishing it spends the bank: the eight seconds are the total, across attempts.
+	if not await _wait_until(func() -> bool: return Notes.has("plants", "sporebell"), 14.0):
+		fails.append("the_resumed_hold_never_finished")
+	if study.banked_progress("plants", "sporebell") != 0.0:
+		fails.append("the_bank_survived_the_drawing:%.1f"
+				% study.banked_progress("plants", "sporebell"))
+	# This case leaves a drawing in the notebook that the sections below were written without
+	# (the Pedia chapter listing, the survey count) — take that one entry back out, the same way
+	# `test_naming` does. Nothing else changes, and the bank assertions above already ran.
+	var drawn_after_slip: Array = Notes.drawn()
+	Notes.restore(drawn_after_slip.filter(func(k): return str(k) != "plants/sporebell"))
+
 	# 4. An explorer has more than one way of looking, and the glass will not watch an
 	#    animal alive: it refuses and names the binoculars instead.
 	# To one side of the plant, so the click cannot land on the already-drawn plant,

@@ -13,7 +13,7 @@ extends StaticBody3D
 ## never handles that key itself.
 ##
 ## The **first** bench a run works at introduces itself first: the HUD's milestone
-## story screen plays `ui/story_text.gd`'s `bench` page (`play_milestone`), and the
+## story screen plays `ui/story_text.gd`'s `robo_editor` page (`play_milestone`), and the
 ## Frame screen opens when the page is done — the page is the *preface* to the screen,
 ## not a substitute for it, so E means what it always meant. Which bench is the first
 ## one is the only thing this node remembers, and it remembers it in a static (see
@@ -53,6 +53,12 @@ static func found() -> bool:
 	## Has a bench been used this run? True from the first E at any bench, and for the rest of
 	## the session — the same shape as the page's own once-per-process flag above.
 	return _found
+
+
+## The page the first bench plays (`ui/story_text.gd`'s milestone of this id). Ids are the
+## catalogue's keys, and Maurice renamed this one from `bench` to `robo_editor` on 27 Sep to
+## match the entry in the pause menu.
+const BENCH_PAGE := "robo_editor"
 
 ## The bench's own idle prompt, parented to the HUD (built in code, like the boat's).
 var _hint: Label = null
@@ -133,7 +139,7 @@ func _play_page_once() -> bool:
 	var story := story_screen()
 	if story == null or not story.has_method("play_milestone"):
 		return false
-	if not story.play_milestone("bench"):
+	if not story.play_milestone(BENCH_PAGE):
 		return false
 	_page_played = true
 	# One shot: the page is played once, so this is connected once.

@@ -105,11 +105,11 @@ knows that they have been made in this form since the 14th century?
 You must be someone with knowledge of Japanese history.
 """,
 	},
-	"bench": {
-		"title": "The Workbench",
-		"body": """You found the workbench where you can edit your robot.
+	"robo_editor": {
+		"title": "The Robo Editor",
+		"body": """You found a workbench that you can use to change your robot.
 
-If find new parts for your robot, you can implement them here.
+If you find new parts for your robot, you change your robot here.
 """,
 	},
 	"ezo": {
@@ -127,7 +127,7 @@ landscapes and long winters. It's also the homeland of the Ainu.
 The island used to be called Ezo or Ezochi.
 """,
 	},
-	"boat_discovery": {
+	"boat": {
 		"title": "The Boat Discovered",
 		"body": """You have found the first boat. Circumnavigate each of the four
 islands to map their geography and learn more about them.

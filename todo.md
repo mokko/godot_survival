@@ -166,10 +166,9 @@ kept until they are pruned.
     Ezo) — one page, in the drone's own voice, on the drawing that completes the count and never
     again. Islands with no content have no page and play nothing: `play_milestone()` refuses an
     id with no words, which is right for a survey nobody has written up yet;
-  - **the boat's page** (`boat_discovery`) is **wired and waiting for its words**: the first
-    boarding asks for it (`world/boat.gd::_play_page_once`), which is where a player should be
-    told that a boat is what charts an island. `tests/test_boat.gd` starts checking it the moment
-    there is a page behind the id.
+  - **the boat's page** (`boat`, "The Boat Discovered") is played by the first boat a run
+    boards (`world/boat.gd::_play_page_once`), which is where a player is told that a boat is
+    what charts an island. `tests/test_boat.gd` checks it on that first boarding.
   - Answered the open question in the same pass: the reward is a **milestone page**, and the
     voice is the drone's own knowledge coming back — not a message left by someone else. The
     world has no second character, the kit already supplies the absent giver ("someone wants you

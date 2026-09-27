@@ -122,6 +122,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func open() -> void:
 	visible = true
+	# **The inner menu has to be shown again, every time.** Opening the Frame screen from the
+	# world hides it (`open_editor()`: the screen takes the menu's place rather than stacking on
+	# it) and closing that screen from the world resumes play *without* the menu — so without
+	# this line the next ESC pauses the game behind an invisible menu, which is exactly what it
+	# looked like: "ESC pauses but the pause menu doesn't show".
+	menu.show()
 	# Never resume play with the book, the saves list or the frame screen open — a
 	# fresh pause shows the menu.
 	if pedia.visible:

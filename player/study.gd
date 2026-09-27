@@ -83,6 +83,10 @@ var _lost := 0.0
 var _message := 0.0
 var _view: Control = null
 var _meter: Control = null
+## Seconds already held towards a species that is not drawn yet, keyed "chapter/id"
+## (`cancel()` banks them, `begin()` resumes them). Not saved: a save carries the drawings, and
+## a half-finished hold is a thing to finish, not a thing to store.
+var _banked: Dictionary = {}
 ## The world's copy the lens blur reads (`BackBufferCopy`, this view's first sibling).
 var _backbuffer: BackBufferCopy = null
 
@@ -182,7 +186,12 @@ func begin() -> bool:
 	# otherwise. One resolver, so the meter's line, the Pedia's list and the page title
 	# cannot disagree about what this species is called (ui/pedia_notes.gd).
 	_subject_name = Notes.display_name(_chapter, _id)
-	_held = 0.0
+	# **Where the last attempt left off** (Maurice's call, 27 Sep): a slip of the hand ends the
+	# hold, it does not throw it away. The seconds already spent on this species are banked when
+	# the session ends (`cancel()`), keyed by chapter/id, and resumed here — so the meter comes
+	# back up where the player left it and finishing the drawing is finishing what they started.
+	# Another species starts at zero: the bank is per species, not per drone.
+	_held = float(_banked.get(_key(), 0.0))
 	_lost = 0.0
 	_message = 0.0
 	_update_meter()
@@ -190,8 +199,12 @@ func begin() -> bool:
 
 
 func cancel() -> void:
-	## Subject lost, tool put away, or the drone died: the drawing is abandoned
-	## where it stands. Held time is not banked — the point is to hold still.
+	## Subject lost, tool put away, or the drone died: the hold ends **where it stands**, and
+	## what it earned is banked for the next attempt (`begin()` resumes it). Progress is no
+	## longer thrown away — the entry still means "I watched this properly", it just may have
+	## taken more than one attempt to get the eight seconds in.
+	if _subject != null and _held > 0.0:
+		_banked[_key()] = _held
 	_subject = null
 	_tool = ""
 	_range = 0.0
@@ -204,6 +217,18 @@ func cancel() -> void:
 		_meter.visible = false
 
 
+func banked_progress(chapter: String, id: String) -> float:
+	## The seconds a species has already earned towards its drawing, 0 when none. For tests
+	## and for anything reporting state — the meter reads the resumed value off `_held`.
+	return float(_banked.get("%s/%s" % [chapter, id], 0.0))
+
+
+func _key() -> String:
+	## The bank's key: the same "chapter/id" identity the notebook uses (ui/pedia_notes.gd),
+	## so a drawing and its part-finished hold can never disagree about which species they are.
+	return "%s/%s" % [_chapter, _id]
+
+
 ## --------------------------------------------------------------- the session
 
 func _update_session(delta: float) -> void:
@@ -214,8 +239,9 @@ func _update_session(delta: float) -> void:
 		cancel()
 		return
 	if not is_instance_valid(_subject) or _out_of_range(_subject) or not _on_target():
-		## A slip of the hand is forgiven for LOST_GRACE; past that the drawing is
-		## restarted from nothing, so the entry means "I watched this properly".
+		## A slip of the hand is forgiven for LOST_GRACE; past that the hold ends — and what it
+		## had earned is banked by `cancel()`, so the next attempt on that species carries on
+		## from where it stopped instead of starting again from nothing.
 		_lost += delta
 		if _lost >= LOST_GRACE:
 			cancel()
@@ -231,6 +257,9 @@ func _draw_entry() -> void:
 	## question after — so the page is asked for exactly once per run, by the drawing that
 	## completed the survey, and never by the fourth plant afterwards.
 	var had_enough := _survey_complete()
+	# The species is about to be written into the notebook, so any part-finished hold on it is
+	# spent: `cancel()` banks progress, and this is where it stops being owed.
+	_banked.erase(_key())
 	var drawn_chapter := _chapter
 	var drawn_id := _id
 	var fresh := Notes.unlock(drawn_chapter, drawn_id)

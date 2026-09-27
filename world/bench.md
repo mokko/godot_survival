@@ -60,7 +60,7 @@ that is no longer wanted; the gate behind it is already the shipping behaviour, 
 `tests/test_bench.gd` section 8 pins both the switch and the gate.
 
 **The first bench a run is worked at introduces itself.** `world/bench.gd` asks the HUD's milestone
-story screen for `ui/story_text.gd`'s `bench` page (`play_milestone`), and the Frame screen opens when
+story screen for `ui/story_text.gd`'s `robo_editor` page (`play_milestone`), and the Frame screen opens when
 that page is done. The page is the *preface* to the screen and not a substitute for it, so `E` means
 what it always meant and the player never has to press it twice. Later benches are silent — the page
 is a one-off, and `bench.gd`'s `static var _page_played` is the whole record of it (see below).

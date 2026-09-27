@@ -23,7 +23,7 @@ extends StaticBody3D
 ## notebook: the drone's frame loop credits the compass sector it is in while it is aboard
 ## (`player/player.gd::_chart_step`, the charting section in `world/island.gd`), and the
 ## completed circuit is the Pedia's Islands entry. The first boarding plays
-## `ui/story_text.gd`'s `boat_discovery` page, which is where the player is told so.
+## `ui/story_text.gd`'s `boat` page, which is where the player is told so.
 ##
 ## **A death puts it back on its mooring** (`respawn()`, asked for by
 ## `player/player.gd::_restart` walking the `pickup` group): a hull left mid-strait — or one
@@ -51,7 +51,7 @@ const RIDE_HEIGHT := 1.15      # deck height the player is pinned to
 ## What the first boarding says (`ui/story_text.gd`'s milestone of this id): a boat is the
 ## thing that charts the islands, and the page is where that is said. Nothing is written in
 ## the catalogue until Maurice writes it — an id with no page plays nothing at all.
-const BOAT_PAGE := "boat_discovery"
+const BOAT_PAGE := "boat"
 
 ## Whether that page has been played. Once per process, like the bench's: the first boat
 ## *this run* boards is the one that explains itself.
@@ -206,7 +206,7 @@ func _board(player: CharacterBody3D) -> void:
 	if player.has_method("board_boat"):
 		player.board_boat(self)
 	# The first boat a run boards says what a boat is for (`ui/story_text.gd`'s
-	# `boat_discovery`: sail round an island and it goes into the notebook). Played on the
+	# `boat`: sail round an island and it goes into the notebook). Played on the
 	# act of boarding, once per process — the bench's rule, and the same static. An id with
 	# no page written behind it plays nothing at all, which is what "not written yet"
 	# should do.

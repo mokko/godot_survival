@@ -87,7 +87,7 @@ func _init() -> void:
 	else:
 		if not story.is_playing():
 			fails.append("the first bench did not put its page up")
-		if str(story.milestone_id()) != "bench":
+		if str(story.milestone_id()) != Bench.BENCH_PAGE:
 			fails.append("the first bench played '%s'" % story.milestone_id())
 		if editor.visible:
 			fails.append("the Frame screen opened behind the page")

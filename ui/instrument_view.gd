@@ -22,14 +22,12 @@ extends Control
 ## player chose, including one chosen while looking through the glass. (The wheel's *plain*
 ## turn walks the hotbar; `Shift`+wheel is this zoom — `player/player.gd`.)
 ##
-## **The lens itself** is a subtle radial blur inside the circles (`_build_lens()`): the
-## world behind the glass is sampled from the HUD's `BackBufferCopy` and written back nine
-## taps wide, so looking through either instrument reads as looking through glass rather
-## than through a hole. It is deliberately small and cheap — it runs while a glass is up,
-## over roughly 0.8 MP of screen, on a Rock 5B — and it exists **only inside** the circles:
-## outside them the strips already dim the screen, and a blur there would smear the world
-## the player is still steering by. The circles are pushed into the shader from the same
-## numbers `_draw()` masks with (`_sync_lens()`), so the mask and the lens cannot disagree.
+## **The lens itself** is the defocus *outside* the circles (`_build_lens()`): what the tube
+## shows stays sharp — the glass is the in-focus part — and the world beyond the rim goes soft
+## by a gradient, the way a lens goes soft with distance from its plane of focus. It is
+## deliberately mild, and it exists only outside: inside, the only things drawn are the rim and
+## the reticle. The circles are pushed into the shader from the same numbers `_draw()` masks
+## with (`_sync_lens()`), so the mask and the lens cannot disagree.
 
 const DIM := Color(0, 0, 0, 0.72)
 const RIM := Color(0.85, 0.92, 1.0, 0.75)
@@ -40,57 +38,66 @@ const TUBE_GAP := 0.42   ## distance between tube centres, as a fraction of radi
 const STRIP := 4.0       ## px width of the mask strips
 const VIEW_RADIUS := 0.34  ## of the viewport height
 
-## How far the lens blur reaches, in pixels, and the whisper of cold glass it multiplies the
-## world by. Subtle on purpose: this is a hint of a lens, not depth of field.
-const BLUR_PX := 2.2
+## How the optics are drawn, and why it is this way round:
+##
+## **The glass is the sharp part.** A lens focuses *through* the tube — the circle is the exit
+## pupil, and the field it shows is the in-focus, magnified view. So the inside is left
+## completely alone: no blur, no tint, just the rim and the reticle the mask draws over it.
+##
+## **The outside is the defocused part**, and it is blurred by an amount that *grows with
+## distance from the rim*. That is the circle-of-confusion rule: a point that is not at the
+## plane of focus is imaged as a blur spot, and the further it sits from that plane the larger
+## the spot (Wikipedia, *Depth of field* / *Circle of confusion* — "the greater the distance an
+## object is from the plane of focus, the larger the blur spot"). A lens is not sharp-then-
+## suddenly-soft; it goes soft in a gradient, which is what `ramp_px` is for.
+##
+## It is deliberately mild (`BLUR_PX` is a few pixels, not the frosted pane the first version
+## drew *inside* the circle by mistake), because the strips already dim the outside to 0.72
+## black — the blur is there to say "out of focus", not to hide anything.
+##
+## Five taps of the *screen* (the pixel itself plus four diagonals), no mip: the offsets are
+## scaled by the ramp, so near the rim the sample is the sharp image and further out it is the
+## full blur, with no visible step between them. `screen_tex` is the `BackBufferCopy` the HUD
+## puts behind this view (`player/study.gd::_build_hud`) — without it the whole outside goes
+## black, which is loud enough to be noticed at once.
+const BLUR_PX := 3.0
+const RAMP_PX := 70.0          ## how far past the rim the defocus takes to reach full strength
 const LENS_TINT := Color(0.88, 0.94, 1.0)
 
-## **Five taps of a mip, not nine taps of the screen.** The screen texture is asked for with
-## `filter_linear_mipmap`, and a fragment sampling LOD 2 is already an average of 16 texels —
-## so the blur is mostly the mip's doing, and the four offset taps only hide the blockiness a
-## single mip sample shows on a hard edge like the horizon. The first cut of this was nine
-## LOD-0 taps and measured 29 → 21 fps on the Rock 5B with a glass raised; this version is the
-## same piece of glass for a fraction of that.
-##
-## `screen_tex` is the `BackBufferCopy` the HUD puts behind this view
-## (`player/study.gd::_build_hud`) — without it the circles go black, which is loud enough to
-## be noticed at once.
 const LENS_SHADER := """
 shader_type canvas_item;
 
 // Godot 4 has no `SCREEN_TEXTURE` built-in any more: the screen is an ordinary uniform with
 // the screen-texture hint, fed by the `BackBufferCopy` the HUD puts behind this view.
-uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 
 uniform vec2 rect = vec2(1920.0, 1080.0);
 uniform vec2 circle_a = vec2(960.0, 540.0);
 uniform vec2 circle_b = vec2(960.0, 540.0);
 uniform int tubes = 2;
 uniform float radius = 367.0;
-uniform float blur_px = 2.2;
-// 1.5 is roughly a 4-texel average: enough to read as glass at the edge of a horizon,
-// little enough that the world inside the circle still looks like the world. (2.5 was the
-// first setting and blurred like a frosted pane.) A `#` comment here is not shader syntax —
-// the tokenizer rejects it and the whole material falls back to plain white.
-uniform float mip = 1.5;
+uniform float blur_px = 3.0;
+uniform float ramp_px = 70.0;
 uniform vec4 tint : source_color = vec4(0.88, 0.94, 1.0, 1.0);
 
 void fragment() {
 	vec2 px = UV * rect;
-	float inside = step(distance(px, circle_a), radius);
+	float d = distance(px, circle_a);
 	if (tubes >= 2) {
-		inside = max(inside, step(distance(px, circle_b), radius));
+		d = min(d, distance(px, circle_b));
 	}
-	if (inside < 0.5) {
-		COLOR = vec4(0.0);            // outside the glass: the strips dim it, we leave it be
+	// Inside the glass: sharp, untouched. Outside: defocused, and more so further out.
+	float t = smoothstep(radius, radius + ramp_px, d);
+	if (t <= 0.0) {
+		COLOR = vec4(0.0);
 	} else {
-		vec2 off = vec2(blur_px, blur_px) / rect;
-		vec3 sum = textureLod(screen_tex, SCREEN_UV, mip).rgb;
-		sum += textureLod(screen_tex, SCREEN_UV + off, mip).rgb;
-		sum += textureLod(screen_tex, SCREEN_UV - off, mip).rgb;
-		sum += textureLod(screen_tex, SCREEN_UV + vec2(off.x, -off.y), mip).rgb;
-		sum += textureLod(screen_tex, SCREEN_UV - vec2(off.x, -off.y), mip).rgb;
-		COLOR = vec4(sum / 5.0 * tint.rgb, 1.0);
+		vec2 off = vec2(blur_px, blur_px) / rect * t;
+		vec3 sum = texture(screen_tex, SCREEN_UV).rgb;
+		sum += texture(screen_tex, SCREEN_UV + off).rgb;
+		sum += texture(screen_tex, SCREEN_UV - off).rgb;
+		sum += texture(screen_tex, SCREEN_UV + vec2(off.x, -off.y)).rgb;
+		sum += texture(screen_tex, SCREEN_UV - vec2(off.x, -off.y)).rgb;
+		COLOR = vec4(sum / 5.0 * mix(vec3(1.0), tint.rgb, t), 1.0);
 	}
 }
 """
@@ -177,6 +184,7 @@ func _sync_lens() -> void:
 	_lens_mat.set_shader_parameter("tubes", tubes)
 	_lens_mat.set_shader_parameter("radius", radius)
 	_lens_mat.set_shader_parameter("blur_px", BLUR_PX)
+	_lens_mat.set_shader_parameter("ramp_px", RAMP_PX)
 	_lens_mat.set_shader_parameter("tint", LENS_TINT)
 
 

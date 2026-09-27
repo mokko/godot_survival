@@ -92,14 +92,75 @@ func _init() -> void:
 	await settle()
 	var pen_does_not_read: bool = holds_pen and not pedia.visible
 
+	# 5c. **Every screen that takes the menu's place must give it back.** The Pedia, the Saves
+	#     list and the Frame screen all *hide the menu's own panel* while they are up — that is
+	#     how they take its place instead of stacking on it — and some of them close straight
+	#     back into the **world** (the Frame screen from a bench, the book read with the notebook
+	#     in hand) rather than onto the menu. If the next pause does not put the panel back, ESC
+	#     pauses the game behind an invisible menu. That is the bug this case exists for, and it
+	#     is checked for every door rather than only the one that bit.
+	var menu_panel: Control = menu.get_node("Center")
+	var doors: PackedStringArray = []
+
+	# (a) The Frame screen, opened the way a bench opens it, closed with ESC back into the world.
+	var bench: Node3D = get_nodes_in_group("bench")[0]
+	menu.open_editor(bench)
+	await settle()
+	_escape()
+	await settle()
+	if not await _menu_after_pause(menu, player, tree):
+		doors.append("frame_screen")
+
+	# (b) The book, read out in the world with the notebook in hand (`open_pedia`).
+	player.add_item("notebook")
+	menu.open_pedia()
+	await settle()
+	_escape()
+	await settle()
+	if not await _menu_after_pause(menu, player, tree):
+		doors.append("pedia_in_world")
+
+	# (c) The Saves list, which is opened *from* the menu and closes back onto it.
+	menu._on_saves()
+	await settle()
+	menu.saves.close()
+	await settle()
+	if not await _menu_after_pause(menu, player, tree):
+		doors.append("saves")
+
+	# (d) The book, read from the menu.
+	menu._on_pedia()
+	await settle()
+	_escape()
+	await settle()
+	if not await _menu_after_pause(menu, player, tree):
+		doors.append("pedia_from_menu")
+
+	var pause_shows_menu: bool = doors.is_empty()
+	var doors_failed: String = ",".join(doors)
+
 	print("RESULT opened=%s focused=%s frozen=%s continued=%s locked=%s opens=%s"
 			% [opened, focused, world_frozen, continued, locked, book_opens]
 			+ " world_again=%s holds_book=%s read=%s back=%s holds_pen=%s pen=%s"
 			% [world_again, holds_book, read_in_world, back_in_game, holds_pen,
-			pen_does_not_read])
+			pen_does_not_read]
+			+ " menu_after_every_screen=%s failed=%s" % [pause_shows_menu, doors_failed])
 	quit(0 if (opened and focused and world_frozen and continued and locked and book_opens
 			and world_again and read_in_world and back_in_game
-			and pen_does_not_read) else 1)
+			and pen_does_not_read and pause_shows_menu) else 1)
+
+
+func _menu_after_pause(menu: Control, player: Node, tree: SceneTree) -> bool:
+	## Pause afresh and answer whether **the menu is actually on screen**: the panel it hides
+	## behind a full screen must be visible again (`ui/pause_menu.gd::open()`), and the game
+	## paused behind it. Leaves the game paused but with the menu up, closed by the caller.
+	player.pause_requested.emit()
+	await settle()
+	var panel: Control = menu.get_node("Center")
+	var shown: bool = menu.visible and panel.visible and tree.paused
+	_escape()
+	await settle()
+	return shown
 
 
 func settle() -> void:
