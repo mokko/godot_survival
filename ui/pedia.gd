@@ -7,6 +7,13 @@ extends Control
 ##  - **data pages** — one game element: a square picture top left, its name in a
 ##    larger font, and the text that describes it.
 ##
+## A **species** page also lets the player name the thing. Names are notes, not edits to
+## the book: they live in the notebook registry (`ui/pedia_notes.gd`, `_names`), while
+## `ui/pedia_data.gd` keeps saying what the species *is* no matter what it has been
+## called. `Notes.can_name()` is the one gate on which chapters may be named, and the
+## field is built in code and reached through `name_field()` — the pattern
+## `ui/saves.gd::slot_field` set, so tests and callers never guess at a child index.
+##
 ## The first two are menus, built from ui/pedia_data.gd (which holds every word);
 ## the third is a data page, built from the same record plus its plate from
 ## ui/pedia_art.gd. `Back` walks one layer up, and at the chapters page it closes
@@ -19,6 +26,7 @@ extends Control
 
 const PediaData := preload("res://ui/pedia_data.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
+const NameField := preload("res://ui/name_field.gd")
 
 ## Emitted when the book closes, so the pause menu can show itself again.
 signal closed
@@ -44,6 +52,9 @@ var chapter := ""        ## "" on the chapters page, else the chapter being show
 var subchapter_id := ""  ## "" unless a data page is open
 
 var _empty_label: Label = null   ## the "nothing drawn yet" line, if any
+## The name field of the open data page, rebuilt never: a page change repaints it, so a
+## half-typed name is not thrown away by anything that redraws the page it is on.
+var _name_field: NameField = null
 
 
 func _ready() -> void:
@@ -112,7 +123,7 @@ func show_subchapters(chapter_id: String) -> void:
 	var drawn := _subchapters_of(chapter_id)
 	for record in drawn:
 		var button := Button.new()
-		button.text = str(record["name"])
+		button.text = Notes.display_name(chapter_id, str(record["id"]))
 		button.add_theme_font_size_override("font_size", 20)
 		button.pressed.connect(show_data_page.bind(chapter_id, str(record["id"])))
 		grid.add_child(button)
@@ -146,7 +157,7 @@ func show_data_page(chapter_id: String, id: String) -> void:
 	chapter = chapter_id
 	subchapter_id = id
 	title.text = PediaData.chapter_title(chapter_id)
-	data_name.text = str(record["name"])
+	data_name.text = Notes.display_name(chapter_id, id)
 	data_subtitle.text = str(record["subtitle"])
 	data_text.text = str(record["text"])
 	chapters.hide()
@@ -155,7 +166,54 @@ func show_data_page(chapter_id: String, id: String) -> void:
 	# Fresh page: start at the top of the text, not where the last one scrolled to.
 	text_scroll.scroll_vertical = 0
 	plate.set_entry(chapter_id, id)
+	_show_name_field(chapter_id, id)
 	_focus_first()
+
+
+func name_field() -> NameField:
+	## The name field of the open data page, or null when this entry cannot be named.
+	return _name_field
+
+
+func _show_name_field(chapter_id: String, id: String) -> void:
+	## Species get a field to be named in; every other entry keeps the data table's name,
+	## and its page looks exactly as it did before this existed.
+	if not Notes.can_name(chapter_id):
+		if _name_field != null:
+			_name_field.hide()
+		return
+	if _name_field == null:
+		_name_field = NameField.new()
+		_name_field.name = "Name"     ## so a test and a saved page find the same node
+		_name_field.custom_minimum_size = Vector2(320.0, 0.0)
+		_name_field.max_length = Notes.NAME_MAX
+		_name_field.edit_cancelled.connect(_on_name_cancelled)
+		_name_field.text_submitted.connect(_on_name_submitted.bind(chapter_id, id))
+		# Inside the heading block, under the name and the subtitle it belongs with.
+		$Center/Padding/Panel/VBox/DataPage/Head/Headings.add_child(_name_field)
+	_name_field.show()
+	# The field shows the player's own name, or nothing; the data table's name is the
+	# hint underneath it, so what a rename is replacing is always visible.
+	_name_field.remember(Notes.name_of(chapter_id, id))
+	_name_field.placeholder_text = "default: %s" \
+			% str(PediaData.subchapter(chapter_id, id).get("name", ""))
+
+
+func _on_name_submitted(chosen: String, chapter_id: String, id: String) -> void:
+	## Enter commits. The registry sanitises and answers with what it recorded, so the
+	## heading shows what was stored rather than what was typed. Focus is handed back on
+	## purpose: the edit is finished, and ESC belongs to the menu again.
+	var recorded := Notes.give_name(chapter_id, id, chosen)
+	_name_field.remember(recorded)
+	_name_field.release_focus()
+	data_name.text = Notes.display_name(chapter_id, id)
+
+
+func _on_name_cancelled() -> void:
+	## ESC abandoned the edit (ui/name_field.gd keeps that key away from the pause menu),
+	## so the heading goes back in step with what the notebook actually holds.
+	if subchapter_id != "":
+		data_name.text = Notes.display_name(chapter, subchapter_id)
 
 
 func _subchapters_of(chapter_id: String) -> Array:

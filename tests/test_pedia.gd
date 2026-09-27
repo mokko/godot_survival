@@ -145,7 +145,9 @@ func _init() -> void:
 		var first: Dictionary = PediaData.subchapter(chapter_id, ids[0])
 		if pedia.page() != "data":
 			fails.append("%s_data_page_did_not_open" % chapter_id)
-		if pedia.data_name.text != str(first["name"]):
+		# Through the resolver, not the data table: the heading is what the player sees,
+		# and a renamed species has to read the same there as everywhere else.
+		if pedia.data_name.text != Notes.display_name(chapter_id, ids[0]):
 			fails.append("%s_data_name_wrong" % chapter_id)
 		if pedia.data_text.text != str(first["text"]):
 			fails.append("%s_data_text_wrong" % chapter_id)
