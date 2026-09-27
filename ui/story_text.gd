@@ -124,8 +124,13 @@ Hokkaido is Japan's northernmost main island, the second largest
 after Honshu. It's known for its mountains, forests, volcanic
 landscapes and long winters. It's also the homeland of the Ainu.
 
-The island used to be called Ezo or Ezochi
-
+The island used to be called Ezo or Ezochi.
+""",
+	},
+	"boat_discovery": {
+		"title": "The Boat Discovered",
+		"body": """You have found the first boat. Circumnavigate each of the four
+islands to map their geography and learn more about them.
 """,
 	},
 }
