@@ -51,6 +51,16 @@ const CHART_REQUIRED := 12
 const DISCOVERY_INTERVAL := 0.5   ## seconds between discovery polls
 const MOUSE_SENSITIVITY = 0.002
 const ZOOM_SPEED = 5.0
+## The treads (`_update_tread`): the one sound the drone makes by *being in motion*. Volume
+## and pitch come from ground speed, so the machine is heard working, and standing still is
+## silence rather than a hum left running.
+const TREAD_DB := -16.0         ## loudest the treads get, at a full sprint
+const TREAD_QUIET_DB := -34.0   ## where they start, the moment the drone is rolling
+const TREAD_IDLE_DB := -60.0    ## silence, and the level the player is parked at
+const TREAD_FADE_DB := 60.0     ## dB a second: an ease, not a switch (a step in volume clicks)
+const TREAD_PITCH_MIN := 0.85
+const TREAD_PITCH_MAX := 1.25
+const TREAD_SPEED_FULL := 10.0  ## the drone's sprint speed, i.e. level 1.0
 const FOV_MIN = 50.0
 const FOV_MAX = 150.0
 const FOV_DEFAULT = 75.0
@@ -96,6 +106,9 @@ var _invuln: float = 0.0     ## counts down; damage() is ignored while > 0
 var _hurt_layer: CanvasLayer = null
 var _hurt_rect: ColorRect = null
 var _snd_hurt: AudioStreamPlayer = null
+## The treads, the one **loop** the drone owns: silenced when it is not rolling
+## (`_update_tread`), faded in and out rather than switched, so it never clicks.
+var _tread: AudioStreamPlayer = null
 var _hit_marker: Control = null
 var _hit_marker_left := 0.0
 const InventoryScene := preload("res://ui/inventory.tscn")
@@ -249,6 +262,16 @@ func _ready() -> void:
 	# dedicated punch sample in sounds/.
 	_snd_punch = _make_snd("res://sounds/flopp.wav", -14.0)
 	_snd_hurt = _make_snd("res://sounds/hurt.wav", -5.0)
+	_tread = _make_snd("res://sounds/tread.wav", TREAD_IDLE_DB)
+	if _tread.stream is AudioStreamWAV:
+		# The generator writes a plain WAV, so the loop is switched on here rather than in an
+		# import setting: the buffer is periodic by construction
+		# (`tools/make_sounds.py::tread_loop`), and a loop is what makes the treads *rolling*
+		# instead of a repeated thump.
+		var wav: AudioStreamWAV = _tread.stream
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		wav.loop_end = wav.data.size() / 2          # 16-bit mono: two bytes a frame
 	_build_hurt_flash()
 	_build_hit_marker()
 	_update_hud()
@@ -776,6 +799,35 @@ func _set_base_fov(value: float) -> void:
 		camera.fov = base_fov
 
 
+func _update_tread(delta: float) -> void:
+	## **The drone's own noise while it moves**: the treads rolling, faded in and out by
+	## **ground speed**. It is a loop (`tools/make_sounds.py::tread_loop`, switched on in
+	## `_ready`), not a sound fired per step — the machine being in motion is what is heard,
+	## and standing still is silence.
+	##
+	## Driven by `velocity` rather than by input on purpose: sliding, being pushed and falling
+	## all count as moving, while holding W against a hill (no ground gained) does not. Silent
+	## while dead and while riding a boat — the drone's treads are not what carries it across a
+	## strait, and `world/boat.gd` has no engine sound of its own yet.
+	if _tread == null:
+		return
+	var level := 0.0
+	if not _game_over and not in_boat():
+		level = clampf(Vector2(velocity.x, velocity.z).length() / TREAD_SPEED_FULL, 0.0, 1.0)
+		if level > 0.0 and level < 0.02:
+			level = 0.02     # creeping counts as rolling; the floor is below audibility
+	var want: float = TREAD_IDLE_DB if level <= 0.0 \
+			else lerpf(TREAD_QUIET_DB, TREAD_DB, level)
+	_tread.volume_db = move_toward(_tread.volume_db, want, TREAD_FADE_DB * delta)
+	_tread.pitch_scale = lerpf(TREAD_PITCH_MIN, TREAD_PITCH_MAX, maxf(level, 0.0))
+	# Started and stopped on the way down as well as up, so the loop is not left running for
+	# nothing — the fade is what keeps either transition from clicking.
+	if _tread.volume_db > TREAD_IDLE_DB + 0.5 and not _tread.playing:
+		_tread.play()
+	elif _tread.volume_db <= TREAD_IDLE_DB + 0.5 and _tread.playing:
+		_tread.stop()
+
+
 func _update_fov(delta: float) -> void:
 	## The one place that *eases* `camera.fov`: the wheel chooses `base_fov`, a raised
 	## glass asks for a narrower view, and this moves between the two. `move_toward` and
@@ -787,6 +839,10 @@ func _update_fov(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_fov(delta)
+	# The treads follow the body wherever it goes, including the death screen (where they
+	# fall silent) — so they are updated above the `_game_over` return, with the other
+	# per-frame work that must not be skipped by dying.
+	_update_tread(delta)
 	_tick_hurt(delta)
 	_tick_hit_marker(delta)
 	if _game_over:

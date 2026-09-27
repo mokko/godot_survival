@@ -37,6 +37,16 @@ const NOTEBOOK_ITEM := "notebook"
 @onready var editor: Control = $Editor
 @onready var menu: CenterContainer = $Center
 @onready var pedia_button: Button = $Center/Padding/Panel/VBox/PediaButton
+@onready var editor_button: Button = $Center/Padding/Panel/VBox/RoboEditor
+
+const Bench := preload("res://world/bench.gd")
+
+## **Debug switch — ON, Maurice's call (27 Sep).** The "Robo Editor" entry is meant to be greyed
+## out until a bench has been worked at (`world/bench.gd::found()`), because finding a bench is
+## the whole point of the bench. For now it is open from a fresh run so the Frame screen can be
+## reached without sailing to one; set this to `false` when that is no longer needed and the
+## gate below is already the shipping behaviour.
+const ROBO_EDITOR_ALWAYS_ENABLED := true
 
 
 func _ready() -> void:
@@ -67,6 +77,22 @@ func _book_found() -> bool:
 	if player == null or not player.has_method("has_item"):
 		return false
 	return player.has_item(NOTEBOOK_ITEM)
+
+
+func _refresh_editor_button() -> void:
+	## The "Robo Editor" entry: greyed out until a bench has been worked at — **except** while
+	## `ROBO_EDITOR_ALWAYS_ENABLED` is on, which is the debug state Maurice asked for. Same
+	## shape as the Pedia button's gate below, and for the same reason: `disabled` is both the
+	## refusal and the message.
+	editor_button.disabled = not (ROBO_EDITOR_ALWAYS_ENABLED or Bench.found())
+
+
+func _on_robo_editor() -> void:
+	## The Frame screen's second door. The bench in the world is the intended one
+	## (`world/bench.gd`, and the only one when the debug switch above is off); this is the
+	## debug one. It goes through the menu's own `open_editor()`, which does the whole open
+	## dance and owns ESC — so this door and the bench's cannot drift apart.
+	open_editor(null)
 
 
 func _refresh_pedia_button() -> void:
@@ -111,6 +137,9 @@ func open() -> void:
 	# The notebook is found out in the world, so the button is re-read every time the menu
 	# comes up: pick the kit up, pause again, and the book is there.
 	_refresh_pedia_button()
+	# ...and so is the Frame screen's entry: a bench worked at earlier in the run is what
+	# unlocks it (while the debug switch is off).
+	_refresh_editor_button()
 	# Give the menu keyboard/gamepad focus so the first button is highlighted
 	# (mirrors splash.gd). Without this nothing is selected and arrow keys do
 	# nothing until the mouse is used.

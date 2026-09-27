@@ -43,6 +43,17 @@ const PropMesh := preload("res://world/prop_mesh.gd")
 ## savegame: a save flag would turn finding a bench into recorded state.
 static var _page_played := false
 
+## Whether **any** bench has been worked at this run — the fact the pause menu's "Robo Editor"
+## entry is gated on (`ui/pause_menu.gd`). Memory only, like `_page_played`: a bench is
+## recorded nowhere (`world/bench.md`), so this is the process's own memory of finding one.
+static var _found := false
+
+
+static func found() -> bool:
+	## Has a bench been used this run? True from the first E at any bench, and for the rest of
+	## the session — the same shape as the page's own once-per-process flag above.
+	return _found
+
 ## The bench's own idle prompt, parented to the HUD (built in code, like the boat's).
 var _hint: Label = null
 
@@ -103,6 +114,7 @@ func use_for_test(player: Node3D) -> bool:
 	## before it went up (the screen opens when that page is done).
 	if not can_be_used_by(player):
 		return false
+	_found = true      # the pause menu's "Robo Editor" entry is gated on this (found() above)
 	if _play_page_once():
 		return true
 	return _open_frame_screen()

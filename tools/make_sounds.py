@@ -12,6 +12,10 @@ Existing files (orb_pickup.wav, game_over.wav) are left alone. New:
   hit.wav       - sharp crack (a landed hit on an enemy)
   hurt.wav      - player taking damage
   enemy_death.wav - an enemy dying
+  type_key.wav  - one typewriter clack (ui/story.gd)
+  type_return.wav - the carriage return plus its bell
+  tread.wav     - the drone's treads ROLLING (a seamless loop, faded in by ground speed in
+                  player/player.gd's _update_tread; tread_loop() is periodic by construction)
 Run:  python3 tools/make_sounds.py
 """
 import math
@@ -107,3 +111,38 @@ write_wav("type_return.wav", mix(tone(0.17, 780, 170, curve=3.0,
                                  [0.0] * int(SR * 0.07)
                                  + tone(0.42, 1190, 1130, curve=5.0,
                                         harmonics=((1.0, 1.0), (2.4, 0.4), (3.9, 0.2)))))
+
+
+def tread_loop(dur: float = 0.5, cleats_per_second: float = 10.0) -> list[float]:
+    """The drone's treads rolling: a loop, not a one-shot.
+
+    Everything in it is periodic over `dur`, so the buffer loops without a click — every
+    frequency is an integer multiple of 1/dur, and the cleat pattern is an exact number of
+    thumps. `noise()` cannot be used here for that reason (white noise has no period), so the
+    "gravel" is a scatter of high harmonics with fixed phases instead.
+
+    A motor whirr (60 Hz with its harmonics) under a low thump per cleat, which is what makes
+    the pitch of the whole thing read as *speed* when the game scales `pitch_scale`.
+    """
+    n = int(SR * dur)
+    beats = max(1, int(round(dur * cleats_per_second)))
+    beat_len = n / beats
+    out = []
+    for i in range(n):
+        t = i / SR
+        # Whirr: 60 Hz and its harmonics, all multiples of the 1/dur loop frequency.
+        s = 0.0
+        for h, amp, phase in ((1.0, 1.0, 0.0), (2.0, 0.5, 0.3), (3.0, 0.28, 1.1),
+                              (5.0, 0.16, 0.7), (7.0, 0.09, 2.4)):
+            s += amp * math.sin(2 * math.pi * 60 * h * t + phase)
+        # Cleats: one thump per beat, decaying inside the beat so beats do not overlap.
+        in_beat = i % beat_len
+        thump = math.exp(-in_beat / (SR * 0.012))
+        s += 0.9 * thump * math.sin(2 * math.pi * 90 * t)
+        out.append(s * 0.35)
+    return out
+
+
+# The drone's own noise while it rolls: a loop, faded in and out by ground speed in
+# `player/player.gd` (`_update_tread`), so standing still is silence.
+write_wav("tread.wav", tread_loop())

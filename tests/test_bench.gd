@@ -9,6 +9,7 @@ extends SceneTree
 ## the page is closed, and every bench after that goes straight to the screen.
 
 const Notes := preload("res://ui/pedia_notes.gd")
+const Bench := preload("res://world/bench.gd")
 
 
 func _init() -> void:
@@ -192,8 +193,35 @@ func _init() -> void:
 	for child in menu.get_node("Center/Padding/Panel/VBox").get_children():
 		if child is Button:
 			buttons.append(child.text)
-	if buttons != PackedStringArray(["Continue", "Save", "Pedia", "Quit to Menu"]):
+	if buttons != PackedStringArray(["Continue", "Save", "Pedia", "Robo Editor", "Quit to Menu"]):
 		fails.append("the pause menu's buttons changed: %s" % ", ".join(buttons))
+
+	# 8. The pause menu's **Robo Editor** entry: Maurice's debug door to the Frame screen
+	#    (27 Sep). The intended behaviour is that it is greyed out until a bench has been
+	#    worked at (`world/bench.gd::found()`), and the debug switch in `ui/pause_menu.gd`
+	#    (`ROBO_EDITOR_ALWAYS_ENABLED`) is deliberately ON for now — so this pins the switch's
+	#    current state, the gate behind it, and that pressing it opens the screen.
+	if not Bench.found():
+		fails.append("no bench recorded as found after working at one")
+	var editor_button: Button = menu.editor_button
+	if editor_button == null or editor_button.text != "Robo Editor":
+		fails.append("the pause menu has no Robo Editor entry")
+	if editor_button.disabled:
+		fails.append("the Robo Editor entry is greyed out while the debug switch is on")
+	menu.visible = true
+	editor_button.pressed.emit()
+	for i in 5:
+		await process_frame
+	if not editor.visible:
+		fails.append("the Robo Editor entry did not open the Frame screen")
+	if not paused:
+		fails.append("the Frame screen from the menu did not pause the game")
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+	for i in 5:
+		await process_frame
+	if editor.visible or paused:
+		fails.append("ESC did not close the Frame screen opened from the menu")
 
 	main.queue_free()
 	if fails.is_empty():

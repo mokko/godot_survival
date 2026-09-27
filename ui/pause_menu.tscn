@@ -69,6 +69,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Pedia"
 
+[node name="RoboEditor" type="Button" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Robo Editor"
+
 [node name="QuitToMenu" type="Button" parent="Center/Padding/Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
@@ -83,4 +88,5 @@ text = "Quit to Menu"
 [connection signal="pressed" from="Center/Padding/Panel/VBox/Continue" to="." method="_on_continue"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/SavesButton" to="." method="_on_saves"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/PediaButton" to="." method="_on_pedia"]
+[connection signal="pressed" from="Center/Padding/Panel/VBox/RoboEditor" to="." method="_on_robo_editor"]
 [connection signal="pressed" from="Center/Padding/Panel/VBox/QuitToMenu" to="." method="_on_quit_to_menu"]

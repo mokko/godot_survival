@@ -49,8 +49,15 @@ if the pause menu grows a button.
 ## Opening it
 
 Stand within **4 m** of a bench and press **E** (`interact`). The bench asks the pause menu to open the
-screen (`PauseMenu.open_editor()`), which is the *only* way in — there is deliberately no pause-menu
-button, because a bench you have to find is the whole point.
+screen (`PauseMenu.open_editor()`), which is the *only* way in from the world — there is deliberately no
+pause-menu button, because a bench you have to find is the whole point.
+
+**One exception, and it is a debug one** (Maurice's call, 27 Sep): the pause menu now carries a
+**Robo Editor** entry (`ui/pause_menu.gd`), greyed out until a bench has been worked at
+(`world/bench.gd::found()`) — and `ROBO_EDITOR_ALWAYS_ENABLED`, a `const` at the top of that file, is
+**on** for now so the Frame screen can be reached without sailing to a bench. Set it to `false` when
+that is no longer wanted; the gate behind it is already the shipping behaviour, and
+`tests/test_bench.gd` section 8 pins both the switch and the gate.
 
 **The first bench a run is worked at introduces itself.** `world/bench.gd` asks the HUD's milestone
 story screen for `ui/story_text.gd`'s `bench` page (`play_milestone`), and the Frame screen opens when
