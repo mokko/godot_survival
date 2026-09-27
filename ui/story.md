@@ -56,8 +56,9 @@ Three things about the milestone case are load-bearing:
   (`ui/pause_menu.gd`), and it only listens while it is visible — which is why the milestone
   screen does not have to hand the key back to anyone.
 
-A crate that a save remembers as already opened stands open and **silent**: the page is played
-by the *event* of opening it, not by the crate's state, so loading a run does not replay it.
+A satchel that a save remembers as already emptied is on the drone's shoulder and **silent**: the
+page is played by the *event* of opening it, not by the satchel's state, so loading a run does not
+replay it.
 
 ## The heading
 
@@ -156,5 +157,5 @@ still reads as "something on screen" and the test could not tell typing from a s
 both catalogues to the same page rules, drives a milestone screen through play → pause → close
 and checks that closing it did **not** load a scene. `test_story_click.gd` and
 `test_story_skip.gd` cover the skip through real input, and `tests/test_explorer_kit.gd` checks
-that opening the crate is what puts a page up — through a real click, because that is the path
+that opening the satchel is what puts a page up — through a real click, because that is the path
 that decides whether anything in the HUD eats it first.

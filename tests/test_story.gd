@@ -6,7 +6,7 @@ extends SceneTree
 ## Two kinds of screen, both built here: the **intro** (`PAGES`, one screen, ends by
 ## entering the game) and a **milestone** (`MILESTONES`, one page the world hands over
 ## mid-run, ends by handing the run back). `enters_game` is what tells them apart, and
-## `tests/test_explorer_kit.gd` checks that opening the crate is what plays one.
+## `tests/test_explorer_kit.gd` checks that opening the satchel is what plays one.
 
 const StoryText := preload("res://ui/story_text.gd")
 

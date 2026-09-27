@@ -2,7 +2,7 @@ extends SceneTree
 ## Headless check: the notebook fills itself, and only the way Maurice asked for.
 ##
 ##  - a fresh run starts empty-handed and finds the survey — the pen, the magnifying
-##    glass, the binoculars and the Pedia — in the Explorer's Kit crate beside the
+##    glass, the binoculars and the Pedia — in the Explorer's Kit satchel beside the
 ##    spawn (world/kit.md), with an empty notebook;
 ##  - a **plant** is drawn by holding it in the magnifying glass for STUDY_TIME;
 ##  - an **animal** has two routes: watching it through the **binoculars** for
@@ -90,7 +90,7 @@ func _nearest_sword(main: Node, player: Node3D) -> Node3D:
 
 
 func _close_story(main: Node) -> void:
-	## Hand the run back after something in the world played a story page. Opening the crate
+	## Hand the run back after something in the world played a story page. Opening the satchel
 	## and picking up the katana each put a **milestone screen** up over a PAUSED world
 	## (ui/story.md), and nothing in the world ticks until that page is closed — so every
 	## "wait for the notebook poll" below would wait on a paused tree and fail.
@@ -114,7 +114,7 @@ func _init() -> void:
 	var inv = main.get_node("HUD/Inventory")
 
 	# 1. The start: empty-handed, so the survey comes from the Explorer's Kit the way it
-	#    does for a player — walk up to the crate and open it (world/kit.md). Nothing is
+	#    does for a player — walk up to the satchel and open it (world/kit.md). Nothing is
 	#    equipped, the species chapters are empty, and what needs no studying is already
 	#    noted.
 	var home: Vector3 = player.global_position
@@ -122,14 +122,14 @@ func _init() -> void:
 	player.global_position = kit.global_position + Vector3(0.0, 0.0, 1.2)
 	if not kit.use_for_test(player):
 		fails.append("kit_did_not_open")
-	# The crate's own page goes up over a paused world: close it, or the poll below waits
+	# The satchel's own page goes up over a paused world: close it, or the poll below waits
 	# on a tree that is not ticking.
 	_close_story(main)
 	for i in 5:
 		await physics_frame
 	player.global_position = home
 	# Long enough for the notebook's discovery poll (DISCOVERY_INTERVAL, 0.5 s) to
-	# notice what the crate just handed over.
+	# notice what the satchel just handed over.
 	await _wait(0.7)
 	for item_id in ["pen", "magnifying_glass", "binoculars", "notebook"]:
 		if not inv.has_item(item_id):
@@ -255,7 +255,7 @@ func _init() -> void:
 
 	# 6. Route two: the autopsy. A blade leaves a specimen; the glass opens it and
 	#    reaches the same page the binoculars would have. The blade is found, not
-	#    handed out: the katana lies on the same stroll as the crate (world/kit.md),
+	#    handed out: the katana lies on the same stroll as the satchel (world/kit.md),
 	#    and picking it up is walking into it.
 	var killed := (load("res://fauna/grazer.tscn") as PackedScene).instantiate()
 	main.add_child(killed)

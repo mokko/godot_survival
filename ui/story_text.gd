@@ -9,7 +9,7 @@ extends RefCounted
 ##    player's own arrival at things.
 ##  - `MILESTONES` is one screen per **thing that happens mid-run**, keyed by an id the
 ##    world asks for when it happens: `world/explorer_kit.gd` plays `explorer_kit` the
-##    moment the crate is emptied, and `items/katana_pickup.gd` plays `katana` when a
+##    moment the satchel is emptied, and `items/katana_pickup.gd` plays `katana` when a
 ##    sword is picked up. `ui/story.gd:play_milestone()` puts one up over the paused
 ##    world and closes it back into the run — see `ui/story.md`.
 ##
@@ -73,8 +73,8 @@ you knew who you were, but now you realize you don't remember your name.
 ## it is narrating. An id that is not in here plays nothing at all.
 ##
 ## A screen is played by whoever **causes** it, which is why the trigger lives in the world
-## node and not in a list here: the crate knows it was opened, and the page about finding a
-## weapon is about the finding. `explorer_kit` is therefore played once a run — the crate
+## node and not in a list here: the satchel knows it was opened, and the page about finding a
+## weapon is about the finding. `explorer_kit` is therefore played once a run — the satchel
 ## opens once — while `katana` is played by **any** katana picked up, on purpose: the page
 ## is about recognising the sword, not about that particular blade.
 ##

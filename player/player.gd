@@ -15,7 +15,7 @@ const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
 const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
 ## What a NEW run begins with: **nothing.** The intro hands out no gear, so the drone
 ## wakes with empty hands and an empty bag, and the katana and the four survey
-## instruments are found in the world instead — an **Explorer's Kit** crate and a
+## instruments are found in the world instead — an **Explorer's Kit** satchel and a
 ## katana lying within a short walk of the spawn (world/main.tscn,
 ## world/explorer_kit.gd). Kept as a list rather than deleted, empty on purpose: this
 ## is the one place a loadout would go if a run should ever be handed one again.
@@ -24,7 +24,7 @@ const STARTING_ITEMS := []
 ## tools that fill it (the notebook, the pen that writes in it, the glass the drawings
 ## are made through). Handed back on respawn — but only the ones **this run has held**
 ## (`_keepsakes_found`), because a drone that dies before it reaches the Explorer's Kit
-## comes back with the same empty hands it started with, and that crate is still out
+## comes back with the same empty hands it started with, and that satchel is still out
 ## there waiting. Losing the glass for good would cripple the survey, which is the whole
 ## reason for the rule. The katana and the binoculars are ordinary gear and go with the
 ## rest of the loot.
@@ -56,8 +56,8 @@ var _game_over: bool = false
 var sunbulbs_collected: int = 0
 ## Containers the drone has already emptied, by id (`world/explorer_kit.gd`). An id
 ## list in the save rather than a flag somewhere in the scene, because the scene is
-## rebuilt on every load: without it a crate that was opened looks shut again and
-## offers gear the drone already carries.
+## rebuilt on every load: without it an emptied container looks shut again and offers
+## gear the drone already carries.
 var opened_containers: Array = []
 ## Keepsakes this run has actually held. A run that dies before it reaches the
 ## Explorer's Kit comes back with the same empty hands it started with; one that has
@@ -157,7 +157,8 @@ func load_state(data: Dictionary) -> void:
 	# The notebook comes back with the run: what was drawn stays drawn.
 	Notes.restore(data.get("notes", []))
 	# Containers opened earlier in the run come back emptied (world/explorer_kit.gd),
-	# so a crate the drone has already been through does not offer its contents again.
+	# so a container the drone has already been through does not offer its contents
+	# again.
 	var containers = data.get("containers", [])
 	if containers is Array:
 		opened_containers = (containers as Array).duplicate()
@@ -262,8 +263,8 @@ func has_item(item_id: String) -> bool:
 
 
 func open_container(id: String) -> bool:
-	## Record a container as emptied. True when this was the first time, so a crate can
-	## tell "opened now" from "opened earlier in this run" — and so nothing can refill a
+	## Record a container as emptied. True when this was the first time, so a container
+	## can tell "opened now" from "opened earlier in this run" — and so nothing can refill a
 	## one-shot container by asking twice.
 	if id.is_empty() or opened_containers.has(id):
 		return false
@@ -273,8 +274,8 @@ func open_container(id: String) -> bool:
 
 func has_opened_container(id: String) -> bool:
 	## Whether this run has already been through that container. A loaded run says yes
-	## from the moment it is restored, which is what keeps a crate standing open and
-	## empty instead of looking shut and offering what the drone already carries.
+	## from the moment it is restored, which is what keeps an emptied container empty
+	## instead of looking shut and offering what the drone already carries.
 	return opened_containers.has(id)
 
 
@@ -784,7 +785,7 @@ func _restart() -> void:
 	global_position = spawn + Vector3(0.0, 0.5, 0.0)   # small clearance so we land, not clip
 	# The keepsakes come back: the death wipe takes loot, not the drone's own record
 	# of the island. Only the ones **this run has held** — a drone that dies before it
-	# reaches the Explorer's Kit has no notebook to lose and the crate is still out
+	# reaches the Explorer's Kit has no notebook to lose and the satchel is still out
 	# there waiting, so a bare run stays bare. Carried, not held: a respawn is back to
 	# fists.
 	for item_id in _keepsakes_found:

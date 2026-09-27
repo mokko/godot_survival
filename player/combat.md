@@ -214,7 +214,7 @@ clobber them.
 
 A new run begins with **nothing at all** — `player/player.gd`'s `STARTING_ITEMS` is empty on purpose,
 so the drone wakes with empty hands and an empty bag. The gear is *found*: the **Explorer's Kit**, a
-crate on the SW cape about 12 m from the spawn, holds the **Pedia notebook**, the **Pen**, the
+satchel on the SW cape about 12 m from the spawn holds the **Pedia notebook**, the **Pen**, the
 **Magnifying Glass** and the **Binoculars** (press **E** beside it), and a **Katana** lies out on the
 same cape about 18 m from the spawn, as a lying sword prop (`items/katana_pickup.gd`) that is picked up
 by walking into it. `world/kit.md` has the placement, the contents and the rules;
@@ -225,8 +225,8 @@ Of the four, three are **keepsakes** (`KEEPSAKE_ITEMS`: the notebook, the pen an
 wipe clears the inventory, and the keepsakes are handed back on respawn, because there is no other way
 to obtain them and a handbook you can drop forever is a handbook with a hole in it. **Only the ones the
 run has actually held** (`_keepsakes_found`, recorded by `add_item()` and read back off the restored bag
-after a load): a drone that dies before it reaches the crate comes back with the same empty hands it
-started with, and the crate is still waiting for it. The katana and the binoculars are ordinary gear:
+after a load): a drone that dies before it reaches the satchel comes back with the same empty hands it
+started with, and the satchel is still waiting for it. The katana and the binoculars are ordinary gear:
 they go with the rest of the loot, so a respawn is back to fists plus its own notes.
 
 ## Where to change what

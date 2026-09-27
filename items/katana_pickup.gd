@@ -11,7 +11,7 @@ extends "res://items/item_pickup.gd"
 ## It lies unsheathed beside its saya (scabbard), on its edge, handle toward whoever is
 ## walking up — the whole silhouette is the point, so it is built long and low and the
 ## blade's edge is a brighter strip of its own. One merged, vertex-coloured surface
-## (`world/prop_mesh.gd`), the boat's/bench's/crate's rule, plus the same faint glow a
+## (`world/prop_mesh.gd`), the boat's/bench's/satchel's rule, plus the same faint glow a
 ## pickup needs to be found in grass at all.
 ##
 ## Where a katana lies is `world/main.tscn`: the one on Ezo's SW cape (`Pickup15`, a

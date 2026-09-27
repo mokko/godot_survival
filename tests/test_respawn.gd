@@ -31,7 +31,7 @@ func _init() -> void:
 	for i in 60:
 		await physics_frame
 	var starts_bare: bool = _counting_slots(inv) == 0 and player.get_equipped_item() == ""
-	# Die empty-handed, without ever having reached the crate.
+	# Die empty-handed, without ever having reached the satchel.
 	player.global_position = Vector3(0, 12, 0)
 	for i in 20:
 		await physics_frame
@@ -50,10 +50,10 @@ func _init() -> void:
 	var pos := player.global_position
 	var near_spawn: bool = Vector2(pos.x, pos.z).distance_to(Vector2(-112.0, 82.0)) < 3.0
 	# Nothing was ever found, so nothing comes back: the same empty hands the run
-	# started with, and the crate is still out there waiting.
+	# started with, and the satchel is still out there waiting.
 	var bare_after_death: bool = _counting_slots(inv) == 0 and player.get_equipped_item() == ""
 
-	# Now go and open the crate the way the player does, then die again. The survey
+	# Now go and open the satchel the way the player does, then die again. The survey
 	# is a keepsake from this point on: the death wipe takes loot, not the drone's
 	# own record of the island and the instruments that fill it.
 	player.global_position = kit.global_position + Vector3(0.0, 0.0, 1.2)
