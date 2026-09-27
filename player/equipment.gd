@@ -7,11 +7,24 @@ extends Node3D
 ## built here: the fit is swappable, and that node is the only thing allowed to
 ## parent leg meshes onto the body. The stock fit is the twin treads, so a fresh run
 ## is unchanged.
+##
+## The one thing built here that is neither body nor equipment is the **satchel**:
+## the bag the drone's finds go into. It is not a prop — nothing equips it — and it is
+## not part of the body either, because a run that never finds the Explorer's Kit never
+## has one. It appears when that kit is emptied (`world/explorer_kit.gd`) and stays for
+## the rest of the run, which is what makes the inventory visible on the drone instead
+## of a number in a panel.
 
 const ItemDB := preload("res://items/item_db.gd")
 const Legs := preload("res://player/legs.gd")
 
+## The container that *is* the bag: emptying the Explorer's Kit puts that satchel on the
+## drone. The string is that node's own export default, and the kit's test pins the two
+## together, so this is a reference and not a second source of truth.
+const KIT_CONTAINER := "explorer_kit"
+
 var _legs: Node3D = null
+var _satchel: Node3D = null
 
 var _props := {}         # item id -> Node3D
 var _flourish := 0.0     # counts down while the equip flourish plays
@@ -26,6 +39,11 @@ var _punch := 0.0                     # counts down while a jab plays
 func _ready() -> void:
 	_build_drone_body()
 	_build_props()
+	_build_satchel()
+	# A loaded run has the Explorer's Kit behind it, so the bag is on the drone from the
+	# first frame. Deferred for the kit's own reason: the player restores its save in
+	# its own _ready, so only a deferred call sees the truth for every node in the scene.
+	_sync_worn_satchel.call_deferred()
 
 
 func _process(delta: float) -> void:
@@ -275,6 +293,120 @@ func _build_arms(white: StandardMaterial3D, blue: StandardMaterial3D,
 			claw.rotation.z = finger * 0.28
 			claw.material_override = dark
 			pivot.add_child(claw)
+
+
+## ---- the satchel ---------------------------------------------------------
+## The bag the drone carries its finds in: the one thing here that is worn rather than
+## equipped. A flat leather panel against the right hip with a strap that crosses the
+## back to the left shoulder — the camera sits behind the drone (it faces -Z), so the
+## strap is put on the side the player actually looks at.
+##
+## The hip, not the flank: the arms hang at x = ±0.36 and swing through z ≈ 0, so a bag
+## hung any further out at that depth would be inside the right arm every time it
+## walked. It sits behind them instead.
+
+const SATCHEL_POS := Vector3(0.28, 0.52, 0.20)   ## right hip, behind the arm's swing
+const STRAP_TURN := 1.15                         ## radians; the back run up to the shoulder
+
+
+func _build_satchel() -> void:
+	var leather := StandardMaterial3D.new()
+	leather.albedo_color = Color(0.44, 0.29, 0.16)   # the kit satchel's own LEATHER
+	leather.roughness = 0.85
+	var leather_dark := StandardMaterial3D.new()
+	leather_dark.albedo_color = Color(0.29, 0.18, 0.10)
+	leather_dark.roughness = 0.9
+	var brass := StandardMaterial3D.new()
+	brass.albedo_color = Color(0.72, 0.55, 0.24)
+	brass.metallic = 0.7
+	brass.roughness = 0.3
+
+	_satchel = Node3D.new()
+	_satchel.name = "Satchel"
+	_satchel.position = SATCHEL_POS
+
+	# The bag itself: a flat panel, because a fat box on a body this size reads as a
+	# second torso rather than as something carried.
+	var bag := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.15, 0.26, 0.22)
+	bag.mesh = bm
+	bag.material_override = leather
+	_satchel.add_child(bag)
+
+	# Flap down the outer face, brass buckle proud of that same face.
+	var flap := MeshInstance3D.new()
+	var fm := BoxMesh.new()
+	fm.size = Vector3(0.02, 0.15, 0.23)
+	flap.mesh = fm
+	flap.position = Vector3(0.078, 0.05, 0)
+	flap.material_override = leather_dark
+	_satchel.add_child(flap)
+
+	var buckle := MeshInstance3D.new()
+	var km := BoxMesh.new()
+	km.size = Vector3(0.025, 0.05, 0.05)
+	buckle.mesh = km
+	buckle.position = Vector3(0.088, 0.02, 0)
+	buckle.material_override = brass
+	_satchel.add_child(buckle)
+
+	# The strap: up the back to the left shoulder, over it, then a shorter run down the
+	# front that stops above the chest lens instead of crossing it. Given in the drone's
+	# own coordinates (read against the body box and ARM_SHOULDER_Y) and moved into the
+	# bag's frame, so these numbers never have to be checked against the hip as well.
+	_satchel.add_child(_strap(Vector3(0.05, 0.64, 0.022),
+			_body_point(Vector3(0.01, 0.73, 0.235)), STRAP_TURN, leather_dark))
+	_satchel.add_child(_strap(Vector3(0.05, 0.022, 0.44),
+			_body_point(Vector3(-0.28, 0.875, 0.0)), 0.0, leather_dark))
+	_satchel.add_child(_strap(Vector3(0.05, 0.27, 0.022),
+			_body_point(Vector3(-0.19, 0.77, -0.235)), -0.785, leather_dark))
+
+	# Off until the Explorer's Kit is emptied: a run that has not found the bag has no
+	# business wearing one.
+	_satchel.visible = false
+	add_child(_satchel)
+
+
+func _body_point(at: Vector3) -> Vector3:
+	## A point in the drone's own coordinates, expressed in the satchel's frame.
+	return at - SATCHEL_POS
+
+
+func _strap(size: Vector3, at: Vector3, turn: float,
+		material: StandardMaterial3D) -> MeshInstance3D:
+	## One flat run of the strap: a thin box, turned about Z so its long axis follows the
+	## line it is meant to lie along.
+	var piece := MeshInstance3D.new()
+	var m := BoxMesh.new()
+	m.size = size
+	piece.mesh = m
+	piece.position = at
+	piece.rotation.z = turn
+	piece.material_override = material
+	return piece
+
+
+func show_satchel(worn: bool) -> void:
+	## Put the bag on the drone, or take it off. Called by `world/explorer_kit.gd` the
+	## moment that kit is emptied, and by `_sync_worn_satchel` after a load.
+	if _satchel != null:
+		_satchel.visible = worn
+
+
+func wears_satchel() -> bool:
+	## Whether the drone is carrying the bag. For tests, and for anything that wants the
+	## answer without reaching for the node.
+	return _satchel != null and _satchel.visible
+
+
+func _sync_worn_satchel() -> void:
+	## A loaded run has been through the kit already, and the save is the only record of
+	## it: the bag on the drone is what that state looks like in the world, and it is why
+	## this question is asked here rather than only on the opening path.
+	var body := get_parent()
+	if body != null and body.has_method("has_opened_container"):
+		show_satchel(body.has_opened_container(KIT_CONTAINER))
 
 
 const TRAIL_RADIUS := 1.25
