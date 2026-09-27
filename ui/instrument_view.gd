@@ -9,15 +9,17 @@ extends Control
 ## at any window size.
 ##
 ## The magnification is the **camera's field of view**, pulled in by `player/player.gd`
-## while a glass is held on a subject; this file draws the mask and nothing else. That
+## while a glass is **raised**; this file draws the mask and nothing else. That
 ## split is deliberate and it is the whole trick: everything outside the circle is dimmed
 ## away, so magnifying the entire camera cannot be seen, and one draw path stays the only
 ## draw path. The alternative — a second `Viewport` rendering the reticle region into the
 ## circle — is true lens magnification, and it costs a viewport, a texture and an
 ## alignment to keep right, so it is a separate job and not a fix to this one.
 ##
-## The scroll wheel still owns the base zoom (`player/player.gd::base_fov`); an
-## instrument's pull is a temporary offset from it, never a replacement.
+## The scroll wheel still owns the base zoom (`player/player.gd::base_fov`). While a glass
+## is up the camera is the glass's, so the wheel is not felt until the tool is put away —
+## and that is exactly why it moves the **base**: the view comes back to the zoom the
+## player chose, including one chosen while looking through the glass.
 
 const DIM := Color(0, 0, 0, 0.72)
 const RIM := Color(0.85, 0.92, 1.0, 0.75)

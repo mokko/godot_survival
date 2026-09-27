@@ -22,10 +22,18 @@ kept until they are pruned.
     instrument pull deliberately goes **below** `FOV_MIN`, because it is not the wheel.
   - `move_toward` at `FOV_PULL_SPEED = 80` degrees per second in `_physics_process`, not a
     lerp: an ease that arrives and stops, so a half-second pull and an exact assertion.
-  - "Only with a valid subject under the reticle" is realised as **only while a session is
-    running** (`is_studying()`). A subject under the reticle is exactly what starting a
-    session means, so this costs no new raycast per frame; carrying a glass asks for
-    nothing, and losing the subject eases the view back — the same signal the meter gives.
+  - "Only with a valid subject under the reticle" was first realised as **only while a
+    session is running** (`is_studying()`) — no extra raycast per frame, and a carried
+    tool zooms nothing while the drone runs about. **Changed on Maurice's call (27 Sep):
+    a raised glass magnifies, session or no session.** Both instruments read as broken in
+    the hand: you cannot aim the binoculars at an animal you cannot see, and with the pull
+    waiting on a click, raising either one did nothing at all. `_pull_glass()` now asks
+    for the tool's own field of view whenever one is out (30 loupe / 35 binoculars), the
+    drawing session asks for the same target so the click moves nothing, and putting the
+    tool away is what releases the view. `tests/test_instrument_zoom.gd` steps 7-9 pin the
+    new rule. The cost, accepted: the wheel is not felt while a glass is up (it still
+    moves `base_fov`, which is where the view returns), and the loupe's tunnel view is the
+    price of looking through a lens.
   - `_pull_glass()` is called **before** the `if _view == null: return` guard in
     `_update_view()`: the view is the one thing allowed to be missing, and it must not be
     able to leave the field of view stuck narrow.

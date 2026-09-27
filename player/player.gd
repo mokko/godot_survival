@@ -674,9 +674,8 @@ func play_grab_sound() -> void:
 
 func set_instrument_fov(target: float) -> void:
 	## The field of view a raised instrument wants, or -1.0 for "none". Asked every frame
-	## by `player/study.gd`, which is the only thing that knows which glass is up and
-	## whether a drawing session is running. The camera eases toward it in
-	## `_physics_process`, so the pull never snaps.
+	## by `player/study.gd`, which is the only thing that knows which glass is up. The
+	## camera eases toward it in `_physics_process`, so the pull never snaps.
 	_fov_target = target
 
 

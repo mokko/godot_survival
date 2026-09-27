@@ -17,6 +17,12 @@ extends Node3D
 ## that could never finish: the glass will not watch a living animal, the binoculars
 ## will not do close work.
 ##
+## **Raising either tool magnifies.** `_pull_glass()` asks the camera for that tool's
+## field of view (MAGNIFIER_FOV / BINOCULAR_FOV) for as long as it is out — drawing or no
+## drawing — and putting it away releases the view back to the player's own zoom.
+## `player/player.gd` owns the easing; this file is the only thing that knows which tool
+## is up, so the mask and the field of view are decided together in `_update_view()`.
+##
 ## The subject is found by a ray from the camera, with an angular fallback so a
 ## small crab or a knee-high plant under the crosshair is aimable — the flat ground
 ## cover has no collision at all, so the fallback is the only way those can be
@@ -42,10 +48,11 @@ const LOST_GRACE := 0.6       ## seconds the subject may slip off the crosshair
 const AIM_SLACK := 0.07       ## radians of tolerance when the ray itself misses
 const MESSAGE_HOLD := 2.0     ## how long a "wrong tool" line stays
 const LINE_FADE := 1.2        ## alpha per second while a line fades out
-## What the camera narrows to while that glass is held on a subject — the pull itself
-## belongs to `player/player.gd`. The loupe is the stronger glass of the two but is held
-## back on purpose: the same hand movement sweeps across more of the target at 25, and
-## eight seconds of holding still at that pull is what generates the complaint.
+## What the camera narrows to while that glass is **raised** — the pull itself belongs to
+## `player/player.gd`. The loupe is the stronger glass of the two (30 against 35): it is
+## used on something within arm's reach, where a wider view would only fill the circle with
+## what is around the subject, while the binoculars are used to pick an animal out of a
+## hillside at up to 45 m and are easier to aim with a little more of the scene in view.
 const BINOCULAR_FOV := 35.0
 const MAGNIFIER_FOV := 30.0
 
@@ -417,15 +424,20 @@ func _pull_glass(held: String) -> void:
 	## glass": the camera is `player/player.gd`'s to move, and it eases, so the pull reads
 	## as the glass finding focus instead of as a zoom being yanked.
 	##
-	## Only while a session is running: raise the binoculars on an empty hillside and
-	## nothing narrows until there is something to draw, which keeps a carried tool from
-	## zooming the view while the drone runs about. A slip that ends the session eases the
-	## view straight back — the same signal the meter gives.
+	## **Raised is magnified**, session or no session. A tool that only magnifies once
+	## something has already been clicked cannot be used to *look* at anything: you cannot
+	## aim the binoculars at an animal you cannot see, and a glass held up at a hillside
+	## has to be a glass. (It used to ask for nothing until a drawing session was running,
+	## and that is exactly what made both instruments read as broken.) A drawing therefore
+	## starts inside the magnification the player is already looking through, and the click
+	## moves nothing.
+	##
+	## Lowering the glass hands the view straight back to the player's own zoom — the
+	## release is the same signal the mask and the meter give.
 	var want := -1.0
-	if is_studying():
-		if held == BINOCULAR_ITEM:
-			want = BINOCULAR_FOV
-		elif held == MAGNIFIER_ITEM:
-			want = MAGNIFIER_FOV
+	if held == BINOCULAR_ITEM:
+		want = BINOCULAR_FOV
+	elif held == MAGNIFIER_ITEM:
+		want = MAGNIFIER_FOV
 	if player != null and player.has_method("set_instrument_fov"):
 		player.set_instrument_fov(want)

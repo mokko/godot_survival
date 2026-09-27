@@ -13,13 +13,16 @@ extends SceneTree
 ##  - a zoom made with a glass raised is that player's to keep: the wheel moves the
 ##    **base**, so releasing the glass comes back to the new base and not the old one;
 ##  - the wheel still clamps inside FOV_MIN..FOV_MAX while all of that is going on;
-##  - and the wiring is real — **a live study session is what asks for the pull**, so a
-##    drone carrying the binoculars across an empty hillside narrows nothing, and losing
-##    the subject eases the view straight back.
+##  - and the wiring is real — the **raised instrument** is what asks for the pull, off
+##    `player/study.gd`'s own frame loop: equipping the glass narrows the view with
+##    nothing in front of the drone (a glass you have to click something with before it
+##    magnifies cannot be used to find that something), a drawing session asks for the
+##    same target so the click moves nothing, and putting the tool away is what releases
+##    the view.
 ##
 ## The mechanism half runs with `study.set_process(false)`: that loop is exactly what
-## asks for `-1.0` when no session is running, which is the behaviour of steps 7-9, so
-## leaving it on would erase the manual request being measured.
+## asks for `-1.0` while no instrument is raised, so leaving it on would erase the manual
+## request being measured.
 
 const StudyScript := preload("res://player/study.gd")
 const PlayerScript := preload("res://player/player.gd")
@@ -175,18 +178,23 @@ func _init() -> void:
 	study.set_process(true)
 	await _wait(0.1)
 
-	# 7. Carrying the glass asks for nothing: no session, no pull, no movement.
+	# 7. Raising the glass magnifies, subject or no subject: the binoculars are for finding
+	#    something to look at, so the pull cannot wait on a click. Nothing studyable is in
+	#    front of the drone here on purpose.
 	if not _equip(player, "magnifying_glass"):
 		fails.append("glass_not_equippable")
 	await _wait(0.2)
 	if study.instrument() != "magnifying_glass":
 		fails.append("glass_not_held:%s" % study.instrument())
-	if player.instrument_fov() > 0.0:
-		fails.append("glass_up_asked_for_a_pull_with_nothing_in_view")
-	if not is_equal_approx(player.camera.fov, player.base_fov):
-		fails.append("camera_moved_with_no_subject_%.1f" % player.camera.fov)
+	if not is_equal_approx(player.instrument_fov(), GLASS_FOV):
+		fails.append("raised_glass_asked_for_%.1f" % player.instrument_fov())
+	if not await _wait_fov(player, GLASS_FOV, 3.0):
+		fails.append("raised_glass_pull_%.1f" % player.camera.fov)
+	if not (player.camera.fov < player.base_fov):
+		fails.append("raised_glass_did_not_narrow_%.1f" % player.camera.fov)
 
-	# 8. Hold a plant in the loupe: now there is a subject, and the pull arrives with it.
+	# 8. A session asks for the same target, so starting a drawing moves nothing: what the
+	#    player was looking through is what they are still looking through.
 	var plant: Node3D = (load("res://flora/frostneedle.tscn") as PackedScene).instantiate()
 	main.add_child(plant)
 	var forward: Vector3 = -player.global_transform.basis.z
@@ -202,20 +210,33 @@ func _init() -> void:
 		fails.append("session_did_not_start")
 	if not is_equal_approx(player.instrument_fov(), GLASS_FOV):
 		fails.append("session_asked_for_%.1f" % player.instrument_fov())
-	if not await _wait_fov(player, GLASS_FOV, 3.0):
-		fails.append("session_pull_%.1f" % player.camera.fov)
+	if not is_equal_approx(player.camera.fov, GLASS_FOV):
+		fails.append("camera_moved_when_the_session_started_%.1f" % player.camera.fov)
 
-	# 9. Lose the subject (out of the glass's reach) and the view eases straight back —
-	#    the same signal the meter gives. The node stays valid on purpose: freeing a
-	#    subject under a running session is not what a player does.
+	# 9. Losing the subject ends the drawing but **not** the magnification: the glass is
+	#    still up, and a glass that snapped back the moment a drawing ended would read as
+	#    the tool switching itself off. Putting it away is what gives the view back, and to
+	#    the player's own zoom rather than to the default.
 	plant.global_position = player.global_position + Vector3(0.0, 0.0, 60.0)
 	if not await _wait_until(func() -> bool: return not study.is_studying(), 5.0):
 		fails.append("session_never_ended")
 	await _wait(0.2)
+	if not is_equal_approx(player.instrument_fov(), GLASS_FOV):
+		fails.append("pull_lost_with_the_session_%.1f" % player.instrument_fov())
+	if not is_equal_approx(player.camera.fov, GLASS_FOV):
+		fails.append("view_sprang_back_%.1f" % player.camera.fov)
+	var kept: float = player.base_fov
+	# Put the glass away the way the number keys do: any item that is not an instrument
+	# lowers both the view and the mask.
+	if not _equip(player, "notebook"):
+		fails.append("could_not_put_the_glass_away")
+	await _wait(0.2)
+	if study.instrument() != "":
+		fails.append("instrument_still_up:%s" % study.instrument())
 	if player.instrument_fov() > 0.0:
-		fails.append("pull_survived_the_session_%.1f" % player.instrument_fov())
-	if not await _wait_fov(player, player.base_fov, 3.0):
-		fails.append("view_did_not_release_%.1f" % player.camera.fov)
+		fails.append("lowered_glass_still_asks_for_%.1f" % player.instrument_fov())
+	if not await _wait_fov(player, kept, 3.0):
+		fails.append("lowering_the_glass_did_not_restore_%.1f" % player.camera.fov)
 
 	if fails.is_empty():
 		print("RESULT ALL PASS default=%.1f binoculars=%.1f loupe=%.1f min=%.1f max=%.1f"

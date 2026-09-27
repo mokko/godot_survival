@@ -37,10 +37,14 @@ holds what has been drawn; the Pedia reads it and nothing else). Each chapter
 fills its own way:
 
 - **Plants** are drawn where they grow with the **Magnifying Glass**, by close
-  observation: equip it (number key), left click with the crosshair on the plant,
-  and hold it in view for **eight seconds** — `player/study.gd`, with a meter under
-  the crosshair and a loupe view over the screen. Slip off the subject for more
-  than a moment and the drawing starts again from nothing. The glass works close:
+  observation: equip it (number key), left click with the crosshair on the plant, and
+  hold it in view for **eight seconds** — `player/study.gd`, with a meter under the
+  crosshair and a loupe view over the screen. **Raising either instrument magnifies**:
+  the camera narrows to the glass's own field of view (30° loupe, 35° binoculars) from
+  the moment it is out, drawing or no drawing, because a glass you have to click
+  something with before it magnifies cannot be used to find that something. Putting it
+  away hands the view straight back to the player's own zoom. Slip off the subject for
+  more than a moment and the drawing starts again from nothing. The glass works close:
   **6 m**.
 - **Animals** have two routes to the same page, because an explorer has more than
   one way of looking:
