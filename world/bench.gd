@@ -12,6 +12,13 @@ extends StaticBody3D
 ## (`PauseMenu.open_editor`), which is what keeps one owner for ESC. The bench
 ## never handles that key itself.
 ##
+## The **first** bench a run works at introduces itself first: the HUD's milestone
+## story screen plays `ui/story_text.gd`'s `bench` page (`play_milestone`), and the
+## Frame screen opens when the page is done — the page is the *preface* to the screen,
+## not a substitute for it, so E means what it always meant. Which bench is the first
+## one is the only thing this node remembers, and it remembers it in a static (see
+## `_page_played`), because **nothing records a bench** (`world/bench.md`).
+##
 ## The whole bench is one merged, vertex-coloured mesh (world/prop_mesh.gd) plus a
 ## lit lamp, for the same draw-call reason as the boat.
 
@@ -27,6 +34,14 @@ const BRASS := Color(0.72, 0.55, 0.24)
 const LAMP := Color(1.0, 0.78, 0.44)
 
 const PropMesh := preload("res://world/prop_mesh.gd")
+
+## Whether the page about a bench has been played. **Nothing records a bench** — no HUD
+## marker, no Pedia entry, no save flag — so the one thing a bench remembers is this, and
+## it lasts exactly as long as the process: a run hears the page once, at whichever bench
+## it is worked at first, and a run loaded into a fresh process hears it again, which is
+## what walking up to a bench for the first time is. Deliberately here and not in the
+## savegame: a save flag would turn finding a bench into recorded state.
+static var _page_played := false
 
 ## The bench's own idle prompt, parented to the HUD (built in code, like the boat's).
 var _hint: Label = null
@@ -52,6 +67,16 @@ func frame_menu() -> Node:
 	return scene.get_node_or_null("HUD/PauseMenu")
 
 
+func story_screen() -> Node:
+	## The milestone story screen, a child of the HUD (`world/main.tscn`) — the same lookup
+	## `world/explorer_kit.gd` makes. Whoever *caused* a page asks for it; this node never
+	## types text of its own.
+	var scene := get_tree().current_scene
+	if scene == null:
+		return null
+	return scene.get_node_or_null("HUD/StoryScreen")
+
+
 func can_be_used_by(player: Node3D) -> bool:
 	if player == null:
 		return false
@@ -74,9 +99,39 @@ func use_for_test(player: Node3D) -> bool:
 	## Test seam: the same path E takes once its guards have passed, without
 	## synthesising input events — headless cannot capture the mouse, so the E path
 	## itself is unreachable from a test (the boat carries the same seam). True when
-	## the frame screen opened.
+	## the bench answered the press — the Frame screen opened, or the page that comes
+	## before it went up (the screen opens when that page is done).
 	if not can_be_used_by(player):
 		return false
+	if _play_page_once():
+		return true
+	return _open_frame_screen()
+
+
+func _play_page_once() -> bool:
+	## The first bench a run is worked at says what it is, then hands over to the screen:
+	## the page is the *preface* to the Frame screen, not a substitute for it, so E means
+	## what it always meant and the player is never made to press it twice. Later benches
+	## are silent — `_page_played` is the whole record.
+	##
+	## A host with no story screen (a UI-only test scene) has no page to play and falls
+	## through to the screen rather than refusing the press.
+	if _page_played:
+		return false
+	var story := story_screen()
+	if story == null or not story.has_method("play_milestone"):
+		return false
+	if not story.play_milestone("bench"):
+		return false
+	_page_played = true
+	# One shot: the page is played once, so this is connected once.
+	story.finished.connect(_open_frame_screen, CONNECT_ONE_SHOT)
+	return true
+
+
+func _open_frame_screen() -> bool:
+	## The bench's one door. The pause menu owns the Frame screen and the ESC key, so
+	## nothing here touches either (the boat's contract).
 	var menu := frame_menu()
 	if menu == null or not menu.has_method("open_editor"):
 		return false

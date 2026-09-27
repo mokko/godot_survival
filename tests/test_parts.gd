@@ -85,7 +85,13 @@ func _init() -> void:
 		await physics_frame
 	if not bench.use_for_test(player):
 		fails.append("the bench did not open the frame screen")
-	for i in 2:
+	# The first bench of a run says what it is before the screen opens (`world/bench.gd`
+	# asks for the `bench` story page): close the page, because the screen behind it is
+	# what this case is about.
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story != null and story.is_playing():
+		story._advance()
+	for i in 3:
 		await process_frame
 	if not editor.visible:
 		fails.append("the frame screen is not visible after a bench")

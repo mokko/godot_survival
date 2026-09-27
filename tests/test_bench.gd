@@ -3,6 +3,10 @@ extends SceneTree
 ## dry ground, opening the Frame screen through the pause menu (so ESC keeps its one
 ## owner), closing straight back into the game, and — the decision under test —
 ## **recorded nowhere**: no Pedia entry, no saved flag, no marker.
+##
+## The bench's page rides with it: the first bench a run is worked at plays
+## `ui/story_text.gd`'s `bench` page over the paused world and opens the Frame screen when
+## the page is closed, and every bench after that goes straight to the screen.
 
 const Notes := preload("res://ui/pedia_notes.gd")
 
@@ -61,30 +65,48 @@ func _init() -> void:
 	if bench.can_be_used_by(player):
 		fails.append("a bench is usable from 20 m away")
 	if bench.use_for_test(player):
-		fails.append("a bench opened the frame screen from out of range")
+		fails.append("a bench answered a press from out of range")
 	if before_menu != menu.visible:
 		fails.append("the pause menu appeared on its own")
 
-	# 4. In range, it opens the Frame screen — through the pause menu, which pauses
-	#    and takes the mouse, and names the island it stands on.
+	# 4. In range, the bench answers the press — and the **first** bench a run is worked at
+	#    introduces itself first: the `bench` page goes up over the paused world with the
+	#    Frame screen *not* yet open, and closing the page is what opens the screen. The
+	#    page is the preface to the screen, not a substitute for it.
 	player.global_position = bench.global_position + Vector3(0.0, 0.0, 2.0)
 	for i in 2:
 		await physics_frame
 	if not bench.can_be_used_by(player):
 		fails.append("a bench is not usable from 2 m away")
-	if not bench.use_for_test(player):
-		fails.append("standing at a bench did not open the frame screen")
-	for i in 2:
-		await process_frame
-	if not editor.visible:
-		fails.append("the frame screen is not visible")
-	if not paused:
-		fails.append("the frame screen did not pause the game")
-	if str(editor.island) != str(bench.island):
-		fails.append("the frame screen says '%s', the bench is on '%s'"
-				% [editor.island, bench.island])
-	if str(editor.island) == "":
-		fails.append("the frame screen does not name its bench's island")
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story == null:
+		fails.append("the HUD has no milestone story screen")
+	elif not bench.use_for_test(player):
+		fails.append("standing at a bench did not answer the press")
+	else:
+		if not story.is_playing():
+			fails.append("the first bench did not put its page up")
+		if str(story.milestone_id()) != "bench":
+			fails.append("the first bench played '%s'" % story.milestone_id())
+		if editor.visible:
+			fails.append("the Frame screen opened behind the page")
+		if not paused:
+			fails.append("the bench's page did not pause the world")
+		# One press closes the one page — and that is what opens the screen.
+		story._advance()
+		for i in 3:
+			await process_frame
+		if story.is_playing():
+			fails.append("the bench's page stayed up after the press")
+		if not editor.visible:
+			fails.append("closing the page did not open the frame screen")
+		if not paused:
+			fails.append("the frame screen did not pause the game")
+		if str(editor.island) != str(bench.island):
+			fails.append("the frame screen says '%s', the bench is on '%s'"
+					% [editor.island, bench.island])
+		if str(editor.island) == "":
+			fails.append("the frame screen does not name its bench's island")
 
 	# 5. ESC closes it and drops the player back into the game — not into the menu,
 	#    because a bench is used while playing.
@@ -102,6 +124,35 @@ func _init() -> void:
 		fails.append("closing the frame screen left the pause menu up")
 	if paused:
 		fails.append("closing the frame screen did not resume the game")
+
+	# 5b. The page is asked **once**: a bench worked at afterwards goes straight to the
+	#     screen. The record is the process (`world/bench.gd`'s static), not a save flag,
+	#     which is the same decision as "nothing records a bench".
+	var later: StaticBody3D = benches[1]
+	player.global_position = later.global_position + Vector3(0.0, 0.0, 2.0)
+	for i in 2:
+		await physics_frame
+	if not later.use_for_test(player):
+		fails.append("a bench worked at after the first did not open the frame screen")
+	for i in 2:
+		await process_frame
+	if story != null and story.is_playing():
+		fails.append("the bench page came up a second time")
+	if not editor.visible:
+		fails.append("the second bench did not open the frame screen")
+	if str(editor.island) != str(later.island):
+		fails.append("the second bench opened the screen for '%s'" % editor.island)
+	# Close it the way the player does, so the rest of the checks run in the world.
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+	for i in 5:
+		await process_frame
+	if editor.visible or paused:
+		fails.append("ESC did not close the second bench's frame screen")
+	# ...and back to the first bench, which is where the prompt checks below stand.
+	player.global_position = bench.global_position + Vector3(0.0, 0.0, 2.0)
+	for i in 2:
+		await physics_frame
 
 	# 6. Standing at a bench prompts the player, so the mechanic is discoverable at
 	#    all. The label itself exists regardless; the prompt only *shows* while the

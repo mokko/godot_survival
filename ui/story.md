@@ -15,8 +15,10 @@ is the behaviour, `ui/story.tscn` the layout, `ui/story_text.gd` holds the words
   the player's own arrival at things.
 - **`MILESTONES` is one screen per thing that happens mid-run**, keyed by an id the world asks
   for when it happens (`world/explorer_kit.gd` plays `explorer_kit`; `items/katana_pickup.gd`
-  plays `katana`). **Add a screen by adding an entry** to whichever catalogue it belongs in —
-  the count, the paging and the prompt all read from the list.
+  plays `katana`; `world/bench.gd` plays `bench` at the first bench a run is worked at, and
+  opens the Frame screen when the page closes). **Add a screen by adding an entry** to
+  whichever catalogue it belongs in — the count, the paging and the prompt all read from the
+  list.
 
 One press moves exactly one step — the next page, or whatever comes after the last one. It is
 deliberately **one press, one thing**: no skip-then-confirm, and no "press to finish typing this
@@ -43,8 +45,16 @@ instances it:
 it sits in the world invisible until something asks for a page — one flag decides all of that,
 rather than the scene file half-declaring it.
 
-Three things about the milestone case are load-bearing:
+Four things about the milestone case are load-bearing:
 
+- **It listens only while it is up.** `world/main.tscn` instances it hidden and
+  `enters_game = false` switches `_unhandled_input` **off** in `_ready` (a hidden Control still
+  receives unhandled input, so a screen waiting to be asked would answer the run's first ESC or
+  click); `play_milestone()` switches it on, `_finish_milestone()` off again, and `_advance()`
+  refuses outright when the screen is not visible. Without the last two, the ESC that followed a
+  closed page was answered by *that page* — unpausing the run and taking the mouse from under the
+  screen the player was looking at, with the pause menu unable to act because it is
+  `PROCESS_MODE_WHEN_PAUSED` and the tree was no longer paused.
 - **Nothing is ever loaded over the run.** `_finish_milestone()` unpauses, re-captures the
   mouse, hides the screen and emits `finished` — it must never enter the game, because the run
   the page is narrating is the one the player is standing in.

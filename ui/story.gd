@@ -15,10 +15,10 @@ extends Control
 ##    `PAGES` is **one** screen now; the rest of the story is told in milestones.
 ##  - **Milestones** — instanced in `world/main.tscn` as `HUD/StoryScreen`, hidden, with
 ##    `enters_game = false`: a world node that has just *done* something asks for its page
-##    (`play_milestone()`, called by `world/explorer_kit.gd` and `items/katana_pickup.gd`),
-##    and the last press closes the screen and hands the run back. The world is paused
-##    behind it and **no scene is ever reloaded** — entering the game from a milestone
-##    would restart the very run the page is narrating. See `ui/story.md`.
+##    (`play_milestone()`, called by `world/explorer_kit.gd`, `items/katana_pickup.gd` and
+##    `world/bench.gd`), and the last press closes the screen and hands the run back. The
+##    world is paused behind it and **no scene is ever reloaded** — entering the game from a
+##    milestone would restart the very run the page is narrating. See `ui/story.md`.
 ##
 ## The click is handled in _unhandled_input, so every node in story.tscn must
 ## keep mouse_filter = MOUSE_FILTER_IGNORE: a Control on the default STOP grabs
@@ -113,8 +113,16 @@ func _ready() -> void:
 		# for it, and must not touch the mouse — the player is mid-run and the world has
 		# it captured. All three are the same fact, so all three are decided here rather
 		# than in the scene that instances it.
+		#
+		# It must not listen either, for the same reason: a hidden Control still draws
+		# `_unhandled_input`, so a screen waiting to be asked would answer the first ESC
+		# or click of the run — and `_advance()` on an empty screen unpauses the tree and
+		# takes the mouse off whatever *is* up (the pause menu is PROCESS_MODE_WHEN_PAUSED,
+		# so it then cannot act, and ESC reads as broken). `play_milestone()` is what
+		# switches this on, `_finish_milestone()` what switches it off again.
 		hide()
 		set_process(false)
+		set_process_unhandled_input(false)
 
 
 # --------------------------------------------------------------------- the pages
@@ -135,6 +143,7 @@ func play_milestone(id: String) -> bool:
 	# Typing and the ESC/click that ends it both have to keep running while the tree is
 	# paused, so the screen outruns the pause it just applied.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process_unhandled_input(true)   # ...and it is the one listening while it is up
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	show()
@@ -295,7 +304,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _advance() -> void:
 	## One press moves the story on by one step, whether the page is still typing or
 	## long finished — and the last step is the world's or the run's, never both.
-	if _starting:
+	##
+	## A screen that is **not up** refuses: nothing is being asked of it, and the last
+	## step would unpause the run and re-capture the mouse from under whatever else is
+	## on screen (a hidden screen is still reachable through this method, and through
+	## input if anything ever re-enables the listener).
+	if not visible or _starting:
 		return
 	if next_page():
 		return
@@ -318,6 +332,14 @@ func _finish_milestone() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	hide()
 	set_process(false)
+	# Stop listening, and stop outrunning the pause: while the screen is down, ESC and
+	# the click belong to the world again (the pause menu, the inventory, the boat).
+	# Leaving the listener on was a real bug — a hidden screen still draws
+	# `_unhandled_input`, so the next ESC was answered by *the page that had just closed*,
+	# which unpaused the run and handed the mouse back out from under the screen the
+	# player was actually looking at (the Frame screen, whose ESC then never arrived).
+	set_process_unhandled_input(false)
+	process_mode = Node.PROCESS_MODE_INHERIT
 	finished.emit()
 
 

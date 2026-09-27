@@ -174,7 +174,8 @@ func _init() -> void:
 	#    hidden in the world scene with `enters_game = false` (that is how `world/main.tscn`
 	#    instances it), so it must stay quiet until it is asked, refuse an id with no words
 	#    behind it, and hand the run back — never reload it, because the run is what the
-	#    page is narrating.
+	#    page is narrating. "Quiet" includes the keyboard: a hidden Control still receives
+	#    unhandled input, so a screen waiting to be asked must not be listening.
 	var screen = load("res://ui/story.tscn").instantiate()
 	screen.enters_game = false
 	root.add_child(screen)
@@ -182,6 +183,8 @@ func _init() -> void:
 		await process_frame
 	if screen.is_playing():
 		fails.append("the milestone screen was up before anything asked for it")
+	if screen.is_processing_unhandled_input():
+		fails.append("the milestone screen listens before anything asked it for a page")
 	if screen.page_count() != 0:
 		fails.append("the milestone screen started with %d pages" % screen.page_count())
 	if screen.play_milestone("no_such_milestone"):
@@ -192,6 +195,8 @@ func _init() -> void:
 		fails.append("the Explorer's Kit milestone did not play")
 	if not screen.is_playing():
 		fails.append("the milestone screen did not come up")
+	if not screen.is_processing_unhandled_input():
+		fails.append("the milestone screen is up but not listening to the keyboard")
 	if screen.milestone_id() != "explorer_kit":
 		fails.append("the milestone screen says it is playing '%s'" % screen.milestone_id())
 	if screen.enters_game:
@@ -224,6 +229,13 @@ func _init() -> void:
 		fails.append("the milestone screen loaded a scene instead of closing")
 	if _closed != 1:
 		fails.append("closing the milestone screen said so %d times" % _closed)
+	if screen.is_processing_unhandled_input():
+		fails.append("the milestone screen is still listening after it closed")
+	# ...and a press aimed at a screen that is not up does nothing at all: with the guard
+	# removed this unscopes the run under whatever else is on screen (it did, once).
+	screen._advance()
+	if _closed != 1:
+		fails.append("a closed milestone screen answered a press")
 	# ...and it can be played again (a run may find a second katana), from its own first
 	# character rather than the end of the last one.
 	if not screen.play_milestone("katana"):

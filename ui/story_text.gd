@@ -9,9 +9,10 @@ extends RefCounted
 ##    player's own arrival at things.
 ##  - `MILESTONES` is one screen per **thing that happens mid-run**, keyed by an id the
 ##    world asks for when it happens: `world/explorer_kit.gd` plays `explorer_kit` the
-##    moment the satchel is emptied, and `items/katana_pickup.gd` plays `katana` when a
-##    sword is picked up. `ui/story.gd:play_milestone()` puts one up over the paused
-##    world and closes it back into the run — see `ui/story.md`.
+##    moment the satchel is emptied, `items/katana_pickup.gd` plays `katana` when a
+##    sword is picked up, and `world/bench.gd` plays `bench` at the first bench the
+##    player works at, before the Frame screen opens. `ui/story.gd:play_milestone()` puts
+##    one up over the paused world and closes it back into the run — see `ui/story.md`.
 ##
 ## The words live here and not in `ui/story.gd` or in the scene, the way
 ## `ui/pedia_data.gd` keeps the notebook's words: `story.md` is the narrative bible this
@@ -75,10 +76,12 @@ you knew who you were, but now you realize you don't remember your name.
 ## node and not in a list here: the satchel knows it was opened, and the page about finding a
 ## weapon is about the finding. `explorer_kit` is therefore played once a run — the satchel
 ## opens once — while `katana` is played by **any** katana picked up, on purpose: the page
-## is about recognising the sword, not about that particular blade.
+## is about recognising the sword, not about that particular blade. `bench` is played by the
+## first bench the player works at (`world/bench.gd`), which opens the Frame screen when the
+## page closes: the page is that screen's preface.
 ##
-## `why` is written and **nothing plays it yet**: it is the drafted closing beat, waiting on
-## the milestone that should own it (`ui/story.md`).
+## A page is asked for on the **event** and never from saved state, so loading a run does not
+## replay what the player already heard.
 const MILESTONES := {
 	"explorer_kit": {
 		"title": "The Explorer's Kit",
@@ -102,9 +105,12 @@ knows that they have been made in this form since the 14th century?
 You must be someone with knowledge of Japanese history.
 """,
 	},
-	"why": {
-		"title": "Why",
-		"body": """You do not yet know why.
+	"bench": {
+		"title": "The Workbench",
+		"body": """You found the workbench where you can edit your robot.
+
+You may find new parts for your robot and you can implement
+them here.
 """,
 	},
 }

@@ -37,6 +37,12 @@ world is the map"**. This is deliberate, and it is also *why the feature is simp
 write down there is no discovery radius, no notebook entry and no save state. "Found" is purely
 physical, and placement is the only thing that makes a bench a discovery.
 
+That rule holds for the `bench` page too: the one thing a bench remembers is a `static var` in
+`world/bench.gd` (`_page_played`), which lasts as long as the process and no longer. A run hears the
+page once, at whichever bench it works at first; a run loaded into a fresh process hears it again,
+which is exactly what walking up to a bench for the first time is. A flag in the savegame would make
+*hearing the page* recorded state, which is the thing this section rules out.
+
 `tests/test_bench.gd` pins the decision: it fails if anything bench-shaped appears in the notebook, and
 if the pause menu grows a button.
 
@@ -45,6 +51,12 @@ if the pause menu grows a button.
 Stand within **4 m** of a bench and press **E** (`interact`). The bench asks the pause menu to open the
 screen (`PauseMenu.open_editor()`), which is the *only* way in — there is deliberately no pause-menu
 button, because a bench you have to find is the whole point.
+
+**The first bench a run is worked at introduces itself.** `world/bench.gd` asks the HUD's milestone
+story screen for `ui/story_text.gd`'s `bench` page (`play_milestone`), and the Frame screen opens when
+that page is done. The page is the *preface* to the screen and not a substitute for it, so `E` means
+what it always meant and the player never has to press it twice. Later benches are silent — the page
+is a one-off, and `bench.gd`'s `static var _page_played` is the whole record of it (see below).
 
 The screen is a child of `pause_menu.tscn` and is shown in place of the menu, exactly like the Pedia and
 the Saves screen. Two consequences worth keeping:
