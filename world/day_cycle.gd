@@ -16,6 +16,12 @@ const GLOW_STEP := 0.01                      # reapply threshold for the glow
 ## 0.5-1 = night. Starts at mid-morning.
 var time_of_day := 0.1
 
+## True while the clock is stopped. A dead drone leaves the sky exactly where it fell:
+## a death screen behind a sun that keeps sinking reads as the world moving on without
+## you. Only `halt()`/`resume()` write it, and the drone calls them when a run ends and
+## when it starts again (`player/player.gd`) — the run is what decides, not the sky.
+var halted := false
+
 ## Last glow factor pushed to the tagged meshes (-1 = never applied yet).
 var _applied_glow := -1.0
 
@@ -47,7 +53,23 @@ func _ready() -> void:
 			mi.set_meta(GLOW_BASE_META, mat.emission_energy_multiplier)
 
 
+func halt() -> void:
+	## Stop the clock where it is. Everything in `_process` follows `time_of_day` — the sun,
+	## the sky tint, the glow scaling — so freezing that one number freezes the whole sky
+	## and nothing goes on drifting behind the death screen.
+	halted = true
+
+
+func resume() -> void:
+	## Start it again, from the same time of day: a respawned run continues its own day
+	## rather than being handed a new one. `_applied_glow` still matches what is on the
+	## meshes, so there is no re-application flash at the moment the clock restarts either.
+	halted = false
+
+
 func _process(delta: float) -> void:
+	if halted:
+		return
 	time_of_day = fmod(time_of_day + delta / DAY_LENGTH, 1.0)
 
 	# Sun elevation: sin curve, +1 at noon (0.25), -1 at midnight (0.75).

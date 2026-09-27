@@ -467,6 +467,21 @@ func read_the_book() -> bool:
 	return true
 
 
+func _set_clock_running(running: bool) -> void:
+	## Whether the run's clock is running. The day cycle is a sibling node (`../DayCycle`,
+	## the same one `save_state` reads the time of day from) and the drone is what decides:
+	## death stops the sky, a respawn starts it again. One helper because the two callers
+	## must not disagree about how to reach it — and because a host with no day cycle at all
+	## (a UI-only test scene) must simply have no clock to stop, not an error.
+	var cycle := get_node_or_null("../DayCycle")
+	if cycle == null:
+		return
+	if running and cycle.has_method("resume"):
+		cycle.resume()
+	elif not running and cycle.has_method("halt"):
+		cycle.halt()
+
+
 func _lock_check() -> bool:
 	# Live check: the fade overlay clears its own flag when done.
 	if fade_in != null:
@@ -476,6 +491,12 @@ func _lock_check() -> bool:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _lock_check():
+		return
+	# Dead: nothing the drone can press means anything any more — no walking, no jumping,
+	# no jab, no zoom. The one key still answered is ESC, and it is answered further down
+	# (`_restart`), so the refusal belongs here, above every branch, rather than inside one
+	# of them where the next branch added would quietly escape it.
+	if _game_over and not event.is_action_pressed("ui_cancel"):
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Yaw the player (rotate around Y).
@@ -847,6 +868,8 @@ func _trigger_game_over() -> void:
 		game_over_sound.play()
 	# Free the mouse so player can click.
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# Time stops with the run: see `_set_clock_running`.
+	_set_clock_running(false)
 	_update_hud()
 
 
@@ -885,6 +908,9 @@ func _restart() -> void:
 		game_over_label.visible = false
 	# Re-capture mouse.
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# ...and the clock starts again with it. A respawn in a halted sky would leave the
+	# world frozen around a living drone.
+	_set_clock_running(true)
 	# Respawn all pickups (sunbulbs).
 	for pickup in get_tree().get_nodes_in_group("pickup"):
 		pickup.respawn()
