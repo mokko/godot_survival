@@ -97,7 +97,9 @@ ago.
 		"body": """You found a weapon. It's a blade with a handle. Not quite straight,
 gently curved. Someone put this here. They can be lucky that you
 can recognize this for what it is: a Japanese sword used by the
-Samurai, ca. 14th to 18th century. How come you know that?
+Samurai. How come you know that? Many people know katanas, but who
+knows that they have been made in this form since the 14th century?
+You must be someone with knowledge of Japanese history.
 """,
 	},
 	"why": {
