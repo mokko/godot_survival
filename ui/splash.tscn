@@ -1,70 +1,75 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://duronxmiocdfi"]
 
-[ext_resource type="Script" path="res://ui/splash.gd" id="1_script"]
-[ext_resource type="Script" path="res://ui/splash_bg.gd" id="2_bg"]
+[ext_resource type="Script" uid="uid://b33klyftxlkv8" path="res://ui/splash.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bq6d4sag1i1r1" path="res://ui/splash_bg.gd" id="2_bg"]
 [ext_resource type="PackedScene" path="res://ui/saves.tscn" id="3_saves"]
 
-[sub_resource type="Gradient" id="Grad_sky"]
-colors = PackedColorArray(0.13, 0.18, 0.3, 1, 0.35, 0.5, 0.65, 1)
-
-[node name="Splash" type="Control"]
+[node name="Splash" type="Control" unique_id=1636752629]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=931529786]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.13, 0.18, 0.3, 1)
 
-[node name="SunriseBG" type="Control" parent="."]
+[node name="SunriseBG" type="Control" parent="." unique_id=1597908639]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("2_bg")
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=1331925634]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
+[node name="VBox" type="VBoxContainer" parent="Center" unique_id=1552851575]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="Title" type="Label" parent="Center/VBox"]
+[node name="Title" type="Label" parent="Center/VBox" unique_id=472204184]
 layout_mode = 2
 theme_override_font_sizes/font_size = 56
 text = "Nakamoto's Paradigm"
 horizontal_alignment = 1
 
-[node name="Start" type="Button" parent="Center/VBox"]
+[node name="Start" type="Button" parent="Center/VBox" unique_id=1067884078]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Start"
 
-[node name="Options" type="Button" parent="Center/VBox"]
+[node name="Options" type="Button" parent="Center/VBox" unique_id=1242078611]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Options"
 
-[node name="LoadGame" type="Button" parent="Center/VBox"]
+[node name="LoadGame" type="Button" parent="Center/VBox" unique_id=1696758165]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Load Game"
 
-[node name="Exit" type="Button" parent="Center/VBox"]
+[node name="Exit" type="Button" parent="Center/VBox" unique_id=116188939]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Exit"
 
-[node name="OptionsPanel" type="PanelContainer" parent="."]
+[node name="OptionsPanel" type="PanelContainer" parent="." unique_id=428815077]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -79,53 +84,56 @@ offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="OptionsPanel"]
+[node name="VBox" type="VBoxContainer" parent="OptionsPanel" unique_id=1283855482]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="OptionsPanel/VBox"]
+[node name="Title" type="Label" parent="OptionsPanel/VBox" unique_id=369781067]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Options"
 horizontal_alignment = 1
 
-[node name="Fullscreen" type="CheckButton" parent="OptionsPanel/VBox"]
+[node name="Fullscreen" type="CheckButton" parent="OptionsPanel/VBox" unique_id=599116355]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
+button_pressed = true
 text = "Fullscreen"
-button_pressed = true
 
-[node name="ShowFPS" type="CheckButton" parent="OptionsPanel/VBox"]
+[node name="ShowFPS" type="CheckButton" parent="OptionsPanel/VBox" unique_id=543906207]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
+button_pressed = true
 text = "Show FPS counter"
-button_pressed = true
 
-[node name="SSAO" type="CheckButton" parent="OptionsPanel/VBox"]
+[node name="SSAO" type="CheckButton" parent="OptionsPanel/VBox" unique_id=309857039]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Ambient occlusion"
 button_pressed = true
+text = "Ambient occlusion"
 
-[node name="ResLabel" type="Label" parent="OptionsPanel/VBox"]
+[node name="ResLabel" type="Label" parent="OptionsPanel/VBox" unique_id=1580088529]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Resolution"
 
-[node name="ResOption" type="OptionButton" parent="OptionsPanel/VBox"]
+[node name="ResOption" type="OptionButton" parent="OptionsPanel/VBox" unique_id=421942738]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
-[node name="Back" type="Button" parent="OptionsPanel/VBox"]
+[node name="Back" type="Button" parent="OptionsPanel/VBox" unique_id=1990875179]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Back"
 
-[node name="Saves" parent="." instance=ExtResource("3_saves")]
+[node name="Saves" parent="." unique_id=34617160 instance=ExtResource("3_saves")]
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
 
 [connection signal="pressed" from="Center/VBox/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
 [connection signal="pressed" from="Center/VBox/LoadGame" to="." method="_on_load_game_pressed"]
 [connection signal="pressed" from="Center/VBox/Exit" to="." method="_on_exit_pressed"]
-[connection signal="pressed" from="Center/VBox/Options" to="." method="_on_options_pressed"]
-[connection signal="pressed" from="OptionsPanel/VBox/Back" to="." method="_on_options_back_pressed"]
 [connection signal="toggled" from="OptionsPanel/VBox/Fullscreen" to="." method="_on_fullscreen_toggled"]
 [connection signal="item_selected" from="OptionsPanel/VBox/ResOption" to="." method="_on_res_option_item_selected"]
+[connection signal="pressed" from="OptionsPanel/VBox/Back" to="." method="_on_options_back_pressed"]

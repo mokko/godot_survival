@@ -12,9 +12,9 @@ config_version=5
 
 config/name="Nakamoto's Paradigm"
 config/version="0.0.2-alpha"
+run/main_scene="res://ui/splash.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Nakamoto"
-run/main_scene="res://ui/splash.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
