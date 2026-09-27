@@ -60,7 +60,9 @@ then re-checking the test. There is no builder for either: they are two position
 
 Stand within **3.5 m** and press **E** (`interact`) — the bench's radius and the bench's key. The
 contents go straight to the inventory, the satchel leaves the world, and a frame later the drone is
-wearing it. Standing beside a shut satchel shows **"E — open the Explorer's Kit"**, built in code and
+wearing it. Standing beside a shut satchel shows **"E — open the satchel"** — the prompt names what is
+*visible*, not what the bag turns out to hold: "the Explorer's Kit" is the name the opening page
+gives it, and putting it on the approach would spend the reveal before the finding. Built in code and
 parented to the HUD exactly like the boat's and the bench's prompts, and only while the world holds the
 mouse.
 

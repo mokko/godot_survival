@@ -8,37 +8,44 @@ kept until they are pruned.
 - [ ] **Improve graphics** — landed so far: MSAA 2×, SSAO, ground detail maps, ground clutter,
   procedural boats. The rest of the list is in `graphics_tips.md`.
 - [x] **Sounds** — synthesized effects in `sounds/` (`tools/make_sounds.py`).
-- [ ] **Magnify through the instruments** — right now `ui/instrument_view.gd` only draws the
-  mask (two tubes / one loupe, dimmed outside, rim, reticle); `camera.fov` is untouched, so
-  the world inside the circles renders at the same FOV as everything else. Plan:
-  - Save the pre-instrument FOV, then lerp `camera.fov` toward a per-tool target while a tool
-    is held, and restore the saved value on unequip — never write `FOV_DEFAULT` back, the
-    scroll wheel owns the base zoom (50–150, step 5, `player/player.gd:43-46`).
-  - Binoculars (distant observing, 45 m): mild pull, ~35. Magnifying glass (close work, 6 m,
-    the loupe): stronger, ~25–28 — a loupe is the stronger glass of the two.
-  - Return the held tool's FOV target from one place in `player/study.gd::_update_view()`
-    (it already knows which tool is held) so the mask and the zoom can't disagree.
-  - Keep the scroll wheel live while a tool is up: the restored value is whatever the player
-    had, so a zoom made with the glasses up is theirs to keep or lose on unequip.
-  - Design notes (agreed before implementing):
-    - The FOV pull magnifies the whole camera, not just what is under the lens. That is
-      deliberate: everything outside the circle is dimmed by the mask, so the trick is
-      invisible. State the reason in a comment so nobody "fixes" it into a second viewport —
-      a `Viewport` rendering the reticle region into the circle is true lens magnification and
-      is the better long-term end state for the loupe (it also works on a subject the mask
-      would clip), but it costs viewport, texture and alignment work and breaks the single
-      draw path in `instrument_view.gd`. FOV route first, viewport later as its own item.
-    - Zoom in makes the 8-second hold harder: the same mouse movement swings the view across
-      more of the target, so keeping a wiggling specimen inside the loupe gets twitchy. Either
-      keep the loupe pull modest (~28–30, not 25) or scale mouse sensitivity down while a tool
-      is held. This is what will generate the complaint, not the visuals.
-    - Engage the zoom only when a *valid* subject is under the reticle, not the moment the tool
-      comes up. The pull then reads as the glass focusing instead of the player fumbling a
-      zoom, and it also avoids the "holding a tool while running looks drunk" problem.
-  - Check the tests: `tests/test_study.gd` asserts on `instrument_view` and the study meter,
-    and `tools/capture_views.gd` sets its own `cam.fov` for screenshots. Study range and the
-    aim ray are distance/direction based, so they should be unaffected — verify, don't assume.
-- [ ] **Name the things you discover** — the player gets to name a species. Every plant and
+- [x] **Magnify through the instruments** — done. Half of what a glass does is the mask
+  (`ui/instrument_view.gd`, unchanged), half is the camera's field of view, pulled in by
+  `player/player.gd` and asked for by `player/study.gd::_pull_glass()`. What landed, and
+  where it differs from the plan above:
+  - **Targets**: binoculars **35**, loupe **30** (the plan said 25–28). 30 keeps the loupe
+    the stronger glass of the two without making the 8-second hold a fight; the
+    twitchiness note below is the reason, and scaling mouse sensitivity while a tool is
+    held is still the lever if 30 turns out to be too strong in the hand.
+  - The wheel owns a named `base_fov` instead of a save-and-restore pair: same behaviour
+    ("a zoom made with the glasses up is theirs to keep"), with no saved value to desync.
+    `_set_base_fov()` clamps to 50–150 and applies immediately when nothing is raised; the
+    instrument pull deliberately goes **below** `FOV_MIN`, because it is not the wheel.
+  - `move_toward` at `FOV_PULL_SPEED = 80` degrees per second in `_physics_process`, not a
+    lerp: an ease that arrives and stops, so a half-second pull and an exact assertion.
+  - "Only with a valid subject under the reticle" is realised as **only while a session is
+    running** (`is_studying()`). A subject under the reticle is exactly what starting a
+    session means, so this costs no new raycast per frame; carrying a glass asks for
+    nothing, and losing the subject eases the view back — the same signal the meter gives.
+  - `_pull_glass()` is called **before** the `if _view == null: return` guard in
+    `_update_view()`: the view is the one thing allowed to be missing, and it must not be
+    able to leave the field of view stuck narrow.
+  - `player/player.gd` writes `camera.fov` in four places and no more: the start and
+    respawn resets (which now reset `base_fov` and `_fov_target` with them),
+    `_set_base_fov()` and `_update_fov()`.
+  - `ui/instrument_view.gd`'s header comment forbade exactly this. It now explains the
+    split instead — including why it is *not* a second `Viewport` — so the next reader
+    does not "fix" it.
+  - `tests/test_instrument_zoom.gd` is new (target reached and stopped, release restores
+    the player's own zoom, the wheel moves the base under a raised glass, both clamps, and
+    that only a live session asks for the pull). `tests/test_study.gd` needed no change.
+- [ ] **True lens magnification** (carved out of the item above) — a second `Viewport`
+  rendering the reticle region into the circle, instead of narrowing the whole camera. That
+  is real lens magnification and it would keep working when a specimen is bigger than the
+  lens instead of being clipped by the mask, at the cost of a viewport, a texture and an
+  alignment to keep right. Not needed while the mask hides the cheat; worth doing when the
+  loupe has to show something the circle cannot hold.
+- [x] **Name the things you discover** — done for the guaranteed path (naming from a
+  Pedia page); the mid-play prompt is carved out below. The player gets to name a species. Every plant and
   animal already has a name from the data table (`ui/pedia_data.gd`); this feature gives the
   player's own name for it, chosen once when it is first drawn into the notebook and editable
   afterwards. The default name stays the fallback, so ignoring the feature costs nothing.
@@ -102,3 +109,35 @@ kept until they are pruned.
     directly, so it should compare against the display resolver once the feature lands. Run
     with `flock /tmp/survivalm-godot.lock snap run godot-4 --headless --script res://tests/test_naming.gd`,
     or the whole suite via `tests/run_all.sh`.
+  - **What landed**, and where it differs from the plan above:
+    - `ui/pedia_notes.gd` grew the first *value* the notebook has ever stored:
+      `give_name`/`name_of`/`display_name`/`names`/`restore_names`/`can_name`, with
+      the sanitising in the registry rather than in the text field, so two callers
+      cannot sanitise differently. Identity is still `chapter/id`; no uniqueness rule.
+    - The field is `ui/name_field.gd`, a `LineEdit` subclass, and it exists to own
+      **ESC**: the pause menu listens for that key and would otherwise close the book
+      out from under a half-typed name. It swallows the key, restores the stored name
+      and **releases focus** — so ESC is a ladder (abandon the edit, then walk back
+      out) instead of a dead end. `PROCESS_MODE_ALWAYS`, so it takes keystrokes with
+      the book open over a paused tree *and* in a test that opens it unpaused.
+    - It is called `give_name`, not `set_name`: under that name a static call resolves
+      to the engine's own method instead of ours and fails with "Expected 1
+      argument(s)" — a confusing way to lose an afternoon.
+    - One resolver, three readers: the Pedia's list buttons, a data page's title, and
+      the study meter's line (`player/study.gd::subject_name()`). `tests/test_pedia.gd`
+      now compares the heading against the resolver, not against the data table.
+    - Saved as `names` beside `notes` (`player/player.gd::save_state`/`load_state`); a
+      save written before the feature has no such key and loads as plain defaults. A
+      name on a non-nameable entry is refused on the way in *and* on the way out, so a
+      hand-edited save cannot smuggle one in.
+    - **Dying keeps names and drawings** — the notebook is a keepsake, and only a fresh
+      run clears it (`Notes.clear()`, called under `take_pending_new_run()`). Pinned in
+      `tests/test_naming.gd`: the drone dies, respawns, and the book still lists it.
+    - `tests/test_naming.gd` is new: fallbacks, the species gate, sanitising and the cap,
+      rename/clear, junk in the names slot, typing over a paused tree, Enter commits,
+      ESC cancels without closing the book, save round trip, death, the meter's line.
+  - [ ] **The discovery prompt** ("press N to name it", carved out of this item) — the
+    convenience path, and the only part not built. The plan above is explicit that it is
+    not the guaranteed one: the field is on the page whenever the player wants it, so
+    missing the moment a species is drawn costs nothing. Worth doing when the naming
+    itself has been played and the wording can be judged in the hand.

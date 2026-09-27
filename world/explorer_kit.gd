@@ -309,4 +309,8 @@ func _tick_hint() -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	_hint.visible = can_be_used_by(player)
 	if _hint.visible:
-		_hint.text = "E — open the Explorer's Kit"
+		# The prompt names what the drone can *see* — a satchel — and not what the satchel
+		# turns out to hold. "The Explorer's Kit" is the name the opening page gives it
+		# (ui/story_text.gd): a drone standing in front of a shut bag has not been told it
+		# yet, and the prompt was spending the reveal before the finding.
+		_hint.text = "E — open the satchel"
