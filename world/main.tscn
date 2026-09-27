@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://world/day_cycle.gd" id="12_day"]
 [ext_resource type="PackedScene" path="res://ui/inventory.tscn" id="13_inv"]
 [ext_resource type="PackedScene" path="res://items/item_pickup.tscn" id="14_pick"]
+[ext_resource type="PackedScene" path="res://items/katana_pickup.tscn" id="23_katana"]
 [ext_resource type="Script" path="res://ui/fps_counter.gd" id="15_fps"]
 [ext_resource type="Script" path="res://world/graphics_options.gd" id="16_gfx"]
 [ext_resource type="Script" path="res://world/clutter.gd" id="17_clutter"]
@@ -19,6 +20,7 @@
 [ext_resource type="Script" path="res://ui/energy_meter.gd" id="19_energy"]
 [ext_resource type="PackedScene" path="res://world/benches_placed.tscn" id="20_benches"]
 [ext_resource type="PackedScene" path="res://world/parts_placed.tscn" id="21_parts"]
+[ext_resource type="PackedScene" path="res://world/explorer_kit.tscn" id="22_kit"]
 [ext_resource type="PackedScene" path="res://ui/story.tscn" id="24_story"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
@@ -181,6 +183,9 @@ script = ExtResource("17_clutter")
 
 [node name="Benches" parent="." instance=ExtResource("20_benches")]
 
+[node name="ExplorerKit" parent="." instance=ExtResource("22_kit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 2.3655, 70)
+
 [node name="Parts" parent="." instance=ExtResource("21_parts")]
 
 [node name="Ghostsilk" parent="." unique_id=1743975300 instance=ExtResource("5_lquwl")]
@@ -230,8 +235,8 @@ item_id = "shell"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109, 3.5, 76.5)
 item_id = "emberstone"
 
-[node name="Pickup6" parent="Items" instance=ExtResource("14_pick")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 12.6, -20)
+[node name="Pickup6" parent="Items" instance=ExtResource("23_katana")]
+transform = Transform3D(0.92106, 0, 0.389418, 0, 1, 0, -0.389418, 0, 0.92106, -5, 11.9039, -20)
 item_id = "sword"
 
 [node name="Pickup7" parent="Items" instance=ExtResource("14_pick")]
@@ -265,6 +270,9 @@ item_id = "arrows"
 [node name="Pickup14" parent="Items" instance=ExtResource("14_pick")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108, 3.5, 78)
 item_id = "leather_armor"
+
+[node name="Pickup15" parent="Items" instance=ExtResource("23_katana")]
+transform = Transform3D(0.825336, 0, -0.564642, 0, 1, 0, 0.564642, 0, 0.825336, -125, 2.2817, 70)
 
 [node name="FadeIn" type="CanvasLayer" parent="."]
 layer = 10

@@ -205,26 +205,29 @@ clobber them.
 - **You die**: `_trigger_game_over()` calms *every* `aggro_fauna` member
   (`calm_down()`), clears the inventory and the savegame, shows the death
   screen and frees the mouse. ESC restarts (`_restart()`), which resets energy,
-  the collection and the view, with the katana in hand.
+  the collection and the view — back to fists, with the keepsakes the run has
+  held and nothing else.
 - **You walk away**: leash + `GIVE_UP_TIME`, then the animal resumes its
   ambient life exactly where it left off.
 
 ## What a run starts with, and what death takes
 
-A new run begins with five items already carried (`player/player.gd`'s
-`STARTING_ITEMS`): the **Katana**, the **Pedia notebook**, the **Pen**, the
-**Magnifying Glass** and the **Binoculars**. The katana is handed out because a
-run should be able to meet the fight on the first stroll rather than after a
-crafting chain, and the notebook because the first plant you walk past should
-already be drawable. `add_item()` auto-equips the first slot, which is what
-raises the katana into the drone's hand.
+A new run begins with **nothing at all** — `player/player.gd`'s `STARTING_ITEMS` is empty on purpose,
+so the drone wakes with empty hands and an empty bag. The gear is *found*: the **Explorer's Kit**, a
+crate on the SW cape about 12 m from the spawn, holds the **Pedia notebook**, the **Pen**, the
+**Magnifying Glass** and the **Binoculars** (press **E** beside it), and a **Katana** lies out on the
+same cape about 18 m from the spawn, as a lying sword prop (`items/katana_pickup.gd`) that is picked up
+by walking into it. `world/kit.md` has the placement, the contents and the rules;
+`tests/test_explorer_kit.gd` pins all of it. `add_item()` auto-equips the first
+slot, which is what raises the katana into the drone's hand the moment it is picked up.
 
-Of those, three are **keepsakes** (`KEEPSAKE_ITEMS`: the notebook, the pen and
-the glass). The death wipe clears the inventory, and the keepsakes are handed
-back on respawn, because there is no other way to obtain them and a handbook you
-can drop forever is a handbook with a hole in it. The katana and the binoculars
-are ordinary gear: they go with the rest of the loot, so a respawn is back to
-fists plus its own notes.
+Of the four, three are **keepsakes** (`KEEPSAKE_ITEMS`: the notebook, the pen and the glass). The death
+wipe clears the inventory, and the keepsakes are handed back on respawn, because there is no other way
+to obtain them and a handbook you can drop forever is a handbook with a hole in it. **Only the ones the
+run has actually held** (`_keepsakes_found`, recorded by `add_item()` and read back off the restored bag
+after a load): a drone that dies before it reaches the crate comes back with the same empty hands it
+started with, and the crate is still waiting for it. The katana and the binoculars are ordinary gear:
+they go with the rest of the loot, so a respawn is back to fists plus its own notes.
 
 ## Where to change what
 

@@ -1,8 +1,9 @@
 extends SceneTree
 ## Headless check: the fight can be met armed and the jab lands.
-## - a fresh run begins with the katana (splash Start sets pending_new_run, the
-##   player hands out STARTING_ITEMS in _ready); a plain test run — the flag
-##   never set — still starts empty, which tests/test_inventory.gd pins down
+## - a fresh run begins **empty-handed** (splash Start sets pending_new_run, and the
+##   player's STARTING_ITEMS is deliberately empty — the katana is found in the world
+##   now, see tests/test_explorer_kit.gd), so there is nothing in the bag and nothing
+##   in hand at the start
 ## - the unarmed left click deals the weapon table's bare-hand damage (5) to a
 ##   target in front of the drone, and misses behind / out of reach
 ## - a jab on cooldown neither swings nor hits, so a held click cannot
@@ -38,8 +39,10 @@ func _init() -> void:
 	if not SaveGame.take_pending_new_run() or SaveGame.take_pending_new_run():
 		fails.append("pending_new_run_once")
 
-	# 2. A fresh run starts armed: the katana is in slot 0 and equipped, so a
-	#    left click swings rather than jabs.
+	# 2. A fresh run starts empty-handed: STARTING_ITEMS is empty, so the bag is empty
+	#    and nothing is in hand — the gear is found in the world (the Explorer's Kit
+	#    and the katana beside it, tests/test_explorer_kit.gd), so a left click jabs
+	#    until the drone picks the katana up.
 	SaveGame.pending_new_run = true
 	var main = load("res://world/main.tscn").instantiate()
 	root.add_child(main)
@@ -48,9 +51,13 @@ func _init() -> void:
 		await physics_frame
 	var player = main.get_node("Player")
 	var inv = main.get_node("HUD/Inventory")
-	if inv.slots[0] != "sword" or player.get_equipped_item() != "sword":
-		fails.append("starting_loadout slot=%d held=%s"
-				% [inv.equipped_slot, player.get_equipped_item()])
+	var carried := 0
+	for i in inv.SLOTS:
+		if inv.slots[i] != "":
+			carried += 1
+	if carried != 0 or player.get_equipped_item() != "":
+		fails.append("fresh_run_not_bare carried=%d held=%s"
+				% [carried, player.get_equipped_item()])
 
 	# 3. The jab lands on what is in front of the drone. Unarmed, as a left
 	#    click with no sword equipped finds the player.

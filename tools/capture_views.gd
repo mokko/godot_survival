@@ -50,6 +50,20 @@ const VIEWS := [
 	# tread_triangle at (-104, 79)); the camera stands a few metres south of it.
 	{"name": "09_part_ezo", "x": -104.0, "z": 84.0, "eye": 1.6, "yaw": 180.0,
 		"pitch": -12.0, "time": 0.3},
+	# The Explorer's Kit, a short walk north of the spawn (world/kit.md): the camera
+	# stands on the spawn side of it, which is the face its latch and lit mark are
+	# built toward.
+	{"name": "10_kit_ezo", "x": -110.0, "z": 76.0, "eye": 1.8, "yaw": 180.0,
+		"pitch": -12.0, "time": 0.3},
+	# The same crate from close enough to judge the prop itself: the lid, the bands,
+	# the latch and the lit mark. A prop this small is a smudge at ten metres.
+	{"name": "11_kit_closeup", "x": -110.0, "z": 71.9, "eye": 0.7, "yaw": 180.0,
+		"pitch": -14.0, "time": 0.3},
+	# The katana on the spawn cape (world/main.tscn, `Pickup15` — a lying prop, not a
+	# pickup cube; items/katana_pickup.gd). It lies at (-125, 70), so the camera stands
+	# a few metres south of it.
+	{"name": "12_katana_ezo", "x": -125.0, "z": 74.0, "eye": 1.5, "yaw": 180.0,
+		"pitch": -20.0, "time": 0.3},
 ]
 
 var _out_dir := DEFAULT_DIR

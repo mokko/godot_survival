@@ -1,8 +1,9 @@
 extends SceneTree
 ## Headless check: the notebook fills itself, and only the way Maurice asked for.
 ##
-##  - a fresh run starts with an empty notebook and carries the pen, the magnifying
-##    glass, the binoculars and the Pedia;
+##  - a fresh run starts empty-handed and finds the survey — the pen, the magnifying
+##    glass, the binoculars and the Pedia — in the Explorer's Kit crate beside the
+##    spawn (world/kit.md), with an empty notebook;
 ##  - a **plant** is drawn by holding it in the magnifying glass for STUDY_TIME;
 ##  - an **animal** has two routes: watching it through the **binoculars** for
 ##    STUDY_TIME (45 m), or killing it with a **blade** and holding the specimen it
@@ -73,6 +74,31 @@ func _specimens(main: Node) -> Array:
 	return main.get_tree().get_nodes_in_group("specimen")
 
 
+func _nearest_sword(main: Node, player: Node3D) -> Node3D:
+	## The katana lies in the world as an ordinary pickup (world/main.tscn, `Items`).
+	## The nearest one to the drone is the one on its first stroll.
+	var best: Node3D = null
+	var best_distance := INF
+	for node in main.get_node("Items").get_children():
+		if str(node.get("item_id")) != "sword":
+			continue
+		var d: float = node.global_position.distance_to(player.global_position)
+		if d < best_distance:
+			best_distance = d
+			best = node
+	return best
+
+
+func _close_story(main: Node) -> void:
+	## Hand the run back after something in the world played a story page. Opening the crate
+	## and picking up the katana each put a **milestone screen** up over a PAUSED world
+	## (ui/story.md), and nothing in the world ticks until that page is closed — so every
+	## "wait for the notebook poll" below would wait on a paused tree and fail.
+	var story: Node = main.get_node_or_null("HUD/StoryScreen")
+	if story != null and story.is_playing():
+		story._advance()
+
+
 func _init() -> void:
 	var fails: PackedStringArray = []
 
@@ -87,8 +113,24 @@ func _init() -> void:
 	var study = player.get_node("Study")
 	var inv = main.get_node("HUD/Inventory")
 
-	# 1. The start: the survey kit is carried, nothing is equipped, the species
-	#    chapters are empty, and what needs no studying is already noted.
+	# 1. The start: empty-handed, so the survey comes from the Explorer's Kit the way it
+	#    does for a player — walk up to the crate and open it (world/kit.md). Nothing is
+	#    equipped, the species chapters are empty, and what needs no studying is already
+	#    noted.
+	var home: Vector3 = player.global_position
+	var kit: Node3D = main.get_node("ExplorerKit")
+	player.global_position = kit.global_position + Vector3(0.0, 0.0, 1.2)
+	if not kit.use_for_test(player):
+		fails.append("kit_did_not_open")
+	# The crate's own page goes up over a paused world: close it, or the poll below waits
+	# on a tree that is not ticking.
+	_close_story(main)
+	for i in 5:
+		await physics_frame
+	player.global_position = home
+	# Long enough for the notebook's discovery poll (DISCOVERY_INTERVAL, 0.5 s) to
+	# notice what the crate just handed over.
+	await _wait(0.7)
 	for item_id in ["pen", "magnifying_glass", "binoculars", "notebook"]:
 		if not inv.has_item(item_id):
 			fails.append("no_%s_at_start" % item_id)
@@ -212,11 +254,20 @@ func _init() -> void:
 		fails.append("no_message_after_observing")
 
 	# 6. Route two: the autopsy. A blade leaves a specimen; the glass opens it and
-	#    reaches the same page the binoculars would have.
+	#    reaches the same page the binoculars would have. The blade is found, not
+	#    handed out: the katana lies on the same stroll as the crate (world/kit.md),
+	#    and picking it up is walking into it.
 	var killed := (load("res://fauna/grazer.tscn") as PackedScene).instantiate()
 	main.add_child(killed)
 	killed.global_position = Vector3(aside.x, player.global_position.y, aside.z)
 	await _wait(0.3)
+	var katana := _nearest_sword(main, player)
+	if katana == null:
+		fails.append("no_katana_in_the_world")
+	else:
+		katana.call("_on_body_entered", player)
+	# Picking a sword up is a page too (ui/story_text.gd's `katana` milestone).
+	_close_story(main)
 	if not _equip(player, "sword"):
 		fails.append("katana_not_equippable")
 	killed.damage(999.0, "sword")

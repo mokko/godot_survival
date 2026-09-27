@@ -6,7 +6,8 @@ instruments that fill it. Words live in `ui/pedia_data.gd`, plates in
 `player/study.gd`.
 
 The drone carries a brown leather **notebook** with `Pedia` on the cover — an
-inventory item from the first minute of a run — and the pause menu opens it as a
+inventory item, found in the **Explorer's Kit** on Ezo's SW cape at the start of a run
+(`world/kit.md`) — and the pause menu opens it as a
 screen of its own (same dim and panel as the menu, which hides while it is up).
 It opens on the line *Your research notes.* and three layers:
 
@@ -45,7 +46,9 @@ fills its own way:
   coast (60 m), so sailing the boat route fills that chapter.
 
 Fresh run: empty. Death: the notes stay, along with the notebook, the pen and the
-glass (`KEEPSAKE_ITEMS`) — they are the drone's own record and its instruments.
+glass (`KEEPSAKE_ITEMS`) — they are the drone's own record and its instruments, and
+they come back only once the run has held them, so a drone that dies before it finds
+the Explorer's Kit stays empty-handed (`player._keepsakes_found`).
 Save/load: they ride in the savegame's `notes` list. A species with no data page of
 its own (mirrorlily's small ground cover) is not studyable, and a chapter with
 nothing drawn in it says how to fill it.

@@ -13,19 +13,20 @@ const SUNBULB_HEAL = 15.0
 const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
 const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
 const HIT_MARKER_TIME := 0.16  ## how long the "you connected" tick shows
-## What a NEW run begins with, handed out in _ready (splash Start → story →
-## here). The katana is there so the fight can be met on the first stroll
-## instead of after a crafting chain; the Pedia notebook, the pen and the
-## magnifying glass are the survey — the notes are the drone's own work, so the
-## tools that make them are carried from the first minute. The binoculars are the
-## spotting tool: they name what is out there, they write nothing down.
-## Add to the list, or empty it once the intro hands out gear of its own.
-const STARTING_ITEMS := ["sword", "notebook", "pen", "magnifying_glass", "binoculars"]
-## Items the drone never loses, death included: its own record of the island and
-## the tools that fill it (the notebook, the pen that writes in it, the glass the
-## drawings are made through). Handed back on respawn, because there is no other
-## way to get them and a handbook you can drop forever is a handbook with a hole
-## in it. The katana and the binoculars are ordinary gear and are lost with the
+## What a NEW run begins with: **nothing.** The intro hands out no gear, so the drone
+## wakes with empty hands and an empty bag, and the katana and the four survey
+## instruments are found in the world instead — an **Explorer's Kit** crate and a
+## katana lying within a short walk of the spawn (world/main.tscn,
+## world/explorer_kit.gd). Kept as a list rather than deleted, empty on purpose: this
+## is the one place a loadout would go if a run should ever be handed one again.
+const STARTING_ITEMS := []
+## Items the drone never loses, death included: its own record of the island and the
+## tools that fill it (the notebook, the pen that writes in it, the glass the drawings
+## are made through). Handed back on respawn — but only the ones **this run has held**
+## (`_keepsakes_found`), because a drone that dies before it reaches the Explorer's Kit
+## comes back with the same empty hands it started with, and that crate is still out
+## there waiting. Losing the glass for good would cripple the survey, which is the whole
+## reason for the rule. The katana and the binoculars are ordinary gear and go with the
 ## rest of the loot.
 const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
 const SAVEGAME := preload("res://world/savegame.gd")
@@ -53,6 +54,17 @@ var _discovery_timer: float = 0.0   ## counts down to the next notebook poll
 var _autosave_clock: float = 0.0
 var _game_over: bool = false
 var sunbulbs_collected: int = 0
+## Containers the drone has already emptied, by id (`world/explorer_kit.gd`). An id
+## list in the save rather than a flag somewhere in the scene, because the scene is
+## rebuilt on every load: without it a crate that was opened looks shut again and
+## offers gear the drone already carries.
+var opened_containers: Array = []
+## Keepsakes this run has actually held. A run that dies before it reaches the
+## Explorer's Kit comes back with the same empty hands it started with; one that has
+## carried the notebook, the pen and the glass keeps them (KEEPSAKE_ITEMS). It is
+## derived, never guessed: add_item() records it and a load reads it back off the
+## restored bag, so a save cannot leave the drone holding a keepsake it may not lose.
+var _keepsakes_found: Array = []
 var _held_block: MovableBlock = null
 var _invuln: float = 0.0     ## counts down; damage() is ignored while > 0
 var _hurt_layer: CanvasLayer = null
@@ -99,6 +111,7 @@ func save_state() -> Dictionary:
 		"armor_durability": combat.armor_durability,
 		"notes": Notes.drawn(),
 		"parts": RobotParts.owned(),
+		"containers": opened_containers.duplicate(),
 		"legs": equipment.fitted_legs() if equipment != null else "",
 	}
 	# Time of day lives on the DayCycle node (a sibling), not on the player.
@@ -143,6 +156,11 @@ func load_state(data: Dictionary) -> void:
 			inventory.refresh()
 	# The notebook comes back with the run: what was drawn stays drawn.
 	Notes.restore(data.get("notes", []))
+	# Containers opened earlier in the run come back emptied (world/explorer_kit.gd),
+	# so a crate the drone has already been through does not offer its contents again.
+	var containers = data.get("containers", [])
+	if containers is Array:
+		opened_containers = (containers as Array).duplicate()
 	# The parts the drone owns come back too, before the fit below — a saved fit is
 	# only meaningful if the part that provides it is still on the robot's list.
 	RobotParts.restore(data.get("parts", []))
@@ -161,6 +179,9 @@ func load_state(data: Dictionary) -> void:
 		var saved_legs := str(data.get("legs", ""))
 		if saved_legs != "":
 			equipment.set_legs(saved_legs)
+	# Read the keepsakes back off the restored bag, so a load says "this run has held
+	# its notebook" the same way picking one up does.
+	_note_keepsakes_in_bag()
 	_update_hud()
 
 
@@ -207,15 +228,16 @@ func _ready() -> void:
 	combat.armor_changed.connect(_on_combat_armor_changed)
 	# Load Game / Start Game hand-off: Load Game restores a saved game exactly
 	# once, when launched from the splash screen's Load Game button; Start Game
-	# hands out the starting loadout instead.
+	# starts a bare run instead.
 	if SAVEGAME.take_pending_load():
 		# Which slot the splash asked for (0 = whatever this player played last).
 		SaveGame.current_slot = SAVEGAME.take_pending_slot()
 		load_state(SAVEGAME.read_slot(SaveGame.current_slot))
 	elif SAVEGAME.take_pending_new_run():
-		# A fresh run starts with an empty notebook. It refills from what the
-		# drone is handed (equipment), where it wakes up (islands) and what it
-		# studies (plants, animals) — see _update_notes() and player/study.gd.
+		# A fresh run starts with an empty notebook and an empty bag. The notebook
+		# refills from what the drone finds (the Explorer's Kit and everything it
+		# picks up after it), where it wakes up (islands) and what it studies
+		# (plants, animals) — see _update_notes() and player/study.gd.
 		Notes.clear()
 		RobotParts.clear()
 		give_starting_items()
@@ -223,12 +245,47 @@ func _ready() -> void:
 
 
 func give_starting_items() -> void:
-	## The loadout a new run begins with (STARTING_ITEMS). add_item() auto-equips
-	## the first slot, which is what raises the katana into the drone's hand —
-	## the equip signal is already connected above, so the prop and the flourish
-	## follow on their own.
+	## The loadout a new run begins with — **empty** (`STARTING_ITEMS`), so the drone
+	## wakes with nothing in its hand and nothing in its bag: the Explorer's Kit on the
+	## cape is where its gear comes from and finding it is the first thing a run does.
+	## Kept as a function because a fresh run still has to ask for its loadout, and this
+	## is the one place a future one would be handed out (an empty list is the decision,
+	## not an oversight).
 	for item_id in STARTING_ITEMS:
 		add_item(item_id)
+
+
+func has_item(item_id: String) -> bool:
+	## Is this carried? One answer for anything in the world that wants to know before
+	## handing something over (world/explorer_kit.gd).
+	return inventory != null and inventory.has_item(item_id)
+
+
+func open_container(id: String) -> bool:
+	## Record a container as emptied. True when this was the first time, so a crate can
+	## tell "opened now" from "opened earlier in this run" — and so nothing can refill a
+	## one-shot container by asking twice.
+	if id.is_empty() or opened_containers.has(id):
+		return false
+	opened_containers.append(id)
+	return true
+
+
+func has_opened_container(id: String) -> bool:
+	## Whether this run has already been through that container. A loaded run says yes
+	## from the moment it is restored, which is what keeps a crate standing open and
+	## empty instead of looking shut and offering what the drone already carries.
+	return opened_containers.has(id)
+
+
+func _note_keepsakes_in_bag() -> void:
+	## The bag is the truth about what the drone has held. Called after a load, so a
+	## restored keepsake is one that can come back if it is lost later.
+	if inventory == null:
+		return
+	for item_id in KEEPSAKE_ITEMS:
+		if inventory.has_item(item_id) and not _keepsakes_found.has(item_id):
+			_keepsakes_found.append(item_id)
 
 
 func _build_hurt_flash() -> void:
@@ -321,6 +378,10 @@ func add_item(item_id: String) -> bool:
 	var ok: bool = inventory.add_item(item_id)
 	if ok:
 		_snd_grab.play()
+		# A keepsake the run has laid hands on is one it may not permanently lose:
+		# respawn hands these back (KEEPSAKE_ITEMS, _restart).
+		if KEEPSAKE_ITEMS.has(item_id) and not _keepsakes_found.has(item_id):
+			_keepsakes_found.append(item_id)
 		# A piece picked up is a whole one. Wear is remembered per item id, so
 		# without this a new piece would inherit the state of a broken one already
 		# in the bag.
@@ -721,9 +782,12 @@ func _restart() -> void:
 	# Respawn at the game's starting point on the SW cape.
 	var spawn: Vector3 = Ezo.spawn_point()
 	global_position = spawn + Vector3(0.0, 0.5, 0.0)   # small clearance so we land, not clip
-	# The keepsakes come back: the death wipe takes loot, not the drone's own
-	# record of the island. Carried, not held — a respawn is still back to fists.
-	for item_id in KEEPSAKE_ITEMS:
+	# The keepsakes come back: the death wipe takes loot, not the drone's own record
+	# of the island. Only the ones **this run has held** — a drone that dies before it
+	# reaches the Explorer's Kit has no notebook to lose and the crate is still out
+	# there waiting, so a bare run stays bare. Carried, not held: a respawn is back to
+	# fists.
+	for item_id in _keepsakes_found:
 		if inventory != null and not inventory.has_item(item_id):
 			add_item(item_id)
 	if inventory != null:

@@ -113,6 +113,8 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
 - **Boats** — `world/boats.md`: the sailing route and the hull rules.
 - **The service bench** — `world/bench.md`: where a bench stands, how it opens the
   robot editor, and why nothing about it is recorded.
+- **The Explorer's Kit** — `world/kit.md`: the crate a run's gear is found in, the
+  katana beside it, and the transform that decides whether it can be found at all.
 - **Saves** — `world/savegame.md`: the five slots, the autosave, and where `user://` really is.
 - **Species** — `flora/plants.md`, `fauna/animals.md`.
 - **Research** — `research/`: the geography, the older premise notes, the
@@ -121,7 +123,8 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
 Project layout:
 
 - `player/` — the drone: input and energy, combat, study, equipment
-- `world/` — main scene, island, terrain, water, movable blocks, ground clutter
+- `world/` — main scene, island, terrain, water, movable blocks, ground clutter,
+  the Explorer's Kit and the benches
 - `flora/`, `fauna/` — plant and animal species
 - `ui/` — splash menu, story screen, pause menu, pedia, fade-in, HUD meters,
   procedural icons and plates (`item_icons.gd`, `vector_art.gd`, `pedia_art.gd`)

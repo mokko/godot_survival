@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://items/katana_pickup.gd" id="1_katana"]
+
+[sub_resource type="BoxShape3D" id="Shape_katana"]
+size = Vector3(1.3, 0.3, 0.45)
+
+[node name="KatanaPickup" type="Area3D" groups=["item_pickup"]]
+script = ExtResource("1_katana")
+item_id = "sword"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.1, 0.03)
+shape = SubResource("Shape_katana")
