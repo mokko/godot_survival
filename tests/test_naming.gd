@@ -294,8 +294,13 @@ func _init() -> void:
 	await _wait(0.2)
 	if study.subject_name() != NAME:
 		fails.append("study_says_%s" % study.subject_name())
-	if study._meter.subject != NAME:
+	# The meter says the *kind* while the hold runs — and it must not say the name the player
+	# gave it either: the drawing is what earns a name at all, so speaking it here would spend
+	# it before it was earned.
+	if study._meter.subject != "plant":
 		fails.append("meter_says_%s" % study._meter.subject)
+	if study._meter.subject == NAME:
+		fails.append("meter_spent_the_name:%s" % study._meter.subject)
 
 	# 11. Dying keeps the notebook. The drone dies the way the island kills it (no life
 	#     left), respawns the way the game-over screen does, and both halves have to come

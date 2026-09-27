@@ -2,10 +2,12 @@ extends Control
 ## The study meter: how far the drone has got drawing the species in front of it.
 ## Two states, one control:
 ##
-##  - **holding** — a progress bar with "Studying <subject>" over it, while a
-##    subject is being examined;
-##  - **message** — a single line with no bar ("Drawn: X", "Spotted: X, 12 m",
-##    "Kill it with a blade first"), which fades out on its own.
+##  - **holding** — a progress bar with "Studying plant" over it while something is being
+##    examined. The **kind**, not the species: the drone has not been told what this is
+##    yet — that is what the hold is for — so the line may not spend the name the drawing
+##    is about to earn (`player/study.gd::_draw_entry` says it, once it is drawn);
+##  - **message** — a single line with no bar ("Drawn: Frostneedle", "Kill it with a
+##    blade first"), which fades out on its own.
 ##
 ## Built in code and parented to the HUD (like the hurt flash and the hit marker),
 ## so an editor save of world/main.tscn cannot clobber it.
@@ -13,7 +15,7 @@ extends Control
 const BAR_SIZE := Vector2(260, 8)
 const LABEL_SIZE := Vector2(360, 24)
 
-var subject := ""      ## what is being studied right now
+var subject := ""      ## what is being studied, as the drone can say it while it looks: the kind
 var progress := 0.0    ## seconds held, 0..STUDY_TIME
 var total := 1.0       ## STUDY_TIME, handed in by the caller
 var message := ""      ## non-empty while a one-line note is showing
@@ -37,8 +39,8 @@ func _ready() -> void:
 	size = BAR_SIZE
 
 
-func set_state(subject_name: String, held: float, total_seconds: float) -> void:
-	subject = subject_name
+func set_state(kind: String, held: float, total_seconds: float) -> void:
+	subject = kind
 	progress = held
 	total = maxf(total_seconds, 0.001)
 	message = ""
@@ -49,7 +51,7 @@ func set_state(subject_name: String, held: float, total_seconds: float) -> void:
 
 
 func show_message(text: String) -> void:
-	## A note rather than a hold: "Drawn: X", "Spotted: X, 12 m", a refusal.
+	## A note rather than a hold: "Drawn: Frostneedle", a refusal.
 	message = text
 	progress = 0.0
 	_fade = 1.0
@@ -77,7 +79,7 @@ func _refresh() -> void:
 
 func _draw() -> void:
 	if message != "":
-		return   # a note is words only; a bar under "Spotted" would imply progress
+		return   # a note is words only; a bar under it would imply progress
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.1, 0.12, 0.16, 0.75), true)
 	var fill: float = clampf(progress / total, 0.0, 1.0)
 	if fill > 0.0:

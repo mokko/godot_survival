@@ -224,7 +224,10 @@ func _update_meter() -> void:
 	if _meter == null:
 		return
 	if _subject != null:
-		_meter.set_state(_subject_name, _held, STUDY_TIME)
+		# The meter says the *kind*, not the species: the drone has not been told what this
+		# is yet, which is the whole point of the hold. The name arrives with the drawing
+		# (`_draw_entry`), and the player's own name for it after that.
+		_meter.set_state(PediaData.chapter_noun(_chapter), _held, STUDY_TIME)
 
 
 func _show_message(text: String) -> void:

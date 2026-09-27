@@ -303,12 +303,25 @@ static func chapter(id: String) -> Dictionary:
 	return {}
 
 
+## What the game calls one of these while the drone has **no name for it yet** — the word
+## the study meter says mid-drawing ("Studying plant"). A species' own name is what the
+## drawing is *for*: the drone was not told it before it looked, so nothing that speaks
+## before the hold is over may say it. Only the species chapters are ever studied, and a
+## chapter added later falls back to its own id rather than to silence.
+const CHAPTER_NOUNS := {"plants": "plant", "animals": "animal"}
+
+
 static func chapter_title(id: String) -> String:
 	return str(chapter(id).get("title", ""))
 
 
 static func subchapters(chapter_id: String) -> Array:
 	return SUBCHAPTERS.get(chapter_id, [])
+
+
+static func chapter_noun(id: String) -> String:
+	## The kind of thing it is, in the game's own words, for use before its name exists.
+	return str(CHAPTER_NOUNS.get(id, id))
 
 
 static func empty_hint(chapter_id: String) -> String:
