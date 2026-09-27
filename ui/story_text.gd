@@ -57,9 +57,8 @@ const PAGES := [
 		"body": """You wake up. Something is wrong. Where are you? Your eyes don't open.
 
 Then you discover a different way to see, to hear. This is different.
-It's like coming from a camera. How do you get here? What is this? You
-appear to be inside a robot. You can move. Let's see what you can find
-out.
+It's like coming from a camera. What is this? You appear to be inside a
+robot. You can move. Let's see what you can find out.
 
 Another thought. How did you get here? Who are you? So far you thought,
 you knew who you were, but now you realize you don't remember your name.
@@ -87,9 +86,10 @@ const MILESTONES := {
 leather binding. It's empty. No text. It's a notebook. Like people
 used hundreds of years ago. A pen to write in it. There is also a
 pair of binoculars through which you can study far away things and
-a magnifying glass for a close inspection. Apparently someone wants
-you to study your surroundings like the explorers on Earth a long time
-ago.
+a magnifying glass for a close inspection.
+
+Apparently someone wants you to study your surroundings like the
+explorers on Earth a long time ago.
 """,
 	},
 	"katana": {
