@@ -88,8 +88,8 @@ leather binding. It's empty. No text. It's a notebook. Like people
 used hundreds of years ago. A pen to write in it. There is also a
 pair of binoculars through which you can study far away things and
 a magnifying glass for a close inspection. Apparently someone wants
-you to study the surroundings the old-fashioned way, like the
-explorers on Earth in the 18th century.
+you to study your surroundings like the explorers on Earth a long time
+ago.
 """,
 	},
 	"katana": {
