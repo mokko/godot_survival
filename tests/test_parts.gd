@@ -5,6 +5,8 @@ extends SceneTree
 ## the whole lot rides in the save.
 
 const Legs := preload("res://player/legs.gd")
+const Torsos := preload("res://player/torsos.gd")
+const Heads := preload("res://player/heads.gd")
 const Parts := preload("res://player/robot_parts.gd")
 
 
@@ -95,39 +97,51 @@ func _init() -> void:
 		await process_frame
 	if not editor.visible:
 		fails.append("the frame screen is not visible after a bench")
-	var rows: Array = editor.rows()
-	var expected := _expected_rows(player)
-	if rows != expected:
-		fails.append("the screen lists %s, the drone owns %s" % [str(rows), str(expected)])
-
-	# Finding another part puts it on the list; an unfound one stays off it.
+	# The Robo Editor shows **three families** — body, head, legs — each on its stock part, and
+	# each row walks its own catalogue with ◀ ▶ (Maurice's call, 27 Sep). Every variant is
+	# reachable while the parts are cosmetic (`player/player.gd::fit_body_part`), which is what
+	# replaced the old "list only what the drone owns" rule and its refusal assertions.
+	if editor.rows() != [Torsos.STOCK, Heads.STOCK, Legs.STOCK]:
+		fails.append("the editor shows %s" % str(editor.rows()))
+	for kind in ["torso", "head", "legs"]:
+		var ids: Array = editor.family_ids(kind)
+		if ids.size() < 4:
+			fails.append("%s offers only %d variants: %s" % [kind, ids.size(), str(ids)])
+		if ids[0] != str(editor.fitted(kind)) and editor.fitted(kind) == "":
+			fails.append("%s has nothing on the drone" % kind)
+	# ▶ walks a family, ◀ walks back, and the ends wrap rather than dead-ending.
+	var torso_ids: Array = editor.family_ids("torso")
+	if not editor.cycle("torso", 1) or editor.fitted("torso") != str(torso_ids[1]):
+		fails.append("cycling the body did not move it: %s" % editor.fitted("torso"))
+	if player.equipment.fitted_torso() != editor.fitted("torso"):
+		fails.append("the screen and the drone disagree about the body")
+	if not editor.cycle("torso", -1) or editor.fitted("torso") != str(torso_ids[0]):
+		fails.append("cycling back did not return the body")
+	if not editor.cycle("torso", -1) or editor.fitted("torso") != str(torso_ids[torso_ids.size() - 1]):
+		fails.append("the body row did not wrap: %s" % editor.fitted("torso"))
+	# The head cycles through its own family, and its eye is rebuilt with it (equipment's
+	# reference to the lens that the hurt flash dims).
+	var head_ids: Array = editor.family_ids("head")
+	if not editor.cycle("head", 1) or editor.fitted("head") != str(head_ids[1]):
+		fails.append("cycling the head did not move it: %s" % editor.fitted("head"))
+	if player.equipment._eye == null or player.equipment._eye.name != "Eye":
+		fails.append("the swapped head left the drone with no eye")
+	# The part itself is *found* the way the world gives it (walking into the pickup) before the
+	# row walks to it, so section 5 still has a found part to restore.
 	for p in pickups:
 		if str(p.part_id) == "legs_three":
 			p._on_body_entered(player)
-	editor.refresh()
-	rows = editor.rows()
-	if not rows.has("legs_three"):
-		fails.append("a found part is not listed: %s" % str(rows))
-	if rows.has("legs_telescope"):
-		fails.append("a part that was never found is listed: %s" % str(rows))
-
-	# The row already on the drone is marked and inert; another row fits itself.
-	var stock_row: Button = editor.fits.get_node("Fit_%s" % Legs.STOCK)
-	if not stock_row.disabled:
-		fails.append("the fitted row can still be pressed")
-	if not stock_row.text.contains("fitted"):
-		fails.append("the fitted row does not say so: '%s'" % stock_row.text)
-	var row: Button = editor.fits.get_node("Fit_legs_three")
-	row.pressed.emit()
-	for i in 2:
-		await process_frame
-	if equip.fitted_legs() != "legs_three":
-		fails.append("pressing a row did not fit it (%s)" % equip.fitted_legs())
-	editor.refresh()
-	if not editor.fits.get_node("Fit_legs_three").disabled:
-		fails.append("the newly fitted row is still pressable")
-	if editor.rows() != _expected_rows(player):
-		fails.append("the list changed after fitting: %s" % str(editor.rows()))
+	# ...and the legs row reaches that part the same way the other rows reach theirs.
+	while editor.fitted("legs") != "legs_three" and editor.cycle("legs", 1):
+		pass
+	if editor.fitted("legs") != "legs_three" or equip.fitted_legs() != "legs_three":
+		fails.append("the legs row never reached legs_three: %s" % editor.fitted("legs"))
+	# ...and the choice is part of what the drone looks like: it rides in the save.
+	var body_state: Dictionary = player.save_state()
+	if str(body_state.get("torso", "")) != player.equipment.fitted_torso():
+		fails.append("the body is not saved: %s" % str(body_state.get("torso", "")))
+	if str(body_state.get("head", "")) != player.equipment.fitted_head():
+		fails.append("the head is not saved: %s" % str(body_state.get("head", "")))
 
 	# 5. It all rides in the save, and comes back.
 	var state: Dictionary = player.save_state()
@@ -148,17 +162,6 @@ func _init() -> void:
 	else:
 		print("RESULT FAIL: ", ", ".join(fails))
 		quit(1)
-
-
-func _expected_rows(player: Node) -> Array:
-	## What the Frame screen must be listing: everything the drone owns, in catalogue
-	## order. Derived rather than hardcoded, so the assertion is the invariant ("the
-	## screen shows exactly what it owns") and not a restatement of the test's setup.
-	var out: Array = []
-	for id in ([Legs.STOCK] + Legs.PARTS):
-		if player.owns_part(id):
-			out.append(id)
-	return out
 
 
 func _item_total(player: Node) -> int:

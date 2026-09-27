@@ -156,6 +156,11 @@ func save_state() -> Dictionary:
 		"parts": RobotParts.owned(),
 		"containers": opened_containers.duplicate(),
 		"legs": equipment.fitted_legs() if equipment != null else "",
+		# The other two cosmetic families (player/torsos.gd, player/heads.gd). Saved beside the
+		# legs for the same reason: the Robo Editor's choice is part of what the drone looks
+		# like, and a load must put the same machine back.
+		"torso": equipment.fitted_torso() if equipment != null else "",
+		"head": equipment.fitted_head() if equipment != null else "",
 	}
 	# Time of day lives on the DayCycle node (a sibling), not on the player.
 	var cycle := get_node_or_null("../DayCycle")
@@ -226,6 +231,14 @@ func load_state(data: Dictionary) -> void:
 		var saved_legs := str(data.get("legs", ""))
 		if saved_legs != "":
 			equipment.set_legs(saved_legs)
+		# ...and the same for the torso and the head: each is validated by its own family, so a
+		# save from a build with different parts simply leaves the stock one on.
+		var saved_torso := str(data.get("torso", ""))
+		if saved_torso != "":
+			equipment.set_torso(saved_torso)
+		var saved_head := str(data.get("head", ""))
+		if saved_head != "":
+			equipment.set_head(saved_head)
 	# Read the keepsakes back off the restored bag, so a load says "this run has held
 	# its notebook" the same way picking one up does.
 	_note_keepsakes_in_bag()
@@ -471,6 +484,27 @@ func owns_part(part_id: String) -> bool:
 	## Whether the drone may fit this. The stock fit is always its own; anything else has
 	## to have been found. For anything listing what can be fitted (the Frame screen).
 	return part_id == Legs.STOCK or RobotParts.has(part_id)
+
+
+func fit_body_part(kind: String, part_id: String) -> bool:
+	## The Robo Editor's one door, for the three **cosmetic** families: "legs", "torso" or "head".
+	##
+	## **For now it accepts any part the family knows** (Maurice, 27 Sep): the editor is being
+	## built and every variant has to be reachable to test it, so nothing is gated on having found
+	## anything. `player/robot_parts.gd` and `items/part_pickup.gd` are untouched — the
+	## found-parts loop still runs — and this function is exactly where the ownership rule lands
+	## when parts stop being cosmetic ("eventually we'll work with the parts we have found").
+	## `fit_legs()` below keeps the old gate on purpose: it is the found-part path.
+	if equipment == null:
+		return false
+	match kind:
+		"legs":
+			return equipment.set_legs(part_id)
+		"torso":
+			return equipment.set_torso(part_id)
+		"head":
+			return equipment.set_head(part_id)
+	return false
 
 
 func fit_legs(part_id: String) -> bool:

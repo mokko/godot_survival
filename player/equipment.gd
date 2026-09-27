@@ -17,6 +17,8 @@ extends Node3D
 
 const ItemDB := preload("res://items/item_db.gd")
 const Legs := preload("res://player/legs.gd")
+const Torsos := preload("res://player/torsos.gd")
+const Heads := preload("res://player/heads.gd")
 
 ## The container that *is* the bag: emptying the Explorer's Kit puts that satchel on the
 ## drone. The string is that node's own export default, and the kit's test pins the two
@@ -24,6 +26,10 @@ const Legs := preload("res://player/legs.gd")
 const KIT_CONTAINER := "explorer_kit"
 
 var _legs: Node3D = null
+## The other two families, built the same way (`player/torsos.gd`, `player/heads.gd`): each owns
+## its own meshes, so nothing else may parent a torso or head mesh onto the body.
+var _torso: Node3D = null
+var _head: Node3D = null
 var _satchel: Node3D = null
 
 var _props := {}         # item id -> Node3D
@@ -131,89 +137,22 @@ func _build_drone_body() -> void:
 	dark.roughness = 0.6
 	dark.metallic = 0.5
 
-	# Legs (the fit lives in player/legs.gd, including this stock one). Part set
-	# before it enters the tree, so its own _ready does not build a second fit.
+	# Legs, torso and head: each family owns its own meshes (`player/legs.gd`,
+	# `player/torsos.gd`, `player/heads.gd`). Part set before the node enters the tree, so its
+	# own _ready does not build a second copy.
 	_legs = Legs.new()
 	_legs.name = "Legs"
 	_legs.set_part(Legs.STOCK)
 	add_child(_legs)
-
-	# Body (WALL-E box + R2 white barrel): rounded box in white with a blue
-	# panel band across the chest.
-	var body := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(0.56, 0.5, 0.44)
-	body.mesh = bm
-	body.position.y = 0.62
-	body.material_override = white
-	add_child(body)
-
-	var band := MeshInstance3D.new()
-	var bandm := BoxMesh.new()
-	bandm.size = Vector3(0.58, 0.14, 0.46)
-	band.mesh = bandm
-	band.position.y = 0.68
-	band.material_override = blue
-	add_child(band)
-
-	# Chest "life display": small emissive blue lens on the front.
-	var lens := MeshInstance3D.new()
-	var lm := SphereMesh.new()
-	lm.radius = 0.055
-	lm.height = 0.11
-	lens.mesh = lm
-	lens.position = Vector3(0.0, 0.62, -0.25)
-	var lens_mat := StandardMaterial3D.new()
-	lens_mat.albedo_color = Color(0.25, 0.7, 1.0)
-	lens_mat.emission_enabled = true
-	lens_mat.emission = Color(0.25, 0.7, 1.0)
-	lens.material_override = lens_mat
-	add_child(lens)
-
-	# Neck (WALL-E telescopic): short dark cylinder between body and head.
-	var neck := MeshInstance3D.new()
-	var nm := CylinderMesh.new()
-	nm.top_radius = 0.06
-	nm.bottom_radius = 0.06
-	nm.height = 0.16
-	neck.mesh = nm
-	neck.position.y = 0.95
-	neck.material_override = dark
-	add_child(neck)
-
-	# Dome head (R2): half-sphere in white, blue panel stripe.
-	var dome := MeshInstance3D.new()
-	var dm := SphereMesh.new()
-	dm.radius = 0.22
-	dm.height = 0.44
-	dome.mesh = dm
-	dome.position.y = 1.08
-	dome.material_override = white
-	add_child(dome)
-
-	var stripe := MeshInstance3D.new()
-	var sm := TorusMesh.new()
-	sm.inner_radius = 0.19
-	sm.outer_radius = 0.225
-	stripe.mesh = sm
-	stripe.position.y = 1.06
-	stripe.material_override = blue
-	add_child(stripe)
-
-	# Eye: single emissive lens on the front of the dome (the "face").
-	var eye := MeshInstance3D.new()
-	var em := SphereMesh.new()
-	em.radius = 0.06
-	em.height = 0.12
-	eye.mesh = em
-	eye.position = Vector3(0, 1.1, -0.2)
-	var eye_mat := StandardMaterial3D.new()
-	eye_mat.albedo_color = Color(0.2, 0.9, 1.0)
-	eye_mat.emission_enabled = true
-	eye_mat.emission = Color(0.2, 0.9, 1.0)
-	eye.material_override = eye_mat
-	add_child(eye)
-	_eye = eye
+	_torso = Torsos.new()
+	_torso.name = "Torso"
+	_torso.set_part(Torsos.STOCK)
+	add_child(_torso)
+	_head = Heads.new()
+	_head.name = "Head"
+	_head.set_part(Heads.STOCK)
+	add_child(_head)
+	_refresh_eye()
 
 	_build_arms(white, blue, dark)
 
@@ -688,6 +627,46 @@ func show_for_equipped(item_id: String) -> void:
 func show_armor(worn: bool) -> void:
 	if _props.has("leather_armor"):
 		_props["leather_armor"].visible = worn
+
+
+func set_torso(part_id: String) -> bool:
+	## Swap the torso (`player/torsos.gd` holds the catalogue and builds the geometry). False for
+	## an id we do not know. The arms are **not** rebuilt with it: they hang at a fixed shoulder
+	## height, which the stock, slim, plated and barrel bodies all share closely enough that the
+	## difference is not visible — when parts start to matter, the torso's `shoulder_y()` is what
+	## moves them.
+	if _torso == null:
+		return false
+	return _torso.set_part(part_id)
+
+
+func fitted_torso() -> String:
+	## Which torso is on the drone right now; "" when there is nothing to ask.
+	if _torso == null:
+		return ""
+	return _torso.part()
+
+
+func set_head(part_id: String) -> bool:
+	## Swap the head, and **re-read its eye**: equipment keeps a reference to the lens it dims for
+	## the hurt flash, and every head builds a new one (`player/heads.gd`'s contract: a child named
+	## `Eye`). Without this the flash would dim a lens that is no longer on the drone.
+	if _head == null or not _head.set_part(part_id):
+		return false
+	_refresh_eye()
+	return true
+
+
+func fitted_head() -> String:
+	if _head == null:
+		return ""
+	return _head.part()
+
+
+func _refresh_eye() -> void:
+	_eye = null
+	if _head != null:
+		_eye = _head.get_node_or_null("Eye") as MeshInstance3D
 
 
 func set_legs(part_id: String) -> bool:
