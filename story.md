@@ -1,8 +1,10 @@
 # Story — Nakamoto's Paradigm
 
 The working narrative bible. The game's intro is drawn from here: the words the
-story screens type live in `ui/story_text.gd` (`PAGES`, one entry per screen),
-and are a stand-in until more of this file is lifted into it.
+story screens type live in `ui/story_text.gd` — `PAGES` for the one screen a new
+run opens on, and `MILESTONES` for the screens a thing that happens mid-run puts
+up (`ui/story.md`) — and they are a stand-in until more of this file is lifted
+into them.
 
 ## Premise
 
@@ -46,7 +48,7 @@ who would spend a lifetime building a museum for the dead, and why.
 - What destroyed/succeeded the old world — and does the museum
   memorialize it, or flee from it?
 - Ainu layer (research/old.md §3–4): is the museum honest about what was
-  erased, or is it theJapan-as-wished? This can become the story's
+  erased, or is it the Japan-as-wished? This can become the story's
   turning point.
 
 ## Tone

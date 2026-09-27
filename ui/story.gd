@@ -1,14 +1,24 @@
 extends Control
-## Story screens — sit between the splash menu and the game. The intro is told as a
-## **stack of pages** (`ui/story_text.gd` holds the words), each typed out on a near-black
-## background **as a mechanical typewriter**: a monospace typewriter face, a clack per
-## character, and a carriage return with its bell at every line break.
+## The story screen — a page of words typed out on a near-black background **as a
+## mechanical typewriter**: a monospace typewriter face, a clack per character, and a
+## carriage return with its bell at every line break. The words are `ui/story_text.gd`'s.
 ##
-## ESC or a left click moves on — to the next page, or into the game once the last page is
-## done. It is deliberately **one press, one thing**: there is no skip-then-confirm
-## two-stage, and no "press to finish typing this page" state either, so a press always
-## moves the story forward by exactly one step. The screen is reached on a fresh run only
-## (`ui/splash.gd`); Load Game skips it.
+## ESC or a left click moves on — to the next page, or on to what comes after the last one.
+## It is deliberately **one press, one thing**: there is no skip-then-confirm two-stage, and
+## no "press to finish typing this page" state either, so a press always moves the story
+## forward by exactly one step.
+##
+## It is shown in two places, and `enters_game` is what tells them apart:
+##
+##  - **The intro** — the scene itself, entered by `ui/splash.gd` on a fresh run only (Load
+##    Game skips it), with `enters_game = true`: the last press loads `world/main.tscn`.
+##    `PAGES` is **one** screen now; the rest of the story is told in milestones.
+##  - **Milestones** — instanced in `world/main.tscn` as `HUD/StoryScreen`, hidden, with
+##    `enters_game = false`: a world node that has just *done* something asks for its page
+##    (`play_milestone()`, called by `world/explorer_kit.gd` and `items/katana_pickup.gd`),
+##    and the last press closes the screen and hands the run back. The world is paused
+##    behind it and **no scene is ever reloaded** — entering the game from a milestone
+##    would restart the very run the page is narrating. See `ui/story.md`.
 ##
 ## The click is handled in _unhandled_input, so every node in story.tscn must
 ## keep mouse_filter = MOUSE_FILTER_IGNORE: a Control on the default STOP grabs
@@ -46,11 +56,28 @@ const RETURN_VOLUME_DB := -7.0
 ## What the finished page says to do next.
 const PROMPT_NEXT := "click or press ESC for the next page"
 const PROMPT_BEGIN := "click or press ESC to begin"
+## A milestone screen is not the start of anything: the player was already playing, and
+## presses were only ever moving the text aside.
+const PROMPT_RESUME := "click or press ESC to carry on"
+
+## A milestone screen closed: the world may react (it is unpaused and has the mouse back by
+## the time this fires).
+signal finished
+
+## The intro screen loads the world when its last page is done; a **milestone** screen —
+## the same machine, instanced in `world/main.tscn` with this turned off — hands the run
+## back instead. See the class comment.
+@export var enters_game := true
 
 @onready var label: Label = $Center/VBox/Text
 @onready var hint: Label = $Center/VBox/Hint
 
-var _page := 0               # which page of ui/story_text.gd is up
+## The records this screen walks: the intro's list, or a single milestone page. Never
+## `ui/story_text.gd`'s catalogue directly, because a milestone is not in it.
+var _pages: Array = []
+## Which milestone is up, "" for the intro.
+var _milestone := ""
+var _page := 0               # which of _pages is up
 var _text := ""              # that page's words, cached for _process
 var _shown := 0.0            # characters revealed so far (float accumulator)
 var _done := false
@@ -71,20 +98,65 @@ func _make_snd(path: String, volume_db: float) -> AudioStreamPlayer:
 
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	# Two players on purpose: the carriage return has to ring on while the next
 	# line's clacks start, and one player would cut it off.
 	_snd_key = _make_snd("res://sounds/type_key.wav", KEY_VOLUME_DB)
 	_snd_return = _make_snd("res://sounds/type_return.wav", RETURN_VOLUME_DB)
 	_rng.seed = 20260926          # the same intro sounds the same every run
-	_begin_page(0)
+	if enters_game:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_pages = StoryText.PAGES
+		_begin_page(0)
+	else:
+		# A milestone screen **waits to be asked**: it is instanced in the world scene, so
+		# it must not type the intro into the void, must not come up before anything asks
+		# for it, and must not touch the mouse — the player is mid-run and the world has
+		# it captured. All three are the same fact, so all three are decided here rather
+		# than in the scene that instances it.
+		hide()
+		set_process(false)
 
 
 # --------------------------------------------------------------------- the pages
 
+func play_milestone(id: String) -> bool:
+	## Put a mid-run screen up: **one** page from `ui/story_text.gd`'s milestones, on the
+	## same machine as the intro. True when there was a page to play — an id with no words
+	## behind it is refused rather than shown blank.
+	##
+	## The world is paused while it is up (a day cycle turning and an animal charging
+	## behind a text screen would both be wrong) and it is handed back when the screen
+	## closes. Whoever asked is free to react to `finished` — or not.
+	var record: Dictionary = StoryText.milestone(id)
+	if record.is_empty():
+		return false
+	_milestone = id
+	_pages = [record]
+	# Typing and the ESC/click that ends it both have to keep running while the tree is
+	# paused, so the screen outruns the pause it just applied.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	show()
+	set_process(true)
+	_begin_page(0)
+	return true
+
+
+func milestone_id() -> String:
+	## Which milestone page is up — "" for the intro, or nothing at all.
+	return _milestone
+
+
+func is_playing() -> bool:
+	## Whether a screen is actually **up**. A milestone screen sits in the world scene
+	## hidden, waiting to be asked, which is not the same thing as being shown.
+	return visible
+
+
 func page_count() -> int:
-	## How many screens the intro is told in.
-	return StoryText.PAGES.size()
+	## How many screens this screen holds.
+	return _pages.size()
 
 
 func page_index() -> int:
@@ -113,8 +185,11 @@ func page_body() -> String:
 
 func _page_record() -> Dictionary:
 	## A page is {"title": …, "body": …}; anything else in the list is treated as empty
-	## rather than crashing the intro.
-	var record = StoryText.PAGES[_page]
+	## rather than crashing the screen. Guarded on the index too: a milestone screen with
+	## no page up (nothing asked for it yet) is not an error.
+	if _page < 0 or _page >= _pages.size():
+		return {}
+	var record = _pages[_page]
 	return record if record is Dictionary else {}
 
 
@@ -151,8 +226,9 @@ func _begin_page(index: int) -> void:
 
 
 func next_page() -> bool:
-	## Move on: the next page, or false once the last one is up — the caller turns that
-	## into entering the game. Public so a test can drive pages without input events.
+	## Move on: the next page, or false once the last one is up — which means the screen is
+	## finished, and what that leads to is `enters_game`'s business (the world, or the run
+	## the milestone borrowed). Public so a test can drive pages without input events.
 	if is_last_page():
 		return false
 	_begin_page(_page + 1)
@@ -188,7 +264,10 @@ func _process(delta: float) -> void:
 	if now >= limit:
 		_done = true
 		label.text = _text
-		hint.text = PROMPT_BEGIN if is_last_page() else PROMPT_NEXT
+		if not enters_game:
+			hint.text = PROMPT_RESUME      # a milestone hands the run back
+		else:
+			hint.text = PROMPT_BEGIN if is_last_page() else PROMPT_NEXT
 
 
 func _clack() -> void:
@@ -215,11 +294,31 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _advance() -> void:
 	## One press moves the story on by one step, whether the page is still typing or
-	## long finished.
+	## long finished — and the last step is the world's or the run's, never both.
 	if _starting:
 		return
-	if not next_page():
+	if next_page():
+		return
+	if enters_game:
 		_start_game()
+	else:
+		_finish_milestone()
+
+
+func _finish_milestone() -> void:
+	## Hand the run back. **Nothing here loads a scene**: entering the game would restart
+	## the very run the page is narrating. Unpause, give the mouse back, stop making
+	## noise, get out of the way — and say so, because whoever asked for the screen may
+	## want to act on it being done.
+	if _snd_key != null:
+		_snd_key.stop()
+	if _snd_return != null:
+		_snd_return.stop()
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	hide()
+	set_process(false)
+	finished.emit()
 
 
 func _start_game() -> void:

@@ -1,10 +1,21 @@
 extends SceneTree
-## Headless check: the story is told as a stack of pages (`ui/story_text.gd`), each typed
-## letter by letter as a typewriter — a clack per character and a carriage return with its
-## bell at every line break, which is a beat and not just another character. One press
-## moves exactly one step: the next page, and then the game.
+## Headless check: the story is typed letter by letter as a typewriter — a clack per
+## character and a carriage return with its bell at every line break, which is a beat and
+## not just another character. One press moves exactly one step.
+##
+## Two kinds of screen, both built here: the **intro** (`PAGES`, one screen, ends by
+## entering the game) and a **milestone** (`MILESTONES`, one page the world hands over
+## mid-run, ends by handing the run back). `enters_game` is what tells them apart, and
+## `tests/test_explorer_kit.gd` checks that opening the crate is what plays one.
 
 const StoryText := preload("res://ui/story_text.gd")
+
+## How many times a milestone screen has said it is done (`finished`).
+var _closed := 0
+
+
+func _on_screen_finished() -> void:
+	_closed += 1
 
 
 func _letters(node: Node) -> String:
@@ -12,49 +23,67 @@ func _letters(node: Node) -> String:
 	return node.get_node("Center/VBox/Text").text.replace(node.CURSOR, "")
 
 
+func _check_page(fails: PackedStringArray, screen: Node, label: String, record) -> void:
+	## The rules a page has to obey, in **one** place so the intro and the milestone
+	## screens cannot drift apart: they are typed by the same machine into the same block.
+	if not (record is Dictionary):
+		fails.append("%s is not a title-and-body record" % label)
+		return
+	var page: Dictionary = record
+	var title := str(page.get("title", ""))
+	var body := str(page.get("body", ""))
+	if title.strip_edges() == "":
+		fails.append("%s has no title" % label)
+	if body.strip_edges() == "":
+		fails.append("%s has no words" % label)
+	if not body.ends_with("\n"):
+		fails.append("%s does not end on a newline" % label)
+	# A heading is set in capitals *and letterspaced*, which is about three times as
+	# long — past the measure it re-wraps and the heading falls apart. Typed
+	# explicitly: the node is untyped here, so `:=` cannot infer a String.
+	var shown: String = screen.display_title(title)
+	if shown.length() > StoryText.MAX_LINE:
+		fails.append("%s's heading is %d characters letterspaced (max %d)"
+				% [label, shown.length(), StoryText.MAX_LINE])
+	if title.length() > StoryText.TITLE_MAX:
+		fails.append("%s's title is %d letters (max %d)"
+				% [label, title.length(), StoryText.TITLE_MAX])
+	# The catalogue holds the words, not the display form: a title already in
+	# capitals means somebody typed the rendering into the data.
+	if title == title.to_upper() and title != title.to_lower():
+		fails.append("%s's title is written in capitals" % label)
+	for line in body.split("\n"):
+		if line.length() > StoryText.MAX_LINE:
+			fails.append("%s has a %d-character line (max %d)"
+					% [label, line.length(), StoryText.MAX_LINE])
+	# A line is indented by the block, never by its own words: prose that arrived with a
+	# tab or a run of trailing spaces in it types those onto the screen (and a leading tab
+	# is invisible in a diff, which is how it got in once).
+	if body.contains("	"):
+		fails.append("%s has a tab in its words" % label)
+	for line in body.split("\n"):
+		if line != line.strip_edges(false, true):
+			fails.append("%s has a line with trailing whitespace" % label)
+			break
+
+
 func _init() -> void:
 	var fails: PackedStringArray = []
 
-	# 1. More than one screen, and every page is a page worth typing. A heading is the
-	#    first line of what gets typed, so it has to fit the measure like any other line.
+	# 1. The intro is **one** screen — the run's opening statement — and every page in the
+	#    catalogue is a page worth typing: a heading is the first line of what gets typed,
+	#    so it has to fit the measure like any other line. The milestones are held to the
+	#    same rules, because the same machine types them.
 	var fresh = load("res://ui/story.tscn").instantiate()
 	root.add_child(fresh)
 	for i in 2:
 		await process_frame
-	if StoryText.PAGES.size() < 2:
-		fails.append("the intro is a single screen (%d page)" % StoryText.PAGES.size())
+	if StoryText.PAGES.size() != 1:
+		fails.append("the intro is %d screens, not one" % StoryText.PAGES.size())
 	for i in StoryText.PAGES.size():
-		var record = StoryText.PAGES[i]
-		if not (record is Dictionary):
-			fails.append("page %d is not a title-and-body record" % (i + 1))
-			continue
-		var page: Dictionary = record
-		var title := str(page.get("title", ""))
-		var body := str(page.get("body", ""))
-		if title.strip_edges() == "":
-			fails.append("page %d has no title" % (i + 1))
-		if body.strip_edges() == "":
-			fails.append("page %d has no words" % (i + 1))
-		if not body.ends_with("\n"):
-			fails.append("page %d does not end on a newline" % (i + 1))
-		# A heading is set in capitals *and letterspaced*, which is about three times as
-		# long — past the measure it re-wraps and the heading falls apart. Typed
-		# explicitly: the node is untyped here, so `:=` cannot infer a String.
-		var shown: String = fresh.display_title(title)
-		if shown.length() > StoryText.MAX_LINE:
-			fails.append("page %d's heading is %d characters letterspaced (max %d)"
-					% [i + 1, shown.length(), StoryText.MAX_LINE])
-		if title.length() > StoryText.TITLE_MAX:
-			fails.append("page %d's title is %d letters (max %d)"
-					% [i + 1, title.length(), StoryText.TITLE_MAX])
-		# The catalogue holds the words, not the display form: a title already in
-		# capitals means somebody typed the rendering into the data.
-		if title == title.to_upper() and title != title.to_lower():
-			fails.append("page %d's title is written in capitals" % (i + 1))
-		for line in body.split("\n"):
-			if line.length() > StoryText.MAX_LINE:
-				fails.append("page %d has a %d-character line (max %d)"
-						% [i + 1, line.length(), StoryText.MAX_LINE])
+		_check_page(fails, fresh, "page %d" % (i + 1), StoryText.PAGES[i])
+	for id in StoryText.MILESTONES.keys():
+		_check_page(fails, fresh, "milestone '%s'" % id, StoryText.MILESTONES[id])
 
 	# 1b. No page re-wraps in the real block. This is the property that actually matters,
 	#     and it is measured against the resolved font rather than trusted to a character
@@ -81,7 +110,22 @@ func _init() -> void:
 		if rendered != wanted:
 			fails.append("page %d re-wraps: %d rendered lines for %d lines of text"
 					% [i + 1, rendered, wanted])
-	fresh._begin_page(0)              # the checks below are about page 1
+	# ...and the milestones, which are typed into the same block by the same machine, so a
+	# heading that falls apart there is a bug in the same way.
+	for id in StoryText.MILESTONES.keys():
+		fresh.play_milestone(id)
+		fresh.set_process(false)
+		var text: String = fresh.page_text()
+		body_label.text = text
+		await process_frame
+		var rendered: int = body_label.get_line_count()
+		var wanted: int = text.count("\n") + 1
+		if rendered != wanted:
+			fails.append("milestone '%s' re-wraps: %d rendered lines for %d lines of text"
+					% [id, rendered, wanted])
+		fresh._finish_milestone()
+	fresh._pages = StoryText.PAGES      # the checks below are about the intro again
+	fresh._begin_page(0)
 
 	# 2. The line break is its own beat. Stepped with a fixed delta so this does not
 	#    depend on how fast headless frames happen to run.
@@ -109,33 +153,89 @@ func _init() -> void:
 	if not has_sounds:
 		fails.append("the typewriter has no sounds loaded")
 
-	# 3. One step moves one page, and a page starts from its own first character rather
-	#    than inheriting the last one's text, cursor or running beat.
+	# 3. The intro is **one** screen, so it has nothing to page forward to: `next_page()`
+	#    says so, and one press from here is what enters the game (section 4). The second
+	#    kind of screen — a milestone the world hands over — is section 5, and *it* is
+	#    where "a screen starts from its own first character" is checked, because a
+	#    one-page intro can never show it.
 	fresh._process(0.05)
-	var first_page_len: int = _letters(fresh).length()
-	var page2: Dictionary = StoryText.PAGES[1]
-	if not fresh.next_page():
-		fails.append("there is no second page to move to")
-	if fresh.page_index() != 1:
-		fails.append("the page index did not move (%d)" % fresh.page_index())
-	if fresh.page_text() != fresh.display_title(str(page2.get("title", ""))) \
-			+ "\n\n" + str(page2.get("body", "")):
-		fails.append("the second page is not the one the catalogue holds")
-	if _letters(fresh).length() >= first_page_len:
-		fails.append("the next page inherited the previous page's text")
-	if fresh._done or fresh._hold > 0.0:
-		fails.append("the next page started finished or mid-beat")
-	while fresh.next_page():
-		pass
+	if fresh.next_page():
+		fails.append("a one-screen intro paged forward")
+	if fresh.page_index() != 0:
+		fails.append("the page index moved on a one-screen intro (%d)" % fresh.page_index())
 	if not fresh.is_last_page():
-		fails.append("paging forward did not stop at the last page")
-	if fresh.page_index() != fresh.page_count() - 1:
-		fails.append("the last page is not page_count() - 1 (%d of %d)"
-				% [fresh.page_index() + 1, fresh.page_count()])
+		fails.append("the intro's only page is not the last one")
+	if fresh.page_count() != 1:
+		fails.append("the intro screen holds %d pages" % fresh.page_count())
 	root.remove_child(fresh)
 	fresh.free()
 
-	# 4. Typing, and the loading hint, on a fresh screen.
+	# 4. A milestone screen: the same machine, **one** page the world hands over. It sits
+	#    hidden in the world scene with `enters_game = false` (that is how `world/main.tscn`
+	#    instances it), so it must stay quiet until it is asked, refuse an id with no words
+	#    behind it, and hand the run back — never reload it, because the run is what the
+	#    page is narrating.
+	var screen = load("res://ui/story.tscn").instantiate()
+	screen.enters_game = false
+	root.add_child(screen)
+	for i in 3:
+		await process_frame
+	if screen.is_playing():
+		fails.append("the milestone screen was up before anything asked for it")
+	if screen.page_count() != 0:
+		fails.append("the milestone screen started with %d pages" % screen.page_count())
+	if screen.play_milestone("no_such_milestone"):
+		fails.append("a milestone with no page played anyway")
+	if screen.play_milestone(""):
+		fails.append("an empty milestone id played")
+	if not screen.play_milestone("explorer_kit"):
+		fails.append("the Explorer's Kit milestone did not play")
+	if not screen.is_playing():
+		fails.append("the milestone screen did not come up")
+	if screen.milestone_id() != "explorer_kit":
+		fails.append("the milestone screen says it is playing '%s'" % screen.milestone_id())
+	if screen.enters_game:
+		fails.append("the milestone screen was asked to enter the game")
+	if not paused:
+		fails.append("the world was not paused behind the milestone screen")
+	var kit_page: Dictionary = StoryText.milestone("explorer_kit")
+	if screen.page_title() != str(kit_page.get("title", "")):
+		fails.append("the milestone screen is not showing its own page ('%s')"
+				% screen.page_title())
+	if screen.page_count() != 1:
+		fails.append("a milestone screen is %d screens, not one" % screen.page_count())
+	# It types from its own first character, like any other page, rather than arriving
+	# finished: the world was running when it opened.
+	screen.set_process(false)
+	screen._process(0.05)
+	var milestone_len: int = _letters(screen).length()
+	if milestone_len <= 0 or milestone_len >= screen.page_text().length():
+		fails.append("the milestone page is not typing (%d/%d)"
+				% [milestone_len, screen.page_text().length()])
+	# One press ends it: the run comes back, nothing was loaded over it, and the screen
+	# says it is done.
+	screen.finished.connect(_on_screen_finished)
+	screen._advance()
+	if screen.is_playing():
+		fails.append("the milestone screen stayed up after a press")
+	if paused:
+		fails.append("the world stayed paused after the milestone screen closed")
+	if current_scene != null and current_scene.name == "Main":
+		fails.append("the milestone screen loaded a scene instead of closing")
+	if _closed != 1:
+		fails.append("closing the milestone screen said so %d times" % _closed)
+	# ...and it can be played again (a run may find a second katana), from its own first
+	# character rather than the end of the last one.
+	if not screen.play_milestone("katana"):
+		fails.append("the katana milestone did not play")
+	screen.set_process(false)
+	if _letters(screen).length() >= screen.page_text().length():
+		fails.append("a replayed milestone came up already finished")
+	screen._finish_milestone()
+	root.remove_child(screen)
+	screen.free()
+
+	# 5. Typing, and the loading hint, on a fresh screen.
 	var story = load("res://ui/story.tscn").instantiate()
 	root.add_child(story)
 	var label: Label = story.get_node("Center/VBox/Text")
@@ -175,8 +275,9 @@ func _init() -> void:
 	elif not player.is_on_floor():
 		fails.append("the player is not on the floor after the story")
 
-	print("RESULT pages=%d title='%s' typing=%d/%d loading_hint=%s in_game=%s floor=%s cr_held=%s cr_at=%d sounds=%s"
-			% [StoryText.PAGES.size(), story.display_title(str(page1.get("title", ""))),
+	print("RESULT pages=%d milestones=%d title='%s' typing=%d/%d loading_hint=%s in_game=%s floor=%s cr_held=%s cr_at=%d sounds=%s"
+			% [StoryText.PAGES.size(), StoryText.MILESTONES.size(),
+			story.display_title(str(page1.get("title", ""))),
 			partial_len, full_len, loading_shown, in_game,
 			player.is_on_floor(), held, stopped_at, has_sounds])
 	if fails.is_empty():

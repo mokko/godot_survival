@@ -19,6 +19,7 @@
 [ext_resource type="Script" path="res://ui/energy_meter.gd" id="19_energy"]
 [ext_resource type="PackedScene" path="res://world/benches_placed.tscn" id="20_benches"]
 [ext_resource type="PackedScene" path="res://world/parts_placed.tscn" id="21_parts"]
+[ext_resource type="PackedScene" path="res://ui/story.tscn" id="24_story"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat_main"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -164,6 +165,9 @@ text = "FPS: --"
 script = ExtResource("15_fps")
 
 [node name="Inventory" parent="HUD" instance=ExtResource("13_inv")]
+
+[node name="StoryScreen" parent="HUD" instance=ExtResource("24_story")]
+enters_game = false
 
 [node name="Player" parent="." unique_id=1305561506 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 5.6243286, 82)
