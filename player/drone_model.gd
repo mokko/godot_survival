@@ -1,5 +1,5 @@
 extends Node3D
-## The drone itself: the three cosmetic families — legs, torso, head — plus the arms.
+## The drone itself: the three families — legs, torso, head — plus the arms.
 ##
 ## **This is the one builder.** `player/equipment.gd` (the machine the player steers) and
 ## `ui/editor.gd` (the picture in the Robo Editor) each instantiate one of these, so the drone on

@@ -97,9 +97,11 @@ drone faces): the player's own camera sits behind the machine and would show its
 what a picture of the robot is for. The viewport renders only while the screen is open
 (`UPDATE_WHEN_PARENT_VISIBLE`), so a closed bench costs nothing.
 
-**Every variant is reachable for now** (Maurice, 27 Sep): the parts are cosmetics that change nothing
-yet and the screen is still being built, so all of them have to be selectable without finding
-anything. Fitting goes through **one door**, `player/player.gd::fit_body_part(kind, id)` — and that
+**Every variant is reachable for now** (Maurice, 27 Sep): nothing gates a fit, because the screen is
+still being built, so all of them have to be selectable without finding anything. A part does move
+the drone's numbers — that is what `TRAITS` on each family is for, summed by `player/frame_stats.gd`
+(see `player/frame.md`) — but nothing in the **world** reads those numbers yet. Fitting goes through
+**one door**, `player/player.gd::fit_body_part(kind, id)` — and that
 function is exactly where the ownership rule lands when parts start to matter ("eventually we'll work
 with the parts we have found"). The found-parts loop below is untouched, and `fit_legs()` still
 carries the old gate for that path.

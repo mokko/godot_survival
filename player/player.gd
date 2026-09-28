@@ -1,14 +1,16 @@
 extends CharacterBody3D
 
-const SPEED = 5.0
-const JUMP_VELOCITY = 4.72   # 4.5 * sqrt(1.1): peak height scales with the
-                             # square of the launch velocity, so +10% height
-const START_LIFE = 40
-## Energy drain per second just for being switched on — the idle cost of
-## running around. 0.25/s gives a 160 s tank (the four batteries are 40 s each),
-## with sunbulbs adding 15 (1.5 batteries) back. It was 1.0/s, which emptied a
-## full tank in 40 s and made the meter read as a countdown rather than a gauge.
-const LIFE_DRAIN_PER_SEC = 0.25
+## **What the drone can do comes from the frame it is wearing**, not from constants here.
+## `player/frame_stats.gd` sums the three fitted parts (legs, torso, head) into the drone's
+## characteristics, and `frame` below holds that profile. The numbers these constants used to
+## hold — walk speed, the run, the jump, the tank, the idle drain — live there now, as the stock
+## frame's own values, so a drone in its stock parts behaves exactly as it always did. That is the
+## point of the move, and the suite is the evidence: every test runs on the stock frame.
+const FrameStats := preload("res://player/frame_stats.gd")
+const Torsos := preload("res://player/torsos.gd")
+const Heads := preload("res://player/heads.gd")
+## A sunbulb's gift belongs to the plant, not to the frame: what eating one gives back does not
+## change with the parts. 15 is 1.5 batteries.
 const SUNBULB_HEAL = 15.0
 const INVULN_TIME = 0.6      ## seconds of grace after a hit lands
 const HURT_FLASH_FADE = 2.5  ## alpha per second on the damage flash
@@ -61,7 +63,6 @@ const TREAD_IDLE_DB := -60.0    ## silence, and the level the player is parked a
 const TREAD_FADE_DB := 60.0     ## dB a second: an ease, not a switch (a step in volume clicks)
 const TREAD_PITCH_MIN := 0.85
 const TREAD_PITCH_MAX := 1.25
-const TREAD_SPEED_FULL := 10.0  ## the drone's sprint speed, i.e. level 1.0
 const FOV_MIN = 50.0
 const FOV_MAX = 150.0
 const FOV_DEFAULT = 75.0
@@ -83,7 +84,11 @@ var _fov_target := -1.0
 var _charted: Dictionary = {}
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
-var life: float = START_LIFE
+var life: float = FrameStats.BASE["tank"]
+## The drone's characteristics for the parts it is wearing, rebuilt whenever one is fitted
+## (`_read_frame()`). **Untyped on purpose** — the script has no `class_name`, so a typed variable
+## could not call `frame.walk_speed()`: it starts as the stock frame, so nothing is ever missing.
+var frame = FrameStats.new()
 var _drain_accum: float = 0.0
 var _discovery_timer: float = 0.0   ## counts down to the next notebook poll
 ## Counts up to the next autosave (SaveGame.AUTOSAVE_SECONDS). Only a living
@@ -176,8 +181,9 @@ func save_state() -> Dictionary:
 
 
 func load_state(data: Dictionary) -> void:
-	## Restore from a savegame Dictionary (missing/invalid keys ignored).
-	life = float(data.get("life", START_LIFE))
+	## Restore from a savegame Dictionary (missing/invalid keys ignored). The default charge is the
+	## frame's own tank — a save written before the tank existed comes back full for its body.
+	life = float(data.get("life", frame.tank()))
 	sunbulbs_collected = int(data.get("sunbulbs", data.get("orbs", 0)))
 	var pos: Array = data.get("pos", [])
 	if pos.size() == 3:
@@ -248,6 +254,11 @@ func load_state(data: Dictionary) -> void:
 		var saved_head := str(data.get("head", ""))
 		if saved_head != "":
 			equipment.set_head(saved_head)
+	# The parts a save remembers **are** the frame it was wearing, so the drone's numbers are read
+	# back from them: the camera, the tank and everything else then match the body that came back.
+	# This restore goes through `equipment` directly rather than `fit_body_part()`, so it has to
+	# say so itself.
+	_read_frame()
 	# Read the keepsakes back off the restored bag, so a load says "this run has held
 	# its notebook" the same way picking one up does.
 	_note_keepsakes_in_bag()
@@ -307,6 +318,11 @@ func _ready() -> void:
 		inventory.armor_changed.connect(_on_armor_changed)
 		inventory.item_equipped.connect(_on_item_equipped)
 	combat.armor_changed.connect(_on_combat_armor_changed)
+	# What the drone can do, for the parts it woke up in, and a tank to match that frame: the
+	# numbers live on the frame now (player/frame_stats.gd). A load restores its own charge
+	# below; a new run starts with the tank full.
+	_read_frame()
+	life = frame.tank()
 	# Load Game / Start Game hand-off: Load Game restores a saved game exactly
 	# once, when launched from the splash screen's Load Game button; Start Game
 	# starts a bare run instead.
@@ -496,25 +512,52 @@ func owns_part(part_id: String) -> bool:
 	return part_id == Legs.STOCK or RobotParts.has(part_id)
 
 
+func _read_frame() -> void:
+	## Rebuild the drone's characteristics from the parts it is wearing, and put the frame's own
+	## numbers where the game uses them. Called on `_ready` and whenever a part is fitted.
+	##
+	## **The camera rides on the body**: a head whose lens sits lower, or a body whose neck is
+	## shorter, looks out from lower down (`player/frame_stats.gd`). With the stock parts this
+	## resolves to the camera's own scene transform, to the digit, which is why wiring it changed
+	## nothing.
+	var legs_id := Legs.STOCK
+	var torso_id := Torsos.STOCK
+	var head_id := Heads.STOCK
+	if equipment != null:
+		legs_id = equipment.fitted_legs()
+		torso_id = equipment.fitted_torso()
+		head_id = equipment.fitted_head()
+	frame = FrameStats.new(legs_id, torso_id, head_id)
+	if camera != null:
+		camera.position.y = frame.eye_height()
+
+
 func fit_body_part(kind: String, part_id: String) -> bool:
-	## The Robo Editor's one door, for the three **cosmetic** families: "legs", "torso" or "head".
+	## The Robo Editor's one door, for the three families: "legs", "torso" or "head".
 	##
 	## **For now it accepts any part the family knows** (Maurice, 27 Sep): the editor is being
 	## built and every variant has to be reachable to test it, so nothing is gated on having found
 	## anything. `player/robot_parts.gd` and `items/part_pickup.gd` are untouched — the
 	## found-parts loop still runs — and this function is exactly where the ownership rule lands
-	## when parts stop being cosmetic ("eventually we'll work with the parts we have found").
-	## `fit_legs()` below keeps the old gate on purpose: it is the found-part path.
+	## when a fit is gated on having found the part ("eventually we'll work with the parts we have
+	## found"). `fit_legs()` below keeps the old gate on purpose: it is the found-part path.
+	##
+	## A fitted part is what moves the drone's numbers, so the frame is re-read here — the one
+	## place a part becomes a characteristic (`player/frame_stats.gd`).
 	if equipment == null:
 		return false
+	var fitted := false
 	match kind:
 		"legs":
-			return equipment.set_legs(part_id)
+			fitted = equipment.set_legs(part_id)
 		"torso":
-			return equipment.set_torso(part_id)
+			fitted = equipment.set_torso(part_id)
 		"head":
-			return equipment.set_head(part_id)
-	return false
+			fitted = equipment.set_head(part_id)
+	if not fitted:
+		return false
+	_read_frame()
+	return true
 
 
 func fit_legs(part_id: String) -> bool:
@@ -526,6 +569,7 @@ func fit_legs(part_id: String) -> bool:
 		return false
 	if equipment == null or not equipment.set_legs(part_id):
 		return false
+	_read_frame()
 	equipment.play_flourish()
 	return true
 
@@ -857,7 +901,7 @@ func _update_tread(delta: float) -> void:
 		return
 	var level := 0.0
 	if not _game_over and not in_boat():
-		level = clampf(Vector2(velocity.x, velocity.z).length() / TREAD_SPEED_FULL, 0.0, 1.0)
+		level = clampf(Vector2(velocity.x, velocity.z).length() / frame.sprint_speed(), 0.0, 1.0)
 		if level > 0.0 and level < 0.02:
 			level = 0.02     # creeping counts as rolling; the floor is below audibility
 	var want: float = TREAD_IDLE_DB if level <= 0.0 \
@@ -905,10 +949,10 @@ func _physics_process(delta: float) -> void:
 		_autosave_clock = 0.0
 		SaveGame.autosave(self)
 
-	# Drain energy steadily (LIFE_DRAIN_PER_SEC, a quarter point a second).
+	# Drain energy steadily: the frame's own idle cost, a quarter point a second as stock.
 	_drain_accum += delta
 	while _drain_accum >= 1.0:
-		life -= LIFE_DRAIN_PER_SEC
+		life -= frame.idle_drain()
 		_drain_accum -= 1.0
 		if life <= 0.0:
 			life = 0.0
@@ -939,23 +983,28 @@ func _physics_process(delta: float) -> void:
 
 	# Jump with Space.
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not _lock_check():
-		velocity.y = JUMP_VELOCITY
+		velocity.y = frame.jump_velocity()
 		_snd_jump.play()
 
 	# WASD movement relative to player facing direction.
 	var input_dir := Input.get_vector("move_left", "move_right", "move_back", "move_forward")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, -input_dir.y)).normalized()
 
-	var current_speed := SPEED
+	# What the drone can do comes from the frame it is wearing, and the run is a multiple of its
+	# walk, so a slower frame has a slower run and both move together (player/frame_stats.gd).
+	var current_speed: float = frame.walk_speed()
 	if Input.is_physical_key_pressed(KEY_SHIFT):
-		current_speed = SPEED * 2.0
+		current_speed = frame.sprint_speed()
 
 	if direction:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, current_speed)
-		velocity.z = move_toward(velocity.z, 0.0, current_speed)
+		# Braking is the speed it was going, scaled by the frame's own brake — 1.0 as stock, so a
+		# part can make the drone stop harder or slide without touching how fast it walks.
+		var brake: float = current_speed * frame.brake_scale()
+		velocity.x = move_toward(velocity.x, 0.0, brake)
+		velocity.z = move_toward(velocity.z, 0.0, brake)
 
 	move_and_slide()
 
@@ -966,7 +1015,7 @@ func _physics_process(delta: float) -> void:
 
 	# Footsteps while moving on the ground.
 	if is_on_floor() and direction.length() > 0.1:
-		_step_accum += delta * (2.0 if current_speed > SPEED else 1.0)
+		_step_accum += delta * (2.0 if current_speed > frame.walk_speed() else 1.0)
 		if _step_accum >= STEP_INTERVAL:
 			_step_accum = 0.0
 			_snd_step.play()
@@ -1020,10 +1069,10 @@ func _apply_damage(amount: float) -> void:
 
 func heal(amount: float) -> void:
 	## Restore energy only. Collection counting happens in collect_sunbulb().
-	## Capped at a full tank: the meter has exactly four batteries, and energy
-	## above the last one would have nowhere to show (a sunbulb picked up at
-	## three batteries tops the fourth up and wastes the rest).
-	life = minf(life + amount, float(START_LIFE))
+	## Capped at the frame's own tank: the meter is four batteries whatever the tank holds, and
+	## energy above the full one would have nowhere to show (a sunbulb picked up on a full charge
+	## wastes itself).
+	life = minf(life + amount, frame.tank())
 	if pickup_sound:
 		pickup_sound.play()
 	_update_hud()
@@ -1068,7 +1117,7 @@ func _fall_death() -> void:
 
 func _restart() -> void:
 	_game_over = false
-	life = START_LIFE
+	life = frame.tank()
 	_drain_accum = 0.0
 	sunbulbs_collected = 0
 	velocity = Vector3.ZERO
@@ -1121,7 +1170,7 @@ var _hud_armor_shown := true   # the Label starts visible; force a first sync
 
 func _update_hud() -> void:
 	if energy_meter != null:
-		energy_meter.set_energy(life, float(START_LIFE))
+		energy_meter.set_energy(life, frame.tank())
 	if _armor_label == null:
 		var hud: CanvasLayer = get_node_or_null("../HUD")
 		if hud != null:

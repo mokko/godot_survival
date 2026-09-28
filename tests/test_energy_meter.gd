@@ -9,7 +9,8 @@ extends SceneTree
 
 const Meter := preload("res://ui/energy_meter.gd")
 const PlayerScript := preload("res://player/player.gd")
-const MAX := 40.0   # player.START_LIFE — the meter's full tank (asserted below)
+const FrameStats := preload("res://player/frame_stats.gd")
+const MAX := 40.0   # the stock frame's tank — the meter's full tank (asserted below)
 
 
 func _charge(value: float, index: int) -> float:
@@ -32,10 +33,12 @@ func _init() -> void:
 		fails.append("battery_count=%d" % Meter.BATTERIES)
 	if int(MAX) % Meter.BATTERIES != 0:
 		fails.append("uneven_quarters")   # the tank must divide into 4
-	# The tank the meter is fed and the one the player starts with must agree,
-	# or the batteries would show a full tank as less than full.
-	if absf(float(PlayerScript.START_LIFE) - MAX) > 0.01:
-		fails.append("tank_mismatch=%d" % PlayerScript.START_LIFE)
+	# The tank the meter is fed and the one the drone starts with must agree,
+	# or the batteries would show a full tank as less than full. The drone's tank
+	# comes from the frame it is wearing now (player/frame_stats.gd).
+	var stock_tank: float = FrameStats.new().tank()
+	if absf(stock_tank - MAX) > 0.01:
+		fails.append("tank_mismatch=%.1f" % stock_tank)
 	if not _all_full(MAX) or not _all_full(37.0):
 		fails.append("full_tank")
 	var expect := {

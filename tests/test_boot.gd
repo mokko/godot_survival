@@ -14,7 +14,8 @@ func _init() -> void:
 	var ok_height := pos.y >= 0.0
 	# Jump feel: the launch speed must stay the 10%-taller one. Peak height
 	# scales with v², so the taller jump is 4.5 * sqrt(1.1), not 4.5 * 1.1.
-	var ok_jump: bool = absf(player.JUMP_VELOCITY - 4.5 * sqrt(1.1)) < 0.01
+	# It comes from the frame the drone is wearing now (player/frame_stats.gd).
+	var ok_jump: bool = absf(player.frame.jump_velocity() - 4.5 * sqrt(1.1)) < 0.01
 	print("CHECK on_floor=%s above_water=%s jump_v=%.3f" % [ok_floor, ok_height,
-			player.JUMP_VELOCITY])
+			player.frame.jump_velocity()])
 	quit(0 if (ok_floor and ok_height and ok_jump) else 1)

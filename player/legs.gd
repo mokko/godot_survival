@@ -43,6 +43,39 @@ const COLOURS := {
 
 const DEFAULT_COLOUR := Color(0.55, 0.60, 0.68)
 
+## What each fit does to the **frame as a whole** — `player/frame_stats.gd` sums these into the
+## drone's characteristics. A fit declares its own **weight** and a **delta** for anything it
+## changes; the stock fit declares its weight and nothing else, which is what keeps it the base
+## every other fit is measured against.
+##
+## The trades are deliberate (see that file's "a part has to trade"): the tracks grip and are
+## loud, the legs climb and are slow, and the telescope legs reach, wade and are slowest of all.
+const TRAITS := {
+	"tread_plain": {
+		"mass": 14.0,
+	},
+	"tread_triangle": {
+		"mass": 16.0,
+		"brake_scale": 0.10,           # more track on the ground: it stops harder
+		"noise": 0.10,
+		"grip": {"flat": 0.05, "slope": 0.05, "rock": 0.10, "bog": 0.15, "sand": 0.05},
+	},
+	"legs_three": {
+		"mass": 11.0,
+		"walk_speed": -0.6,            # it walks, so it walks slower
+		"jump_velocity": 0.20,         # but it can push off
+		"noise": -0.25,
+		"grip": {"flat": -0.10, "slope": 0.35, "rock": 0.25, "bog": 0.10},
+	},
+	"legs_telescope": {
+		"mass": 9.0,                   # the lightest set there is
+		"walk_speed": -1.0,
+		"jump_velocity": 0.35,
+		"noise": -0.35,
+		"grip": {"flat": -0.15, "slope": 0.25, "bog": 0.30, "sand": -0.10},
+	},
+}
+
 var _part := STOCK
 
 

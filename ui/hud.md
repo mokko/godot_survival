@@ -7,12 +7,14 @@ so an editor save cannot clobber it (`player/player.gd`).
 
 The drone's charge shows in the top-left of the HUD as **four batteries**, each full,
 half or empty — the hearts of this game, and what the `Life: 42` label used to be. The
-tank is 40 (`player/player.gd`'s `START_LIFE`), so a battery is 10 and a half is 5, and
+tank is 40 in the **stock frame** and the idle drain 0.25 a second (`player/frame.md`: both
+are characteristics of the parts the drone is wearing, so a body that holds more cells moves
+them), which is why a battery is 10 and a half is 5, and
 the display rounds *up* to the next half: one point left still shows half a battery, so
 a battery only reads empty when that quarter of the tank is really gone
 (`ui/energy_meter.gd`, where the rule is a static the tests check without a renderer).
-Just being switched on costs 0.25 a second — 160 s on a full tank, or 40 s a battery —
-and **Sunbulbs** feed 15 (a battery and a half) back, never past a full tank. A stalker
+Being switched on costs the frame's own 0.25 a second as stock — 160 s on a full tank, or 40 s
+a battery — and **Sunbulbs** feed 15 (a battery and a half) back, never past a full tank. A stalker
 bite takes 5, one battery's half.
 
 ## Also on this surface

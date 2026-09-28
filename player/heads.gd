@@ -35,6 +35,31 @@ const COLOURS := {
 	"head_dish": Color(0.86, 0.88, 0.90),
 }
 
+## What each head does to the **frame as a whole** — `player/frame_stats.gd` sums these: its own
+## weight, and where the drone looks out from. `eye_height` is the head's own lens minus the stock
+## dome's 1.10 (`_eye()` below), so it is the mesh's height rather than a penalty invented here —
+## and it means the stock dome is the one that looks out highest, by two to four centimetres.
+##
+## Nothing else about a head is wired to anything yet. A head is where a sensor would live, so a
+## lens that saw further would be a trait in this table — `player/frame.md` says what that needs.
+const TRAITS := {
+	"head_dome": {
+		"mass": 3.0,
+	},
+	"head_visor": {
+		"mass": 2.5,
+		"eye_height": -0.04,
+	},
+	"head_twin": {
+		"mass": 2.0,
+		"eye_height": -0.03,
+	},
+	"head_dish": {
+		"mass": 3.5,
+		"eye_height": -0.02,
+	},
+}
+
 var _part := STOCK
 
 

@@ -6,11 +6,10 @@ extends Node3D
 ## one place a part is named, `COLOURS` is what it looks like lying in the world, and every part
 ## is a plain tree of Godot primitives parented here and nowhere else.
 ##
-## **Nothing about a part does anything yet** (Maurice, 27 Sep): they are cosmetics, chosen in the
-## Robo Editor, and the same file is where a part's effect will live — the numbers that matter to
-## the body (arm shoulder height, chest lens position, the neck's height) are exposed as
-## functions rather than consts, so a future part can answer differently without the arms or the
-## camera being told twice.
+## **What a part does to the drone's numbers is declared in `TRAITS` below** (`player/frame_stats.gd`
+## sums the three families into the frame's characteristics). The geometry that matters to the body
+## — arm shoulder height, chest lens position, the neck's height — is exposed as functions rather
+## than consts, so a body can differ without the arms or the camera being told twice.
 ##
 ## The body's own space: the drone's origin is on the ground, the torso spans about y 0.35 to
 ## 0.9, and the drone faces **-Z** (eye, chest lens and arms are on that side). Every part keeps
@@ -34,6 +33,39 @@ const COLOURS := {
 	"torso_slim": Color(0.80, 0.86, 0.90),
 	"torso_plated": Color(0.68, 0.72, 0.76),
 	"torso_round": Color(0.90, 0.90, 0.94),
+}
+
+## What each body does to the **frame as a whole** — `player/frame_stats.gd` sums these. The stock
+## body declares its weight and nothing else. `eye_height` follows `neck_y()` below: the camera
+## rides on the body, so a lower body looks out from lower down, and all three of these are lower
+## than the stock body's 0.95 — which is the honest reading of the meshes, not a penalty invented
+## here.
+##
+## The trades: a slim shell is quick but holds fewer cells, plated is heavy and slow but holds
+## more, and the barrel sits between them.
+const TRAITS := {
+	"torso_stock": {
+		"mass": 6.0,
+	},
+	"torso_slim": {
+		"mass": 4.5,
+		"walk_speed": 0.20,
+		"tank": -4.0,
+		"eye_height": -0.01,
+	},
+	"torso_plated": {
+		"mass": 9.0,
+		"walk_speed": -0.30,
+		"brake_scale": -0.10,          # more weight, slower to bring to a stop
+		"tank": 8.0,
+		"eye_height": -0.09,
+	},
+	"torso_round": {
+		"mass": 7.0,
+		"walk_speed": -0.10,
+		"tank": 3.0,
+		"eye_height": -0.05,
+	},
 }
 
 var _part := STOCK

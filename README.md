@@ -104,6 +104,8 @@ environment it needs; `screenshots/README.md` covers the weekly screenshots.
 
 - **Combat** — `player/combat.md`: the phases in the order they run, which
   function is called for what, every constant, which test covers what.
+- **The frame** — `player/frame.md`: what the drone can do, summed from the parts it
+  is wearing, and which of those numbers something already reads.
 - **Pedia and study** — `ui/pedia.md`: the notebook, its three layers, the
   magnifying glass and the binoculars.
 - **The HUD** — `ui/hud.md`: the four batteries and the rest of that surface.

@@ -12,9 +12,10 @@ extends SceneTree
 const SaveGame := preload("res://world/savegame.gd")
 const PlayerScript := preload("res://player/player.gd")
 
-## What the levels are, read off the player's own constants so this cannot drift.
+## The idle level is read off the player's own constant so this cannot drift. The full speed is
+## the **frame's** (player/frame_stats.gd) — it is what the treads are scaled against — so it is
+## asked for once the drone exists rather than written down here.
 const IDLE_DB: float = PlayerScript.TREAD_IDLE_DB
-const FULL_SPEED: float = PlayerScript.TREAD_SPEED_FULL
 
 
 func _wait(seconds: float) -> void:
@@ -38,6 +39,7 @@ func _init() -> void:
 	root.add_child(main)
 	current_scene = main
 	var player: CharacterBody3D = main.get_node("Player")
+	var full_speed: float = player.frame.sprint_speed()
 	for i in 90:
 		await physics_frame
 
@@ -72,7 +74,7 @@ func _init() -> void:
 		fails.append("pitch_did_not_move:%.2f" % walk_pitch)
 
 	# 3. A sprint reads as louder and higher — the same loop, scaled by speed.
-	player.velocity = Vector3(FULL_SPEED, 0.0, 0.0)
+	player.velocity = Vector3(full_speed, 0.0, 0.0)
 	_settle(player, 0.4)
 	var fast_db: float = tread.volume_db
 	var fast_pitch: float = tread.pitch_scale
@@ -87,7 +89,7 @@ func _init() -> void:
 		fails.append("still_running_after_stopping:%.1f" % tread.volume_db)
 
 	# 5. Dead: silent even with the body still sliding.
-	player.velocity = Vector3(FULL_SPEED, 0.0, 0.0)
+	player.velocity = Vector3(full_speed, 0.0, 0.0)
 	player._game_over = true
 	_settle(player, 1.0)
 	if tread.playing or tread.volume_db > IDLE_DB + 0.5:
@@ -98,7 +100,7 @@ func _init() -> void:
 	# 6. Aboard a boat: the treads are not what carries the drone across a strait.
 	var boat: Node3D = get_nodes_in_group("boat")[0]
 	boat.call("board_for_test", player)
-	player.velocity = Vector3(FULL_SPEED, 0.0, 0.0)
+	player.velocity = Vector3(full_speed, 0.0, 0.0)
 	_settle(player, 1.0)
 	if tread.playing:
 		fails.append("treads_roll_on_a_boat_deck")
