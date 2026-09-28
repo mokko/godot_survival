@@ -34,6 +34,7 @@ extends Control
 
 const GAME_SCENE := "res://world/main.tscn"
 const StoryText := preload("res://ui/story_text.gd")
+const StoryProgress := preload("res://ui/story_progress.gd")
 ## Typewriter speed. 28 cps reads as deliberate narration; 40 rushed it (a page lands in a
 ## few seconds, and a click or ESC still moves on at any point).
 const CHARS_PER_SEC := 28.0
@@ -71,6 +72,7 @@ signal finished
 
 @onready var label: Label = $Center/VBox/Text
 @onready var hint: Label = $Center/VBox/Hint
+@onready var progress: Label = $Progress
 
 ## The records this screen walks: the intro's list, or a single milestone page. Never
 ## `ui/story_text.gd`'s catalogue directly, because a milestone is not in it.
@@ -140,6 +142,11 @@ func play_milestone(id: String) -> bool:
 		return false
 	_milestone = id
 	_pages = [record]
+	# The milestone is discovered by being shown, so it is recorded here — before the
+	# indicator is drawn, so the page the player is reading is already counted.
+	StoryProgress.discover(id)
+	progress.text = progress_text()
+	progress.show()
 	# Typing and the ESC/click that ends it both have to keep running while the tree is
 	# paused, so the screen outruns the pause it just applied.
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -155,6 +162,23 @@ func play_milestone(id: String) -> bool:
 func milestone_id() -> String:
 	## Which milestone page is up — "" for the intro, or nothing at all.
 	return _milestone
+
+
+func progress_text() -> String:
+	## The milestone indicator, drawn in the screen's bottom right: how many milestones this
+	## run has been **shown**, out of how many there are. Counted including the one on screen,
+	## because being shown it is the discovering — so the page the player is reading is
+	## already the last of the x, not the one before it.
+	##
+	## The total is the catalogue's size, so writing a new milestone into
+	## `ui/story_text.gd` moves the denominator on its own.
+	return "%d/%d" % [StoryProgress.count(), StoryText.MILESTONES.size()]
+
+
+func milestones_seen() -> int:
+	## How many milestones the run has been shown — the number behind the indicator, for
+	## anything that wants it without the string.
+	return StoryProgress.count()
 
 
 func is_playing() -> bool:

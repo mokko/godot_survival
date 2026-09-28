@@ -26,6 +26,23 @@ page" state in between either, so a press can never do something the player did 
 What the finished page's hint says tells them which step they are about to take (`PROMPT_NEXT` /
 `PROMPT_BEGIN`, and `PROMPT_RESUME` for a milestone, where the next step is *back to the game*).
 
+## The milestone count
+
+Every milestone screen carries the run's progress in its **bottom right**: `x/y`, how many
+milestones it has been shown out of how many there are. The intro, not being a milestone, never
+shows it.
+
+- **x counts the page being read.** Being shown a milestone *is* the discovering, so the page on
+  screen is already the last of the x — the first milestone a run meets reads `1/5`, not `0/5`.
+- **y is the catalogue's size** (`ui/story_text.gd`'s `MILESTONES`), so writing a new milestone
+  moves the denominator and nothing else has to change.
+- **It counts, it does not tally.** `katana` plays for *any* katana picked up, on purpose: the
+  second sword plays the page again and the count does not move. Replaying a milestone already
+  discovered does not recount either.
+- The count is **saved with the run** (`ui/story_progress.gd`, the `milestones` key), so a loaded
+  run carries the indicator on rather than restarting it, and a fresh run clears it. Like the
+  notebook, it is the run's own record of what it has been told.
+
 Every page starts clean: the reveal, the carriage-return beat, the clack clock and the cursor
 all reset in `_begin_page()`, and the previous page's bell is cut off rather than ringing into
 the new page.

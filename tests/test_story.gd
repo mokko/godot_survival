@@ -7,8 +7,13 @@ extends SceneTree
 ## entering the game) and a **milestone** (`MILESTONES`, one page the world hands over
 ## mid-run, ends by handing the run back). `enters_game` is what tells them apart, and
 ## `tests/test_explorer_kit.gd` checks that opening the satchel is what plays one.
+##
+## A milestone screen also carries the run's progress in its bottom right — how many
+## milestones it has been shown out of how many there are — which the intro, not being a
+## milestone, never shows. The count lives in `ui/story_progress.gd` and rides in the save.
 
 const StoryText := preload("res://ui/story_text.gd")
+const StoryProgress := preload("res://ui/story_progress.gd")
 
 ## How many times a milestone screen has said it is done (`finished`).
 var _closed := 0
@@ -69,6 +74,9 @@ func _check_page(fails: PackedStringArray, screen: Node, label: String, record) 
 
 func _init() -> void:
 	var fails: PackedStringArray = []
+	# The registry is static, so the counts below start from nothing no matter what else
+	# has run in this process.
+	StoryProgress.clear()
 
 	# 1. The intro is **one** screen — the run's opening statement — and every page in the
 	#    catalogue is a page worth typing: a heading is the first line of what gets typed,
@@ -80,6 +88,12 @@ func _init() -> void:
 		await process_frame
 	if StoryText.PAGES.size() != 1:
 		fails.append("the intro is %d screens, not one" % StoryText.PAGES.size())
+	# The intro is not a milestone, so it carries no milestone count — and it has discovered
+	# nothing by being shown.
+	if fresh.progress.visible:
+		fails.append("the intro screen shows a milestone count")
+	if StoryProgress.count() != 0:
+		fails.append("the intro recorded %d milestones" % StoryProgress.count())
 	for i in StoryText.PAGES.size():
 		_check_page(fails, fresh, "page %d" % (i + 1), StoryText.PAGES[i])
 	for id in StoryText.MILESTONES.keys():
@@ -176,6 +190,10 @@ func _init() -> void:
 	#    behind it, and hand the run back — never reload it, because the run is what the
 	#    page is narrating. "Quiet" includes the keyboard: a hidden Control still receives
 	#    unhandled input, so a screen waiting to be asked must not be listening.
+	#
+	#    Section 1b played every milestone through this same screen, so the count the
+	#    indicator draws has to start clean for the checks below.
+	StoryProgress.clear()
 	var screen = load("res://ui/story.tscn").instantiate()
 	screen.enters_game = false
 	root.add_child(screen)
@@ -193,6 +211,19 @@ func _init() -> void:
 		fails.append("an empty milestone id played")
 	if not screen.play_milestone("explorer_kit"):
 		fails.append("the Explorer's Kit milestone did not play")
+	# The indicator: how many milestones this run has been shown, bottom right, counted
+	# **including** the one on screen — the page being read is the discovering.
+	if not screen.progress.visible:
+		fails.append("a milestone screen shows no progress indicator")
+	if not StoryProgress.has("explorer_kit"):
+		fails.append("playing a milestone did not record it")
+	if screen.milestones_seen() != 1:
+		fails.append("the first milestone counted %d" % screen.milestones_seen())
+	if screen.progress.text != "1/%d" % StoryText.MILESTONES.size():
+		fails.append("the first milestone's indicator reads '%s'" % screen.progress.text)
+	var total: int = StoryText.MILESTONES.size()
+	if total < 2:
+		fails.append("there are %d milestones, so progress cannot be told from 'x/x'" % total)
 	if not screen.is_playing():
 		fails.append("the milestone screen did not come up")
 	if not screen.is_processing_unhandled_input():
@@ -244,6 +275,21 @@ func _init() -> void:
 	if _letters(screen).length() >= screen.page_text().length():
 		fails.append("a replayed milestone came up already finished")
 	screen._finish_milestone()
+	# The indicator is progress, not a tally of how often a page has been seen: the second
+	# katana played its page again and the count moved once, not twice.
+	if screen.milestones_seen() != 2:
+		fails.append("after a second milestone the count is %d" % screen.milestones_seen())
+	if screen.progress.text != "2/%d" % StoryText.MILESTONES.size():
+		fails.append("after a second milestone the indicator reads '%s'" % screen.progress.text)
+	# ...and a milestone the run has already been shown does not count again.
+	if not screen.play_milestone("explorer_kit"):
+		fails.append("a milestone already discovered did not play again")
+	if screen.milestones_seen() != 2:
+		fails.append("replaying a known milestone moved the count to %d"
+				% screen.milestones_seen())
+	if screen.progress.text != "2/%d" % StoryText.MILESTONES.size():
+		fails.append("replaying a known milestone reads '%s'" % screen.progress.text)
+	screen._finish_milestone()
 	root.remove_child(screen)
 	screen.free()
 
@@ -286,6 +332,18 @@ func _init() -> void:
 		fails.append("the story did not hand over to the game")
 	elif not player.is_on_floor():
 		fails.append("the player is not on the floor after the story")
+
+	# 6. The count rides in the save, or a loaded run would show the indicator reset to
+	#    nothing and look like progress lost. Read off a real player in a real world.
+	var state: Dictionary = player.save_state()
+	var saved: Array = state.get("milestones", [])
+	if not (saved.has("explorer_kit") and saved.has("katana")):
+		fails.append("the save has no milestone count: %s" % str(saved))
+	StoryProgress.clear()
+	player.load_state(state)
+	if StoryProgress.count() != saved.size():
+		fails.append("the milestone count came back as %d, not %d"
+				% [StoryProgress.count(), saved.size()])
 
 	print("RESULT pages=%d milestones=%d title='%s' typing=%d/%d loading_hint=%s in_game=%s floor=%s cr_held=%s cr_at=%d sounds=%s"
 			% [StoryText.PAGES.size(), StoryText.MILESTONES.size(),

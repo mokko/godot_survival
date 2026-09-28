@@ -34,6 +34,7 @@ const KEEPSAKE_ITEMS := ["notebook", "pen", "magnifying_glass"]
 const NOTEBOOK_ITEM := "notebook"
 const SAVEGAME := preload("res://world/savegame.gd")
 const Notes := preload("res://ui/pedia_notes.gd")
+const StoryProgress := preload("res://ui/story_progress.gd")
 const RobotParts := preload("res://player/robot_parts.gd")
 const Legs := preload("res://player/legs.gd")
 ## How close the drone has to be to an island's coast to count as *there* — used by
@@ -153,6 +154,11 @@ func save_state() -> Dictionary:
 		# (ui/pedia_notes.gd): a save written before naming existed simply has no such
 		# key, and an old run shows data-table names until something is renamed.
 		"names": Notes.names(),
+		# The milestone pages this run has been shown (ui/story_progress.gd) — the count
+		# behind the story screen's "x/y" indicator. Saved with the rest for the same reason
+		# the notebook is: what the run has been told is part of the run, so loading a save
+		# continues the count rather than restarting it.
+		"milestones": StoryProgress.seen(),
 		"parts": RobotParts.owned(),
 		"containers": opened_containers.duplicate(),
 		"legs": equipment.fitted_legs() if equipment != null else "",
@@ -207,6 +213,9 @@ func load_state(data: Dictionary) -> void:
 	# belong to, so a name can never end up on an entry the notebook does not hold.
 	Notes.restore(data.get("notes", []))
 	Notes.restore_names(data.get("names", {}))
+	# ...and so does the milestone count behind the story screen's indicator: a save written
+	# before milestones existed simply has no such key, and the count starts from nothing.
+	StoryProgress.restore(data.get("milestones", []))
 	# Containers opened earlier in the run come back emptied (world/explorer_kit.gd),
 	# so a container the drone has already been through does not offer its contents
 	# again.
@@ -311,6 +320,7 @@ func _ready() -> void:
 		# picks up after it), where it wakes up (islands) and what it studies
 		# (plants, animals) — see _update_notes() and player/study.gd.
 		Notes.clear()
+		StoryProgress.clear()
 		RobotParts.clear()
 		give_starting_items()
 	_update_notes()
