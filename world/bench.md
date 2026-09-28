@@ -97,6 +97,13 @@ drone faces): the player's own camera sits behind the machine and would show its
 what a picture of the robot is for. The viewport renders only while the screen is open
 (`UPDATE_WHEN_PARENT_VISIBLE`), so a closed bench costs nothing.
 
+**The numbers are on the screen too, not only the pictures** (Maurice, 28 Sep): the third column
+lists the drone's characteristics for the parts it is wearing, each line showing what it costs by
+when it is not the stock frame's. They stand in **two groups** — what the game reads today, and what
+is declared and read by nothing yet (`player/frame.md`) — because a number the game ignores must not
+look like one it obeys. The readout asks the drone's own frame and the layer's own `SURFACES`, so it
+cannot drift from either.
+
 **Every variant is reachable for now** (Maurice, 27 Sep): nothing gates a fit, because the screen is
 still being built, so all of them have to be selectable without finding anything. A part does move
 the drone's numbers — that is what `TRAITS` on each family is for, summed by `player/frame_stats.gd`

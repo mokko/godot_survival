@@ -13,12 +13,20 @@ extends Control
 ## `player/torsos.gd`, `player/heads.gd`, `player/legs.gd`. One row per family, showing that part's
 ## name with a button either side; the walk wraps, so a row is never a dead end.
 ##
-## **Every variant is reachable for now.** The parts are cosmetics that change nothing, and the
-## editor is being built, so all of them have to be selectable without finding anything: fitting
-## goes through `player/player.gd::fit_body_part()` — one door, and exactly where the ownership
-## rule lands when parts start to matter ("eventually we'll work with the parts we have found").
+## **Every variant is reachable for now.** Nothing gates a fit, because the editor is being built,
+## so all of them have to be selectable without finding anything: fitting goes through
+## `player/player.gd::fit_body_part()` — one door, and exactly where the ownership rule lands when a
+## fit is gated on having found the part ("eventually we'll work with the parts we have found").
 ## The found-parts loop (`player/robot_parts.gd`, `items/part_pickup.gd`) is untouched, and
 ## `fit_legs()` still carries the old gate for that path.
+##
+## **The numbers are on the screen, not only the pictures** (Maurice, 28 Sep): the right column
+## carries the drone's characteristics for the parts it is wearing (`player/frame_stats.gd`), and a
+## line whose value is not the stock frame's says what it costs by — a part's price is the whole
+## reason this screen exists. They stand in **two lists**: what the game reads today, and what is
+## declared and read by nothing yet (`player/frame.md`), because a number the game ignores must not
+## look like one it obeys. The readout asks the same frame the drone uses and the same `SURFACES`
+## the layer declares, so the screen cannot drift from either.
 ##
 ## **A picture of the drone, not just its parts' names** (Maurice, 27 Sep): the left column is a
 ## `SubViewport` holding a real `player/drone_model.gd` — the same builder the player's machine
@@ -36,6 +44,31 @@ const Legs := preload("res://player/legs.gd")
 const Torsos := preload("res://player/torsos.gd")
 const Heads := preload("res://player/heads.gd")
 const DroneModel := preload("res://player/drone_model.gd")
+const FrameStats := preload("res://player/frame_stats.gd")
+
+## What the readout lists, as [stat, label, format]: **the numbers the game reads today**. The value
+## is formatted, and when it differs from the stock frame's the difference is shown beside it — a
+## part's cost is the whole reason this screen exists, and "4.4 m/s (−0.6)" says what it costs in a
+## way that "4.4 m/s" does not.
+##
+## The rows flow into a **four-column** grid, so they pair up two to a row and **the order here is
+## the order they read in** — walk beside run, jump beside charge.
+const NOW := [
+	["walk_speed", "Walk", "%.1f m/s"],
+	["sprint_speed", "Run", "%.1f m/s"],
+	["jump_velocity", "Jump", "%.2f"],
+	["tank", "Charge", "%.0f"],
+	["brake_scale", "Braking", "%.2f×"],
+	["eye_height", "View height", "%.2f m"],
+]
+## ...and the ones that are **declared and read by nothing yet** (`player/frame.md`): its weight,
+## how far it carries, and how it holds each surface. Shown all the same, because this is where a
+## part's numbers are chosen — and kept apart, because a number the game ignores must not look like
+## one it obeys.
+const LATER := [
+	["mass", "Mass", "%.1f kg"],
+	["noise", "Noise", "%.2f"],
+]
 
 ## Where the picture's camera stands: front-right of the machine, a little above its middle, and
 ## where it looks — roughly the middle of the machine, in the drone's own space, whose origin is on
@@ -55,6 +88,8 @@ var island := ""
 
 @onready var subtitle: Label = $Center/Padding/Panel/VBox/Subtitle
 @onready var fits: VBoxContainer = $Center/Padding/Panel/VBox/Content/Side/Fits
+@onready var now_stats: GridContainer = $Center/Padding/Panel/VBox/Content/Stats/Now
+@onready var later_stats: GridContainer = $Center/Padding/Panel/VBox/Content/Stats/Later
 @onready var body: Label = $Center/Padding/Panel/VBox/Content/Side/Body
 @onready var back_button: Button = $Center/Padding/Panel/VBox/Back
 @onready var preview: SubViewport = $Center/Padding/Panel/VBox/Content/Preview/Viewport
@@ -71,6 +106,12 @@ var _families: Array = [
 var _player: Node3D = null
 var _labels := {}      # kind -> the Label showing that family's current part
 var _preview_model: Node3D = null
+## The stock frame: what every readout line is measured against, so a part's cost shows as a
+## difference rather than as a number the player has to remember.
+var _stock = FrameStats.new()
+## key -> the readout's value Label, so `stat_value()` can say what the screen shows without
+## walking the grid for it.
+var _stat_cells := {}
 
 
 func _ready() -> void:
@@ -103,8 +144,81 @@ func refresh() -> void:
 		if label == null:
 			continue
 		label.text = "%s: %s" % [str(entry[1]), _name_of(entry[2], fitted(kind))]
-	body.text = "Nothing here changes how the drone behaves — yet."
+	body.text = "Every part trades something — these numbers are its price."
+	_refresh_stats()
 	_sync_preview()
+
+
+# ------------------------------------------------------------ what the drone is
+
+func stat_value(key: String) -> String:
+	## One line of the readout, by the key its row was built under — "walk_speed", "mass",
+	## "grip_rock" — so a test reads what the screen says without walking the grid.
+	var cell: Label = _stat_cells.get(key)
+	return "" if cell == null else cell.text
+
+
+func _frame():
+	## The frame the drone is wearing, or the stock one when there is no drone to ask (the screen
+	## is built and laid out before a bench ever opens it). Untyped, because the node in the group
+	## is only checked for the property.
+	var node = _player.get("frame") if _player != null else null
+	return node if node != null else _stock
+
+
+func _refresh_stats() -> void:
+	## Rebuild the readout from the frame. **Two grids rather than one list**, so "what the game
+	## reads today" and "what nothing reads yet" cannot be mistaken for each other — a number the
+	## game ignores must not look like one it obeys.
+	_stat_cells.clear()
+	_fill_stats(now_stats, NOW)
+	_fill_stats(later_stats, LATER)
+	# The surfaces come from the frame rather than from a table: `FrameStats.SURFACES` is the
+	# vocabulary, so a surface added there gets a row here without anyone remembering to.
+	for surface in FrameStats.SURFACES:
+		# `grip_<surface>`, not `grip:<surface>`: the key doubles as the row's node name, and a
+		# node name cannot hold a colon — Godot sanitises it away and the row stops being findable.
+		var key := "grip_%s" % surface
+		later_stats.add_child(_stat_name("Grip %s" % surface, key))
+		later_stats.add_child(_stat_cell(_frame().grip(surface), _stock.grip(surface),
+				"%.2f", key))
+
+
+func _fill_stats(grid: GridContainer, rows: Array) -> void:
+	for child in grid.get_children():
+		grid.remove_child(child)
+		child.queue_free()
+	for row in rows:
+		var key: String = row[0]
+		grid.add_child(_stat_name(str(row[1]), key))
+		grid.add_child(_stat_cell(_frame().stat(key), _stock.stat(key), str(row[2]), key))
+
+
+func _stat_name(text: String, key: String) -> Label:
+	var label := Label.new()
+	label.name = "Stat_%s" % key
+	label.text = text
+	label.add_theme_font_size_override("font_size", 16)
+	return label
+
+
+func _stat_cell(value: float, stock: float, format: String, key: String) -> Label:
+	var label := Label.new()
+	label.name = "Value_%s" % key
+	label.text = _value_text(value, stock, format)
+	label.add_theme_font_size_override("font_size", 16)
+	_stat_cells[key] = label
+	return label
+
+
+func _value_text(value: float, stock: float, format: String) -> String:
+	## The number, and — when it is not the stock frame's — what it costs by. A part that were only
+	## better than the stock one would be a part with no decision in it, so the difference is the
+	## interesting half of the line.
+	var text := format % value
+	if absf(value - stock) > 0.005:
+		text += "  (%+.2f)" % (value - stock)
+	return text
 
 
 func fitted(kind: String) -> String:

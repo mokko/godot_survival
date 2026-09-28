@@ -85,6 +85,35 @@ size_flags_vertical = 4
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="Stats" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 4
+size_flags_vertical = 4
+
+[node name="NowHeading" type="Label" parent="Center/Padding/Panel/VBox/Content/Stats"]
+modulate = Color(0.75, 0.8, 0.85, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "What it does now"
+
+[node name="Now" type="GridContainer" parent="Center/Padding/Panel/VBox/Content/Stats"]
+layout_mode = 2
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 2
+columns = 4
+
+[node name="LaterHeading" type="Label" parent="Center/Padding/Panel/VBox/Content/Stats"]
+modulate = Color(0.75, 0.8, 0.85, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Not read by anything yet"
+
+[node name="Later" type="GridContainer" parent="Center/Padding/Panel/VBox/Content/Stats"]
+layout_mode = 2
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 2
+columns = 4
+
 [node name="Body" type="Label" parent="Center/Padding/Panel/VBox/Content/Side"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18

@@ -85,6 +85,11 @@ func _init(legs_id := Legs.STOCK, torso_id := Torsos.STOCK, head_id := Heads.STO
 	_add_traits(Legs.TRAITS.get(legs, {}))
 	_add_traits(Torsos.TRAITS.get(torso, {}))
 	_add_traits(Heads.TRAITS.get(head, {}))
+	# The run's speed is worked out once and kept under its own name, so anything that **lists** the
+	# frame's numbers can ask for it like the rest (`stat("sprint_speed")`) instead of having to know
+	# that it is the walk times the multiplier. Nothing writes it: a part moves the walk or the
+	# multiplier and this follows.
+	_stats["sprint_speed"] = float(_stats["walk_speed"]) * float(_stats["sprint_multiplier"])
 
 
 func _add_traits(traits: Dictionary) -> void:
@@ -131,8 +136,9 @@ func sprint_multiplier() -> float:
 
 
 func sprint_speed() -> float:
-	## The speed of the run — what the treads are scaled against for their sound.
-	return walk_speed() * sprint_multiplier()
+	## The speed of the run — what the treads are scaled against for their sound. Kept worked out
+	## (see `_init`) so a listing can ask for it by name too.
+	return float(_stats["sprint_speed"])
 
 
 func jump_velocity() -> float:
@@ -171,7 +177,8 @@ func grip(surface: String) -> float:
 	return float(_stats["grip"].get(surface, 1.0))
 
 
-func stats() -> Dictionary:
-	## Everything at once, for anything that wants to show or compare the numbers rather than ask
-	## for them one at a time.
-	return _stats.duplicate(true)
+func stat(name: String) -> float:
+	## One characteristic by name — for anything that **lists** the numbers rather than asking for
+	## them one at a time, which is what the Robo Editor's readout does. An unknown name answers
+	## 0.0 rather than raising: a listing should survive a stat being renamed.
+	return float(_stats.get(name, 0.0))

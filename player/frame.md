@@ -36,6 +36,10 @@ something it did not declare would show up as a broken game rather than as a sur
 | `tank` | the starting charge, the sunbulb cap, a respawn, and the max the HUD meter is fed |
 | `idle_drain` | the energy a second the drone spends just being switched on |
 
+The **Robo Editor shows them** (`ui/editor.gd`): a column beside the picture, one line per stat, each
+saying what it costs by when the value is not the stock frame's — and the declared-but-unread ones
+under a heading of their own, because a number the game ignores must not look like one it obeys.
+
 Two of those are worth knowing about:
 
 - **The frame is re-read whenever a part is fitted** (`player.gd::_read_frame()`, called from
