@@ -16,20 +16,14 @@ extends Node3D
 ## of a number in a panel.
 
 const ItemDB := preload("res://items/item_db.gd")
-const Legs := preload("res://player/legs.gd")
-const Torsos := preload("res://player/torsos.gd")
-const Heads := preload("res://player/heads.gd")
+const DroneModel := preload("res://player/drone_model.gd")
 
 ## The container that *is* the bag: emptying the Explorer's Kit puts that satchel on the
 ## drone. The string is that node's own export default, and the kit's test pins the two
 ## together, so this is a reference and not a second source of truth.
 const KIT_CONTAINER := "explorer_kit"
 
-var _legs: Node3D = null
-## The other two families, built the same way (`player/torsos.gd`, `player/heads.gd`): each owns
-## its own meshes, so nothing else may parent a torso or head mesh onto the body.
-var _torso: Node3D = null
-var _head: Node3D = null
+var _model: Node3D = null
 var _satchel: Node3D = null
 
 var _props := {}         # item id -> Node3D
@@ -124,114 +118,15 @@ func play_flourish() -> void:
 ## - R2 side: white/blue dome head with panel rings, silver accents
 
 func _build_drone_body() -> void:
-	var white := StandardMaterial3D.new()
-	white.albedo_color = Color(0.88, 0.9, 0.92)
-	white.roughness = 0.45
-	white.metallic = 0.3
-	var blue := StandardMaterial3D.new()
-	blue.albedo_color = Color(0.16, 0.32, 0.62)
-	blue.roughness = 0.4
-	blue.metallic = 0.4
-	var dark := StandardMaterial3D.new()
-	dark.albedo_color = Color(0.12, 0.13, 0.15)
-	dark.roughness = 0.6
-	dark.metallic = 0.5
-
-	# Legs, torso and head: each family owns its own meshes (`player/legs.gd`,
-	# `player/torsos.gd`, `player/heads.gd`). Part set before the node enters the tree, so its
-	# own _ready does not build a second copy.
-	_legs = Legs.new()
-	_legs.name = "Legs"
-	_legs.set_part(Legs.STOCK)
-	add_child(_legs)
-	_torso = Torsos.new()
-	_torso.name = "Torso"
-	_torso.set_part(Torsos.STOCK)
-	add_child(_torso)
-	_head = Heads.new()
-	_head.name = "Head"
-	_head.set_part(Heads.STOCK)
-	add_child(_head)
+	# The machine itself — legs, torso, head and arms — in the one builder both this node and the
+	# Robo Editor's picture use (`player/drone_model.gd`), so the drone on the bench cannot drift
+	# from the drone on the beach. It is a node with a script, like the families it holds, because
+	# it owns meshes: nothing else may parent a body mesh onto the player.
+	_model = DroneModel.new()
+	_model.name = "DroneModel"
+	add_child(_model)                      # which builds the stock machine in its own _ready
+	_arm_pivots = _model.arm_pivots()
 	_refresh_eye()
-
-	_build_arms(white, blue, dark)
-
-
-## ---- arms ---------------------------------------------------------------
-## Two thin arms off the body sides: ball shoulder, upper arm, blue cuff,
-## forearm and a two-finger claw. Each arm hangs from its own pivot Node3D so
-## _animate_arms can swing it as a unit.
-
-const ARM_SHOULDER_Y := 0.72   # just above the blue chest band
-const ARM_SHOULDER_X := 0.36   # outside the body half-width (0.28)
-
-func _build_arms(white: StandardMaterial3D, blue: StandardMaterial3D,
-		dark: StandardMaterial3D) -> void:
-	for side in [-1.0, 1.0]:
-		var pivot := Node3D.new()
-		pivot.name = "ArmL" if side < 0.0 else "ArmR"
-		pivot.position = Vector3(side * ARM_SHOULDER_X, ARM_SHOULDER_Y, 0.0)
-		pivot.rotation.z = side * 0.10     # splay the arms slightly outward
-		add_child(pivot)
-		_arm_pivots.append(pivot)
-
-		# Shoulder ball.
-		var ball := MeshInstance3D.new()
-		var bm := SphereMesh.new()
-		bm.radius = 0.07
-		bm.height = 0.14
-		ball.mesh = bm
-		ball.material_override = dark
-		pivot.add_child(ball)
-
-		# Upper arm.
-		var upper := MeshInstance3D.new()
-		var um := BoxMesh.new()
-		um.size = Vector3(0.09, 0.26, 0.10)
-		upper.mesh = um
-		upper.position.y = -0.15
-		upper.material_override = white
-		pivot.add_child(upper)
-
-		# Elbow joint.
-		var elbow := MeshInstance3D.new()
-		var em := CylinderMesh.new()
-		em.top_radius = 0.045
-		em.bottom_radius = 0.045
-		em.height = 0.11
-		elbow.mesh = em
-		elbow.position.y = -0.29
-		elbow.rotation.z = PI / 2           # axle across the arm
-		elbow.material_override = dark
-		pivot.add_child(elbow)
-
-		# Blue cuff, then the forearm below it.
-		var cuff := MeshInstance3D.new()
-		var cm := BoxMesh.new()
-		cm.size = Vector3(0.105, 0.06, 0.115)
-		cuff.mesh = cm
-		cuff.position.y = -0.34
-		cuff.material_override = blue
-		pivot.add_child(cuff)
-
-		var fore := MeshInstance3D.new()
-		var fm := BoxMesh.new()
-		fm.size = Vector3(0.075, 0.20, 0.085)
-		fore.mesh = fm
-		fore.position.y = -0.46
-		fore.material_override = white
-		pivot.add_child(fore)
-
-		# Two-finger claw: small dark paddles angled open.
-		for finger in [-1.0, 1.0]:
-			var claw := MeshInstance3D.new()
-			var km := BoxMesh.new()
-			km.size = Vector3(0.025, 0.10, 0.03)
-			claw.mesh = km
-			claw.position = Vector3(finger * 0.04, -0.60, 0.0)
-			claw.rotation.z = finger * 0.28
-			claw.material_override = dark
-			pivot.add_child(claw)
 
 
 ## ---- the satchel ---------------------------------------------------------
@@ -635,54 +530,54 @@ func set_torso(part_id: String) -> bool:
 	## height, which the stock, slim, plated and barrel bodies all share closely enough that the
 	## difference is not visible — when parts start to matter, the torso's `shoulder_y()` is what
 	## moves them.
-	if _torso == null:
+	if _model == null:
 		return false
-	return _torso.set_part(part_id)
+	return _model.set_part("torso", part_id)
 
 
 func fitted_torso() -> String:
 	## Which torso is on the drone right now; "" when there is nothing to ask.
-	if _torso == null:
+	if _model == null:
 		return ""
-	return _torso.part()
+	return _model.fitted("torso")
 
 
 func set_head(part_id: String) -> bool:
 	## Swap the head, and **re-read its eye**: equipment keeps a reference to the lens it dims for
 	## the hurt flash, and every head builds a new one (`player/heads.gd`'s contract: a child named
 	## `Eye`). Without this the flash would dim a lens that is no longer on the drone.
-	if _head == null or not _head.set_part(part_id):
+	if _model == null or not _model.set_part("head", part_id):
 		return false
 	_refresh_eye()
 	return true
 
 
 func fitted_head() -> String:
-	if _head == null:
+	if _model == null:
 		return ""
-	return _head.part()
+	return _model.fitted("head")
 
 
 func _refresh_eye() -> void:
-	_eye = null
-	if _head != null:
-		_eye = _head.get_node_or_null("Eye") as MeshInstance3D
+	## The lens the hurt flash dims, asked for rather than kept: the model re-reads it from
+	## whichever head is on the drone, so a swap cannot leave this holding the old one.
+	_eye = _model.eye() if _model != null else null
 
 
 func set_legs(part_id: String) -> bool:
 	## The one way to change what the drone stands on — the Frame screen calls this
 	## (`player/legs.gd` holds the catalogue and builds the geometry). False when the
 	## id is not a fit we know.
-	if _legs == null:
+	if _model == null:
 		return false
-	return _legs.set_part(part_id)
+	return _model.set_part("legs", part_id)
 
 
 func fitted_legs() -> String:
 	## Which fit is on the drone, for saving and for anything showing it.
-	if _legs == null:
+	if _model == null:
 		return ""
-	return _legs.part()
+	return _model.fitted("legs")
 
 
 func get_sword_pivot() -> Node3D:

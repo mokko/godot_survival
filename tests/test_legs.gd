@@ -21,7 +21,9 @@ func _init() -> void:
 		await physics_frame
 	var fails: PackedStringArray = []
 
-	var legs: Node3D = equip.get_node_or_null("Legs")
+	# The legs now hang under the one builder both the drone and the Robo Editor's picture use
+	# (`player/drone_model.gd`), so the path is one deeper than it was.
+	var legs: Node3D = equip.get_node_or_null("DroneModel/Legs")
 	if legs == null:
 		print("RESULT FAIL: no Legs node on the drone")
 		quit(1)

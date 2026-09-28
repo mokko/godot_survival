@@ -1,7 +1,8 @@
 # The service bench: how the robot editor opens
 
-The bench is the diegetic way into the **Frame screen**, where the drone the player is steering is
-re-fitted. `tools/build_benches.gd` places the benches, `world/bench.gd` is the behaviour,
+The bench is the diegetic way into the robot editor — the screen's heading reads **Robo Editor**, and
+its file, node and the code's own name for it still say **Frame** — where the drone the player is
+steering is re-fitted. `tools/build_benches.gd` places the benches, `world/bench.gd` is the behaviour,
 `ui/editor.gd` + `ui/editor.tscn` are the screen, and `ui/pause_menu.gd` owns the key that closes it.
 
 ## Where the benches are
@@ -79,11 +80,29 @@ Standing at a bench shows the prompt **"E — service the frame"**. Like the boa
 code and parented to the HUD; it shows only while the world holds the mouse, so a menu or the inventory
 takes `E` first.
 
-## The screen, and the parts
+## The screen, the parts and the picture
 
-The Frame screen lists the **leg fits the drone owns** — the stock treads it was built with, plus the
-parts it has found. It marks the fit it is wearing and fits another when you press it; a part the
-player has not found is not listed at all, so the screen never teases something that is not there.
+The screen is **three rows**, one per family — **Body** (`player/torsos.gd`), **Head**
+(`player/heads.gd`) and **Legs** (`player/legs.gd`) — each showing the part that is on the drone now
+between ◀ ▶ buttons that walk that family's own catalogue. The walk **wraps**, so no row is ever a
+dead end, and the stock part is a row like any other: the machine the drone was built with is
+somewhere you can walk back to.
+
+Beside the rows is a **picture of the machine as it stands** (Maurice, 27 Sep). It is a
+`SubViewport` in `ui/editor.tscn` holding a real `player/drone_model.gd` — the same builder the
+player's machine uses — with a camera and two lights, dressed from the same three ids the drone is
+wearing. So a cycle is something the player *sees* and not only a name that changed, and the picture
+cannot drift from the machine on the beach. **The camera stands in front of it** (`-Z` is the side the
+drone faces): the player's own camera sits behind the machine and would show its back, which is not
+what a picture of the robot is for. The viewport renders only while the screen is open
+(`UPDATE_WHEN_PARENT_VISIBLE`), so a closed bench costs nothing.
+
+**Every variant is reachable for now** (Maurice, 27 Sep): the parts are cosmetics that change nothing
+yet and the screen is still being built, so all of them have to be selectable without finding
+anything. Fitting goes through **one door**, `player/player.gd::fit_body_part(kind, id)` — and that
+function is exactly where the ownership rule lands when parts start to matter ("eventually we'll work
+with the parts we have found"). The found-parts loop below is untouched, and `fit_legs()` still
+carries the old gate for that path.
 
 **Robot parts go straight to the robot, not into the inventory** (decided). Two things follow, and both
 are the point:
@@ -93,13 +112,16 @@ are the point:
   small registry instead, saved with the run like the notebook is.
 - The inventory stays what it is — tools and loot — instead of filling with limbs.
 
-The bench remains the only way into the editor: seeing what you have collected and fitting it both
+The bench remains the only way into the editor: seeing what the drone is made of and changing it both
 happen at a bench.
 
-The first three parts are **leg fits** (`player/legs.gd`): *triangle treads*, *three legs* (R2-D2's two
-side legs plus the third centre one) and *telescope legs*, on top of the stock twin treads. `legs.gd`
-is the one place a fit is described — its name, its geometry and the colour it shows as a part lying in
-the world.
+The catalogues: **legs** — *triangle treads*, *three legs* (R2-D2's two side legs plus the third centre
+one) and *telescope legs*, on top of the stock twin treads; **bodies** — *slim*, *plated* and *barrel*
+on top of the stock body; **heads** — *visor*, *twin-lens* and *dish* on top of the stock dome. Each
+file is the one place its family is described — the names, the geometry and the colour a part shows as
+lying in the world. The drone's side is `player/equipment.gd`'s `set_legs`/`set_torso`/`set_head` and
+`fitted_*()`, which hand straight to the one builder. A head carries one contract: a child named
+**`Eye`**, the lens the hurt flash dims, so `set_head()` re-reads it.
 
 - **Finding one**: `items/part_pickup.gd` sits in the world, and walking into it calls
   `player.collect_part()`. `tools/build_parts.gd` bakes `world/parts_placed.tscn` from a `SITES` table
@@ -108,10 +130,12 @@ the world.
   and carry it back, which is the loop.
 - **Owning one**: `player/robot_parts.gd`, a static registry saved under `parts`. A fresh run clears it;
   dying does not.
-- **Fitting one**: only at a bench, and only through `player.fit_legs()`, which is where the ownership
-  rule lives — the stock fit is always the drone's, anything else must have been found. `ui/editor.gd`
-  never touches the equipment directly, so nothing can be fitted by guessing an id.
-- **Keeping it**: the fit rides in the save under `legs`, the parts list under `parts`.
+- **Fitting one**: only at a bench, and only through the screen's rows, which call
+  `player.fit_body_part()`. The found-part path keeps the ownership rule in `player.fit_legs()` — the
+  stock fit is always the drone's, anything else must have been found. `ui/editor.gd` never touches the
+  equipment directly, so nothing can be fitted by guessing an id.
+- **Keeping it**: the three parts ride in the save under `legs`, `torso` and `head`; the parts list
+  under `parts`.
 
 ## Known rough edges
 

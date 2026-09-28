@@ -38,7 +38,7 @@ anchor_bottom = 1.0
 layout_mode = 2
 
 [node name="Panel" type="PanelContainer" parent="Center/Padding"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(900, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_panel")
 
@@ -59,11 +59,33 @@ theme_override_font_sizes/font_size = 16
 text = "Service bench"
 horizontal_alignment = 1
 
-[node name="Fits" type="VBoxContainer" parent="Center/Padding/Panel/VBox"]
+[node name="Content" type="HBoxContainer" parent="Center/Padding/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 26
+
+[node name="Preview" type="SubViewportContainer" parent="Center/Padding/Panel/VBox/Content"]
+custom_minimum_size = Vector2(300, 340)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Center/Padding/Panel/VBox/Content/Preview"]
+transparent_bg = true
+handle_input_locally = false
+own_world_3d = true
+render_target_update_mode = 3
+
+[node name="Side" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+size_flags_vertical = 4
+
+[node name="Fits" type="VBoxContainer" parent="Center/Padding/Panel/VBox/Content/Side"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Body" type="Label" parent="Center/Padding/Panel/VBox"]
+[node name="Body" type="Label" parent="Center/Padding/Panel/VBox/Content/Side"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 autowrap_mode = 3

@@ -126,6 +126,29 @@ func _init() -> void:
 		fails.append("cycling the head did not move it: %s" % editor.fitted("head"))
 	if player.equipment._eye == null or player.equipment._eye.name != "Eye":
 		fails.append("the swapped head left the drone with no eye")
+
+	# The picture: a real drone model in a SubViewport, with a camera and lights, **wearing what
+	# the drone is wearing** — the screen shows the change rather than only naming it. Checked
+	# after the cycles above, so this is the "it followed" assertion and not just "it exists".
+	var picture: Node3D = editor.preview_model()
+	if picture == null:
+		fails.append("the screen has no picture of the drone")
+	else:
+		for kind in ["torso", "head", "legs"]:
+			if str(picture.fitted(kind)) != str(editor.fitted(kind)):
+				fails.append("the picture's %s is %s, the drone's is %s"
+						% [kind, str(picture.fitted(kind)), str(editor.fitted(kind))])
+		if picture.fitted("head") == "":
+			fails.append("the picture is showing no head at all")
+	var viewport: SubViewport = editor.preview
+	if viewport == null:
+		fails.append("the picture has no viewport")
+	else:
+		if viewport.get_node_or_null("PreviewCamera") == null:
+			fails.append("the picture has no camera")
+		if viewport.find_children("*", "DirectionalLight3D", true, false).is_empty():
+			fails.append("the picture has no light")
+
 	# The part itself is *found* the way the world gives it (walking into the pickup) before the
 	# row walks to it, so section 5 still has a found part to restore.
 	for p in pickups:
