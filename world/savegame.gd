@@ -206,6 +206,9 @@ static func slot_summary(slot: int) -> Dictionary:
 		"saved_at": 0,
 		"life": 0.0,
 		"sunbulbs": 0,
+		# Which version wrote it, so the screen can warn about a save from another build
+		# before the player loads it. An empty row has no writer to name.
+		"version": "",
 	}
 	if data.is_empty():
 		return row
@@ -213,6 +216,7 @@ static func slot_summary(slot: int) -> Dictionary:
 	row["saved_at"] = int(data.get("saved_at", 0))
 	row["life"] = float(data.get("life", 0.0))
 	row["sunbulbs"] = int(data.get("sunbulbs", 0))
+	row["version"] = str(data.get("version", ""))
 	return row
 
 
@@ -224,14 +228,59 @@ static func list_slots() -> Array:
 
 
 static func describe(row: Dictionary) -> String:
-	## A row's detail line: when it was saved and what the drone was carrying.
+	## A row's detail line: when it was saved and what the drone was carrying. A save written
+	## by a different version says so here, because this is the line the player is reading
+	## while choosing — see `version_warning()` for the sentence the screen shows with it.
 	if bool(row.get("empty", true)):
 		return "empty"
 	var when := int(row.get("saved_at", 0))
 	var stamp := "when it was saved" if when <= 0 \
 			else Time.get_datetime_string_from_unix_time(when, true)
-	return "%s — charge %.0f, sunbulbs %d" % [
+	var text := "%s — charge %.0f, sunbulbs %d" % [
 		stamp, float(row.get("life", 0.0)), int(row.get("sunbulbs", 0))]
+	if from_other_version(row):
+		var writer := saved_by(row)
+		text += " · written by %s" % (writer if writer != "" else "an older build")
+	return text
+
+
+## The version this build stamps into a save — the same setting the write path stamps, so a
+## save written by this build always compares equal to it.
+static func build_version() -> String:
+	return str(ProjectSettings.get_setting("application/config/version"))
+
+
+static func saved_by(row: Dictionary) -> String:
+	## The version that wrote a slot's save; "" when the file does not say — anything written
+	## before the key existed, or by something that is not this game.
+	return str(row.get("version", ""))
+
+
+static func from_other_version(row: Dictionary) -> bool:
+	## Whether a save was written by a different version of the game than the one running. A
+	## save that does not name its writer counts as different: it certainly was not written by
+	## this build, and that is the fact worth warning about. An empty slot is nobody's.
+	if bool(row.get("empty", true)):
+		return false
+	return saved_by(row) != build_version()
+
+
+static func version_warning(rows: Array) -> String:
+	## One sentence for the Saves screen when a save in the list came from another version,
+	## naming the versions so the player can judge for themselves. "" when every save was
+	## written by this build, which is the ordinary case.
+	var writers: Array = []
+	for row in rows:
+		if row is Dictionary and from_other_version(row):
+			var writer := saved_by(row)
+			var named := writer if writer != "" else "an older build"
+			if not writers.has(named):
+				writers.append(named)
+	if writers.is_empty():
+		return ""
+	writers.sort()
+	return "A save here was written by %s; this build is %s. Loading it may not restore everything as it was." % [
+		", ".join(PackedStringArray(writers)), build_version()]
 
 
 # -------------------------------------------------------------- which slot

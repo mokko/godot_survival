@@ -86,6 +86,12 @@ func _open() -> void:
 	visible = true
 	hint.text = "" if mode == Mode.SAVE else "Which save would you like to load?"
 	_refresh()
+	# A save written by another version is worth knowing about *before* it is loaded, so the
+	# sentence goes on the screen the player is choosing from. Load mode only: save mode
+	# restores nothing, and its rows are there to be written into.
+	var warning := version_warning()
+	if warning != "":
+		hint.text = "%s\n%s" % [hint.text, warning]
 	# Load mode: the slot last played is the row Continue used to open, so it is
 	# the row holding focus — Load Game, Enter, and you are back in that run.
 	# Anything else (save mode, no last-played save, an emptied slot) falls back
@@ -101,6 +107,15 @@ func _open() -> void:
 func close() -> void:
 	visible = false
 	closed.emit()
+
+
+func version_warning() -> String:
+	## The warning line for saves written by another version of the game, read off the list
+	## itself; "" when every save here was written by this build, which is the ordinary case.
+	## Load mode only — save mode restores nothing.
+	if mode != Mode.LOAD:
+		return ""
+	return SaveGame.version_warning(SaveGame.list_slots())
 
 
 func slot_button(slot: int) -> Button:

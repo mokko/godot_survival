@@ -58,6 +58,31 @@ the screen closes on ESC there; the pause menu owns ESC for itself and sets
 `escape_closes = false`, so ESC walks back out of the list to the menu instead of
 resuming the game.
 
+## A save from another version
+
+Every save names the build that wrote it (`version`, stamped by `write_slot()`), and the Load
+screen **flags the ones that came from another version** instead of letting the player find out by
+loading them:
+
+- the row's detail line says who wrote it — `… · written by 0.0.1-alpha` — because that is the line
+  being read while choosing;
+- one sentence above the rows names both versions and says what to expect: *"A save here was
+  written by 0.0.1-alpha; this build is 0.0.3-alpha. Loading it may not restore everything as it
+  was."*
+
+It **warns, it does not block**: a save from another version loads like any other and the player
+judges. The sentence is about the list and not a latch — remove the odd save and it goes away.
+
+A save that does not name a version at all counts as **another version**, because it was certainly
+not written by this build. That is the honest reading, and it is also the case where a missing key
+can genuinely mean a missing feature: a run saved before milestones existed, for instance, starts
+its milestone count from nothing.
+
+**Save mode shows none of it**: nothing is being restored there, so its rows are only there to be
+written into. `tests/test_save_version_warning.gd` pins both directions — a foreign save is flagged
+by name, and a save this build wrote stays completely quiet, because a warning that fires on
+everything is one nobody reads.
+
 ## Where `user://` really is
 
 Ask the engine (`OS.get_user_data_dir()`) rather than trusting any path written down,
