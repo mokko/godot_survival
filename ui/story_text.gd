@@ -74,14 +74,15 @@ you knew who you were, but now you realize you don't remember your name.
 ##
 ## A screen is played by whoever **causes** it, which is why the trigger lives in the world
 ## node and not in a list here: the satchel knows it was opened, and the page about finding a
-## weapon is about the finding. `explorer_kit` is therefore played once a run — the satchel
-## opens once — while `katana` is played by **any** katana picked up, on purpose: the page
-## is about recognising the sword, not about that particular blade. `bench` is played by the
-## first bench the player works at (`world/bench.gd`), which opens the Frame screen when the
-## page closes: the page is that screen's preface.
-##
-## A page is asked for on the **event** and never from saved state, so loading a run does not
-## replay what the player already heard.
+## weapon is about the finding. **Each is shown once a run** — `ui/story.gd:play_milestone`
+## refuses one the run has already been shown — and the callers ask on the **event**, never
+## from saved state, so a loaded run neither replays what the player already heard nor counts
+## it again. `explorer_kit` therefore plays the first time a satchel is opened, `katana` the
+## first time a sword is picked up (any katana asks; only the first is answered, because the
+## page is about recognising the sword and that happens once), and `bench` the first time a run
+## works at a bench (`world/bench.gd`), which opens the Robo Editor when the page closes: the
+## page is that screen's preface.
+
 const MILESTONES := {
 	"explorer_kit": {
 		"title": "The Explorer's Kit",

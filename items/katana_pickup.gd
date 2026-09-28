@@ -19,8 +19,10 @@ extends "res://items/item_pickup.gd"
 ## are on the terrain — see `world/kit.md`.
 ##
 ## Picking it up is also one of the run's **screens**: `ui/story_text.gd`'s `katana`
-## milestone, played through the HUD's story screen. Any katana plays it, on purpose —
-## the page is about recognising a sword for what it is, not about that particular blade.
+## milestone, played through the HUD's story screen. Any katana asks for that page — the
+## page is about recognising a sword for what it is, not about that particular blade — and
+## the page is **once a run**, so the second sword found gets no screen
+## (`ui/story.gd:play_milestone` refuses one the run has already been shown).
 ##
 ## **A death puts the sword back where it lay** (`pickup` group →
 ## `items/item_pickup.gd::respawn()`): the blade is the one thing a fresh run needs to

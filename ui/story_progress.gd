@@ -7,9 +7,11 @@ extends RefCounted
 ## `milestones` key).
 ##
 ## It records **what the player has been told**, not what they have done: the milestone itself
-## is the discovering, so a page is counted at the moment it is played. A milestone that plays
-## twice — `katana` is played by *any* katana picked up, on purpose — therefore counts once,
-## and the indicator does not inflate for finding a second sword.
+## is the discovering, so a page is counted at the moment it is played. And because a milestone
+## is shown **once a run** (`ui/story.gd:play_milestone` refuses one this run has already been
+## shown), the registry is also what stops a page being played twice — a second katana asks for
+## the page and gets nothing, and a bench the run has already been told about opens straight to
+## the Robo Editor instead of repeating itself.
 ##
 ## A fresh run clears it. Dying does not: like the notebook, this is the run's own record of
 ## what it has learned, not something the drone was carrying.

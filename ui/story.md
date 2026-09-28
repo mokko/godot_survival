@@ -36,9 +36,12 @@ shows it.
   screen is already the last of the x — the first milestone a run meets reads `1/5`, not `0/5`.
 - **y is the catalogue's size** (`ui/story_text.gd`'s `MILESTONES`), so writing a new milestone
   moves the denominator and nothing else has to change.
-- **It counts, it does not tally.** `katana` plays for *any* katana picked up, on purpose: the
-  second sword plays the page again and the count does not move. Replaying a milestone already
-  discovered does not recount either.
+- **It is shown, and counted, once a run.** A milestone the run has already been shown is not
+  played again — the second katana is still a katana, and the page said what it had to say the
+  first time — so `x` only ever moves forward. The refusal lives in `play_milestone()`, which is
+  the one place every caller goes through, and it reads the same registry the indicator draws, so
+  "shown once" and "counted once" cannot drift apart. A caller that gets no screen carries on
+  without one: a bench the run has already been told about opens straight to the Robo Editor.
 - The count is **saved with the run** (`ui/story_progress.gd`, the `milestones` key), so a loaded
   run carries the indicator on rather than restarting it, and a fresh run clears it. Like the
   notebook, it is the run's own record of what it has been told.

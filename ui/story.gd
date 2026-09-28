@@ -18,7 +18,10 @@ extends Control
 ##    (`play_milestone()`, called by `world/explorer_kit.gd`, `items/katana_pickup.gd` and
 ##    `world/bench.gd`), and the last press closes the screen and hands the run back. The
 ##    world is paused behind it and **no scene is ever reloaded** — entering the game from a
-##    milestone would restart the very run the page is narrating. See `ui/story.md`.
+##    milestone would restart the very run the page is narrating. **A milestone is shown once a
+##    run**: a second katana, or a bench the run has already been told about, asks for its page
+##    and gets no screen, because `play_milestone()` refuses one this run has already been shown
+##    (`ui/story_progress.gd` is the record). See `ui/story.md`.
 ##
 ## The click is handled in _unhandled_input, so every node in story.tscn must
 ## keep mouse_filter = MOUSE_FILTER_IGNORE: a Control on the default STOP grabs
@@ -132,13 +135,22 @@ func _ready() -> void:
 func play_milestone(id: String) -> bool:
 	## Put a mid-run screen up: **one** page from `ui/story_text.gd`'s milestones, on the
 	## same machine as the intro. True when there was a page to play — an id with no words
-	## behind it is refused rather than shown blank.
+	## behind it is refused rather than shown blank, and so is one **this run has already been
+	## shown**, because a milestone is once a run (`ui/story_progress.gd`).
 	##
 	## The world is paused while it is up (a day cycle turning and an animal charging
 	## behind a text screen would both be wrong) and it is handed back when the screen
 	## closes. Whoever asked is free to react to `finished` — or not.
 	var record: Dictionary = StoryText.milestone(id)
 	if record.is_empty():
+		return false
+	# **Once a run** (Maurice, 27 Sep): a milestone the player has already been shown is not
+	# shown again. The second katana is still a katana, and the page said what it had to say
+	# the first time. The registry is what makes that true for every caller at once, and it is
+	# the same record the indicator counts, so "shown once" and "counted once" cannot drift
+	# apart. A caller that gets false simply carries on without a screen — `world/bench.gd`,
+	# which plays `robo_editor` before opening the Robo Editor, falls through to the screen.
+	if StoryProgress.has(id):
 		return false
 	_milestone = id
 	_pages = [record]

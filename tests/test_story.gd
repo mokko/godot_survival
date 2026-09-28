@@ -267,28 +267,35 @@ func _init() -> void:
 	screen._advance()
 	if _closed != 1:
 		fails.append("a closed milestone screen answered a press")
-	# ...and it can be played again (a run may find a second katana), from its own first
-	# character rather than the end of the last one.
+	# ...and a *different* milestone can follow one, from its own first character rather than
+	# the end of the last one.
 	if not screen.play_milestone("katana"):
 		fails.append("the katana milestone did not play")
 	screen.set_process(false)
 	if _letters(screen).length() >= screen.page_text().length():
-		fails.append("a replayed milestone came up already finished")
+		fails.append("a second milestone came up already finished")
 	screen._finish_milestone()
-	# The indicator is progress, not a tally of how often a page has been seen: the second
-	# katana played its page again and the count moved once, not twice.
+	# The indicator is progress and only ever moves forward: two milestones seen reads 2.
 	if screen.milestones_seen() != 2:
 		fails.append("after a second milestone the count is %d" % screen.milestones_seen())
 	if screen.progress.text != "2/%d" % StoryText.MILESTONES.size():
 		fails.append("after a second milestone the indicator reads '%s'" % screen.progress.text)
-	# ...and a milestone the run has already been shown does not count again.
-	if not screen.play_milestone("explorer_kit"):
-		fails.append("a milestone already discovered did not play again")
+	# **Once a run** (Maurice, 27 Sep): a milestone the run has already been shown is refused
+	# rather than repeated — the second katana gets no page — and the refusal changes nothing.
+	if screen.play_milestone("katana"):
+		fails.append("a milestone the run had already been shown played again")
+	if screen.is_playing():
+		fails.append("a refused milestone screen came up anyway")
 	if screen.milestones_seen() != 2:
-		fails.append("replaying a known milestone moved the count to %d"
-				% screen.milestones_seen())
+		fails.append("a refused milestone moved the count to %d" % screen.milestones_seen())
 	if screen.progress.text != "2/%d" % StoryText.MILESTONES.size():
-		fails.append("replaying a known milestone reads '%s'" % screen.progress.text)
+		fails.append("a refused milestone changed the indicator to '%s'" % screen.progress.text)
+	# ...and the rule is about repeating, not about being shown at all: a milestone this run has
+	# not met yet still plays, and still moves the count.
+	if not screen.play_milestone("ezo"):
+		fails.append("a milestone the run had not seen yet did not play")
+	if screen.milestones_seen() != 3:
+		fails.append("a new milestone counted %d" % screen.milestones_seen())
 	screen._finish_milestone()
 	root.remove_child(screen)
 	screen.free()
